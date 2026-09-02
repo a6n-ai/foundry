@@ -4,14 +4,18 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  CheckIcon,
   KeyRoundIcon,
   LinkIcon,
+  PlusIcon,
   PuzzleIcon,
   RefreshCwIcon,
+  TagIcon,
   UnplugIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SectionCard } from "@foundry/design-system";
+import { Badge } from "@foundry/ui/badge";
 import { Button } from "@foundry/ui/button";
 import { Input } from "@foundry/ui/input";
 import { Label } from "@foundry/ui/label";
@@ -22,6 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@foundry/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@foundry/ui/table";
+import { cn } from "@foundry/ui/cn";
 import { CLOVER_PLUGIN } from "../plugin";
 import type {
   CloverApiTokenConnectInput,
@@ -336,6 +342,27 @@ export function CloverSettingsPanel({
  *
  * Leaving a row unset is valid and keeps the previous untyped behaviour.
  */
+type WebSource = "pickup" | "delivery";
+
+const SOURCE_META: Record<WebSource, { label: string; short: string }> = {
+  pickup: { label: "Website pickup", short: "Pickup" },
+  delivery: { label: "Website delivery", short: "Delivery" },
+};
+
+/**
+ * Maps website fulfillment → Clover order type, as a source-tagging table
+ * instead of two independent selects.
+ *
+ * This is what makes a website order announce itself on Register. Uber Eats and
+ * DoorDash orders arrive already tagged by their own Clover integration, and that
+ * tag is what drives the POS alert and the kitchen print rules; an order created
+ * through the API with no type just appears silently in the Orders list.
+ *
+ * Each source (Pickup, Delivery) can be tagged onto exactly one order type —
+ * clicking a tag on a row assigns that source there and clears it from wherever
+ * it was before, so the table always shows the whole mapping at a glance rather
+ * than splitting it across two dropdowns.
+ */
 function WebOrderTypeFields({
   orderTypes,
   initial,
@@ -350,38 +377,29 @@ function WebOrderTypeFields({
   pending: boolean;
 }) {
   const router = useRouter();
-  // Radix Select treats "" as "no value" and refuses an item with an empty value,
-  // so an explicit "not set" choice needs a sentinel that never collides with a
-  // Clover id.
-  const NONE = "__none__";
-  const CREATE = "__create__";
-  const [pickup, setPickup] = useState(initial.pickup ?? NONE);
-  const [delivery, setDelivery] = useState(initial.delivery ?? NONE);
-  const [creating, setCreating] = useState<"pickup" | "delivery" | null>(null);
+  const [assignments, setAssignments] = useState(initial);
+  const [creating, setCreating] = useState(false);
   const [creatingPending, startCreating] = useTransition();
 
-  const dirty = (pickup === NONE ? undefined : pickup) !== initial.pickup
-    || (delivery === NONE ? undefined : delivery) !== initial.delivery;
+  const dirty = assignments.pickup !== initial.pickup || assignments.delivery !== initial.delivery;
 
-  const rows: {
-    key: "pickup" | "delivery";
-    label: string;
-    defaultName: string;
-    value: string;
-    set: (v: string) => void;
-  }[] = [
-    { key: "pickup", label: "Website pickup", defaultName: "Website Pickup", value: pickup, set: setPickup },
-    { key: "delivery", label: "Website delivery", defaultName: "Website Delivery", value: delivery, set: setDelivery },
-  ];
+  const toggle = (source: WebSource, typeId: string) => {
+    setAssignments((prev) => {
+      const next = { ...prev };
+      // Toggling an already-tagged row untags it; otherwise this row takes the
+      // source and any row that previously held it loses it — one owner at a time.
+      next[source] = prev[source] === typeId ? undefined : typeId;
+      return next;
+    });
+  };
 
-  const createOrderType = (key: "pickup" | "delivery", label: string) => {
+  const createOrderType = (label: string) => {
     if (!onCreate) return;
     startCreating(async () => {
       try {
         const created = await onCreate(label);
         toast.success(`Created "${created.label}" on Clover`);
-        (key === "pickup" ? setPickup : setDelivery)(created.id);
-        setCreating(null);
+        setCreating(false);
         router.refresh();
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Could not create order type");
@@ -391,95 +409,132 @@ function WebOrderTypeFields({
 
   return (
     <div className="space-y-3 border-t pt-4">
-      <div className="space-y-1">
-        <p className="text-sm font-medium">Order types for website orders</p>
-        <p className="text-muted-foreground text-xs">
-          Tag website orders so Register announces and prints them the way it does Uber
-          Eats and DoorDash orders. Untagged orders arrive silently in the Orders list.
-        </p>
-      </div>
-
-      {orderTypes.length === 0 && !onCreate ? (
-        <p className="text-warn text-xs">
-          No order types found on this merchant. Create them in the Clover dashboard under
-          Setup → Order Types, then reload this page.
-        </p>
-      ) : (
-        <>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {rows.map((row) =>
-              creating === row.key ? (
-                <div key={row.key} className="space-y-1.5">
-                  <Label htmlFor={`order-type-new-${row.key}`}>{row.label}</Label>
-                  <form
-                    className="flex gap-1.5"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const name = new FormData(e.currentTarget).get("name");
-                      createOrderType(row.key, String(name ?? "").trim() || row.defaultName);
-                    }}
-                  >
-                    <Input
-                      id={`order-type-new-${row.key}`}
-                      name="name"
-                      defaultValue={row.defaultName}
-                      disabled={creatingPending}
-                      autoFocus
-                    />
-                    <Button type="submit" size="sm" disabled={creatingPending}>
-                      Create
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      disabled={creatingPending}
-                      onClick={() => setCreating(null)}
-                    >
-                      Cancel
-                    </Button>
-                  </form>
-                </div>
-              ) : (
-                <div key={row.key} className="space-y-1.5">
-                  <Label htmlFor={`order-type-${row.key}`}>{row.label}</Label>
-                  <Select
-                    value={row.value}
-                    onValueChange={(v) => (v === CREATE ? setCreating(row.key) : row.set(v))}
-                    disabled={pending || creatingPending}
-                  >
-                    <SelectTrigger id={`order-type-${row.key}`}>
-                      <SelectValue placeholder="Not set" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={NONE}>Not set</SelectItem>
-                      {orderTypes.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.label}
-                        </SelectItem>
-                      ))}
-                      {onCreate ? (
-                        <SelectItem value={CREATE}>+ Create new order type…</SelectItem>
-                      ) : null}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ),
-            )}
-          </div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-sm font-medium">Order types for website orders</p>
+          <p className="text-muted-foreground text-xs">
+            Tag each source onto the Clover order type it should ride in on. Register
+            announces and prints tagged orders the way it does Uber Eats and DoorDash —
+            an untagged source arrives silently in the Orders list.
+          </p>
+        </div>
+        {onCreate && !creating ? (
           <Button
             type="button"
+            variant="outline"
             size="sm"
-            disabled={pending || !dirty}
-            onClick={() =>
-              onSave({
-                pickup: pickup === NONE ? undefined : pickup,
-                delivery: delivery === NONE ? undefined : delivery,
-              })
-            }
+            className="shrink-0 gap-1.5"
+            disabled={pending || creatingPending}
+            onClick={() => setCreating(true)}
           >
-            Save order types
+            <PlusIcon className="size-3.5" />
+            New type
           </Button>
+        ) : null}
+      </div>
+
+      {creating ? (
+        <form
+          className="bg-muted/30 flex items-end gap-1.5 rounded-lg border p-2.5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const name = new FormData(e.currentTarget).get("name");
+            createOrderType(String(name ?? "").trim() || "Website Order");
+          }}
+        >
+          <div className="flex-1 space-y-1">
+            <Label htmlFor="order-type-new" className="text-xs">
+              New order type name
+            </Label>
+            <Input
+              id="order-type-new"
+              name="name"
+              defaultValue="Website Order"
+              disabled={creatingPending}
+              autoFocus
+            />
+          </div>
+          <Button type="submit" size="sm" disabled={creatingPending}>
+            Create
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={creatingPending}
+            onClick={() => setCreating(false)}
+          >
+            Cancel
+          </Button>
+        </form>
+      ) : null}
+
+      {orderTypes.length === 0 ? (
+        <div className="rounded-lg border border-dashed p-4 text-center">
+          <p className="text-muted-foreground text-xs">
+            {onCreate
+              ? 'No order types on this merchant yet — create one above to start tagging.'
+              : "No order types found on this merchant. Create them in the Clover dashboard under Setup → Order Types, then reload this page."}
+          </p>
+        </div>
+      ) : (
+        <>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order type</TableHead>
+                {(Object.keys(SOURCE_META) as WebSource[]).map((source) => (
+                  <TableHead key={source} className="text-center">
+                    {SOURCE_META[source].label}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orderTypes.map((type) => (
+                <TableRow key={type.id}>
+                  <TableCell className="font-medium">{type.label}</TableCell>
+                  {(Object.keys(SOURCE_META) as WebSource[]).map((source) => {
+                    const active = assignments[source] === type.id;
+                    return (
+                      <TableCell key={source} className="text-center">
+                        <button
+                          type="button"
+                          disabled={pending}
+                          onClick={() => toggle(source, type.id)}
+                          aria-pressed={active}
+                          className="inline-flex"
+                        >
+                          <Badge
+                            variant={active ? "default" : "outline"}
+                            className={cn(
+                              "cursor-pointer gap-1 px-2.5 py-1 transition-all duration-150 ease-out",
+                              active
+                                ? "shadow-sm"
+                                : "text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+                            )}
+                          >
+                            {active ? (
+                              <CheckIcon className="size-3" />
+                            ) : (
+                              <TagIcon className="size-3" />
+                            )}
+                            {SOURCE_META[source].short}
+                          </Badge>
+                        </button>
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <div className="flex items-center gap-2">
+            <Button type="button" size="sm" disabled={pending || !dirty} onClick={() => onSave(assignments)}>
+              Save order types
+            </Button>
+            {dirty ? <span className="text-muted-foreground text-xs">Unsaved changes</span> : null}
+          </div>
         </>
       )}
     </div>
