@@ -7,6 +7,7 @@ import {
   CheckIcon,
   KeyRoundIcon,
   LinkIcon,
+  PencilIcon,
   PlusIcon,
   PuzzleIcon,
   RefreshCwIcon,
@@ -52,6 +53,7 @@ export function CloverSettingsPanel({
   orderTypes,
   onSaveWebOrderTypes,
   onCreateOrderType,
+  onUpdateOrderType,
 }: {
   clover: CloverConnectionPublic;
   merchantName?: string;
@@ -73,6 +75,8 @@ export function CloverSettingsPanel({
   onSaveWebOrderTypes?: (input: { pickup?: string; delivery?: string }) => Promise<void>;
   /** Create a new order type on the merchant. Omit to hide the "create new" option. */
   onCreateOrderType?: (label: string) => Promise<{ id: string; label: string }>;
+  /** Rename an order type on the merchant. Omit to hide the rename affordance. */
+  onUpdateOrderType?: (id: string, label: string) => Promise<{ id: string; label: string }>;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -289,6 +293,7 @@ export function CloverSettingsPanel({
             initial={clover.webOrderTypes}
             onSave={saveWebOrderTypes}
             onCreate={onCreateOrderType}
+            onUpdate={onUpdateOrderType}
             pending={pending}
           />
         ) : null}
@@ -368,18 +373,23 @@ function WebOrderTypeFields({
   initial,
   onSave,
   onCreate,
+  onUpdate,
   pending,
 }: {
   orderTypes: CloverOrderType[];
   initial: { pickup?: string; delivery?: string };
   onSave: (input: { pickup?: string; delivery?: string }) => void;
   onCreate?: (label: string) => Promise<{ id: string; label: string }>;
+  onUpdate?: (id: string, label: string) => Promise<{ id: string; label: string }>;
   pending: boolean;
 }) {
   const router = useRouter();
   const [assignments, setAssignments] = useState(initial);
   const [creating, setCreating] = useState(false);
   const [creatingPending, startCreating] = useTransition();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [updatingPending, startUpdating] = useTransition();
+  const [syncing, startSync] = useTransition();
 
   const dirty = assignments.pickup !== initial.pickup || assignments.delivery !== initial.delivery;
 
@@ -407,6 +417,22 @@ function WebOrderTypeFields({
     });
   };
 
+  const renameOrderType = (id: string, label: string) => {
+    if (!onUpdate) return;
+    startUpdating(async () => {
+      try {
+        const updated = await onUpdate(id, label);
+        toast.success(`Renamed to "${updated.label}"`);
+        setEditingId(null);
+        router.refresh();
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Could not rename order type");
+      }
+    });
+  };
+
+  const sync = () => startSync(() => router.refresh());
+
   return (
     <div className="space-y-3 border-t pt-4">
       <div className="flex items-start justify-between gap-3">
@@ -418,19 +444,32 @@ function WebOrderTypeFields({
             an untagged source arrives silently in the Orders list.
           </p>
         </div>
-        {onCreate && !creating ? (
+        <div className="flex shrink-0 items-center gap-1.5">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="shrink-0 gap-1.5"
-            disabled={pending || creatingPending}
-            onClick={() => setCreating(true)}
+            className="gap-1.5"
+            disabled={pending || syncing}
+            onClick={sync}
           >
-            <PlusIcon className="size-3.5" />
-            New type
+            <RefreshCwIcon className={cn("size-3.5", syncing && "animate-spin")} />
+            Sync
           </Button>
-        ) : null}
+          {onCreate && !creating ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              disabled={pending || creatingPending}
+              onClick={() => setCreating(true)}
+            >
+              <PlusIcon className="size-3.5" />
+              New type
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {creating ? (
@@ -493,7 +532,49 @@ function WebOrderTypeFields({
             <TableBody>
               {orderTypes.map((type) => (
                 <TableRow key={type.id}>
-                  <TableCell className="font-medium">{type.label}</TableCell>
+                  <TableCell className="font-medium">
+                    {editingId === type.id ? (
+                      <form
+                        className="flex items-center gap-1.5"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const name = new FormData(e.currentTarget).get("name");
+                          const trimmed = String(name ?? "").trim();
+                          if (trimmed && trimmed !== type.label) renameOrderType(type.id, trimmed);
+                          else setEditingId(null);
+                        }}
+                      >
+                        <Input
+                          name="name"
+                          defaultValue={type.label}
+                          disabled={updatingPending}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") setEditingId(null);
+                          }}
+                          className="h-7 max-w-48"
+                        />
+                        <Button type="submit" size="icon-sm" variant="ghost" disabled={updatingPending}>
+                          <CheckIcon className="size-3.5" />
+                        </Button>
+                      </form>
+                    ) : (
+                      <div className="group flex items-center gap-1.5">
+                        <span>{type.label}</span>
+                        {onUpdate ? (
+                          <button
+                            type="button"
+                            aria-label={`Rename ${type.label}`}
+                            className="text-muted-foreground hover:text-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100"
+                            disabled={pending}
+                            onClick={() => setEditingId(type.id)}
+                          >
+                            <PencilIcon className="size-3.5" />
+                          </button>
+                        ) : null}
+                      </div>
+                    )}
+                  </TableCell>
                   {(Object.keys(SOURCE_META) as WebSource[]).map((source) => {
                     const active = assignments[source] === type.id;
                     return (

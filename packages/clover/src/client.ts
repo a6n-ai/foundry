@@ -736,6 +736,20 @@ export class CloverApiClient {
   }
 
   /**
+   * Rename a merchant order type. POST /v3/merchants/{mId}/order_types/{id} —
+   * Clover updates existing resources through the same POST verb it creates
+   * with, keyed by the id in the path rather than a PUT.
+   */
+  async updateOrderType(id: string, label: string): Promise<CloverOrderType> {
+    const data = await this.post(this.merchantPath(`order_types/${encodeURIComponent(id)}`), {
+      label,
+    });
+    const type = normalizeOrderType(data);
+    if (!type) throw new Error("Clover did not return the updated order type");
+    return type;
+  }
+
+  /**
    * Create a POS-visible order with inventory line items in one call.
    * POST /v3/merchants/{mId}/atomic_order/orders
    */
