@@ -559,13 +559,13 @@ function WebOrderTypeFields({
                         </Button>
                       </form>
                     ) : (
-                      <div className="group flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5">
                         <span>{type.label}</span>
                         {onUpdate ? (
                           <button
                             type="button"
                             aria-label={`Rename ${type.label}`}
-                            className="text-muted-foreground hover:text-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100"
+                            className="text-muted-foreground hover:text-foreground transition-colors duration-150"
                             disabled={pending}
                             onClick={() => setEditingId(type.id)}
                           >
