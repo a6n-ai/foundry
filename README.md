@@ -13,3 +13,7 @@ Foundry never imports Relay.
 pnpm install
 pnpm typecheck
 ```
+
+## License
+
+Apache License 2.0. See [`LICENSE`](LICENSE). Products that consume Foundry (Relay, Realm) keep their own licenses; this repo does not become AGPL because an app imports `@foundry/*`.
