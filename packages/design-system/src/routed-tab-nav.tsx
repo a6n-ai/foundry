@@ -28,7 +28,7 @@ export function RoutedTabNav({ tabs, ariaLabel }: { tabs: readonly RoutedTabNavI
       <TabsList variant="line" aria-label={ariaLabel} className="h-auto flex-wrap">
         {tabs.map((t) => (
           <TabsTrigger key={t.href} value={t.href} asChild>
-            <Link href={t.href}>
+            <Link href={t.href} prefetch={false}>
               {t.icon ? <t.icon /> : null}
               {t.label}
             </Link>
