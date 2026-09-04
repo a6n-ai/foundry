@@ -257,6 +257,28 @@ importers:
         specifier: ^4.1.9
         version: 4.1.11(@types/node@22.20.1)(jsdom@29.1.1(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@22.20.1))
 
+  packages/doordash:
+    dependencies:
+      '@foundry/commons':
+        specifier: workspace:*
+        version: link:../commons
+      lucide-react:
+        specifier: ^1.20.0
+        version: 1.38.0(react@19.2.4)
+      zod:
+        specifier: ^4.4.3
+        version: 4.5.4
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.20.1
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.11(@types/node@22.20.1)(jsdom@29.1.1(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@22.20.1))
+
   packages/email:
     dependencies:
       '@aws-sdk/client-sesv2':
@@ -489,6 +511,28 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
+
+  packages/uber-eats:
+    dependencies:
+      '@foundry/commons':
+        specifier: workspace:*
+        version: link:../commons
+      lucide-react:
+        specifier: ^1.20.0
+        version: 1.38.0(react@19.2.4)
+      zod:
+        specifier: ^4.4.3
+        version: 4.5.4
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.20.1
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.11(@types/node@22.20.1)(jsdom@29.1.1(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@22.20.1))
 
   packages/ui:
     dependencies:
