@@ -90,7 +90,7 @@ export interface ContactMapping {
 export interface ParsedContact {
   email?: string;
   phone?: string;
-  name?: string;
+  name: string;
   vars: Record<string, string>;
 }
 
