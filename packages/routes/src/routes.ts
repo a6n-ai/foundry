@@ -2,7 +2,14 @@ import type { BaseService, UpdatableService } from "@foundry/database";
 import type { PgTable } from "drizzle-orm/pg-core";
 import { parseListParams, type Query } from "./query";
 import { toResponse } from "./error-mapper";
-import { json, noContent } from "./response";
+import { json, noContent, problem } from "./response";
+
+// Structural rather than importing zod's type: any schema with a `safeParse`
+// shaped like this works (zod v3/v4, or a hand-rolled validator), without
+// making this package depend on zod.
+export interface Validator<T> {
+  safeParse(input: unknown): { success: true; data: T } | { success: false; error: { issues: { message: string }[] } };
+}
 
 type AnyBase = BaseService<PgTable>;
 type AnyUpdatable = UpdatableService<PgTable>;
@@ -97,5 +104,36 @@ export function createResourceRoute(service: AnyUpdatable, opts?: RouteOptions) 
         return noContent();
       } catch (e) { return toResponse(e); }
     },
+  };
+}
+
+/**
+ * A one-off (not full-CRUD) POST route keyed on the resource's [id]: guard,
+ * parse + validate the JSON body, hand (id, body) to fn, and map the result —
+ * a thrown AppError, a returned `{ error, status }` (the shape service
+ * functions that can fail for reasons short of an exception tend to return),
+ * or plain data to JSON. Generalizes the hand-rolled version of this that
+ * every "add related records to a resource" route ends up writing.
+ */
+export function createValidatedIdRoute<TBody, TResult>(
+  schema: Validator<TBody>,
+  fn: (id: string, body: TBody) => Promise<TResult | { error: string; status: number }>,
+  opts?: RouteOptions,
+) {
+  return async (req: Request, ctx: Ctx): Promise<Response> => {
+    try {
+      await runGuard(opts, req);
+      const { id } = await ctx.params;
+      const parsed = schema.safeParse(await req.json().catch(() => null));
+      if (!parsed.success) return problem(400, parsed.error.issues[0]?.message ?? "Invalid request");
+      const result = await fn(id, parsed.data);
+      if (result && typeof result === "object" && "error" in result && "status" in result) {
+        const { error, status } = result as { error: string; status: number };
+        return problem(status, error);
+      }
+      return json(result);
+    } catch (e) {
+      return toResponse(e);
+    }
   };
 }
