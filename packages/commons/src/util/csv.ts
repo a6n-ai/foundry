@@ -95,8 +95,10 @@ export interface ParsedContact {
 }
 
 // Deliberately loose: rejecting deliverable-but-unusual addresses costs a real
-// customer, and a bounce is the authoritative answer anyway.
-function looksLikeEmail(value: string): boolean {
+// customer, and a bounce is the authoritative answer anyway. Exported so a
+// preview UI can re-check an admin's inline fix with the exact same rule
+// mapRows used to reject it.
+export function looksLikeEmail(value: string): boolean {
   const at = value.indexOf("@");
   if (at <= 0 || at !== value.lastIndexOf("@")) return false;
   const domain = value.slice(at + 1);
@@ -110,10 +112,21 @@ function looksLikeEmail(value: string): boolean {
  * must be present. Unmapped columns become merge vars, so a template can use
  * `{{contact.City}}` without the schema knowing about cities.
  */
+export interface RejectedRow {
+  row: number;
+  reason: string;
+  /** Raw (unvalidated, unnormalized) field values — so a preview UI can show
+   * and edit the row that was rejected, not just report that one was. */
+  name: string;
+  email: string;
+  phone: string;
+  vars: Record<string, string>;
+}
+
 export function mapRows(
   parsed: ParsedCsv,
   mapping: ContactMapping,
-): { valid: ParsedContact[]; rejected: { row: number; reason: string }[] } {
+): { valid: ParsedContact[]; rejected: RejectedRow[] } {
   const idx = (header?: string) => (header ? parsed.headers.indexOf(header) : -1);
   const iEmail = idx(mapping.email);
   const iPhone = idx(mapping.phone);
@@ -121,23 +134,33 @@ export function mapRows(
   const mapped = new Set([iEmail, iPhone, iName].filter((n) => n >= 0));
 
   const valid: ParsedContact[] = [];
-  const rejected: { row: number; reason: string }[] = [];
+  const rejected: RejectedRow[] = [];
   const seen = new Set<string>();
+
+  const rawVars = (cells: string[]): Record<string, string> => {
+    const vars: Record<string, string> = {};
+    parsed.headers.forEach((h, c) => {
+      if (mapped.has(c)) return;
+      const v = (cells[c] ?? "").trim();
+      if (v) vars[h] = v;
+    });
+    return vars;
+  };
 
   parsed.rows.forEach((cells, n) => {
     const rawEmail = iEmail >= 0 ? (cells[iEmail] ?? "").trim() : "";
     const rawPhone = iPhone >= 0 ? (cells[iPhone] ?? "").trim() : "";
     const rawName = iName >= 0 ? (cells[iName] ?? "").trim() : "";
     if (!rawName) {
-      rejected.push({ row: n + 1, reason: "missing name" });
+      rejected.push({ row: n + 1, reason: "missing name", name: rawName, email: rawEmail, phone: rawPhone, vars: rawVars(cells) });
       return;
     }
     if (!rawEmail && !rawPhone) {
-      rejected.push({ row: n + 1, reason: "no email or phone" });
+      rejected.push({ row: n + 1, reason: "no email or phone", name: rawName, email: rawEmail, phone: rawPhone, vars: rawVars(cells) });
       return;
     }
     if (rawEmail && !looksLikeEmail(rawEmail)) {
-      rejected.push({ row: n + 1, reason: "invalid email" });
+      rejected.push({ row: n + 1, reason: "invalid email", name: rawName, email: rawEmail, phone: rawPhone, vars: rawVars(cells) });
       return;
     }
 
@@ -145,19 +168,12 @@ export function mapRows(
     const phone = rawPhone ? normalizeAddress(rawPhone) : undefined;
     const key = email ?? phone!;
     if (seen.has(key)) {
-      rejected.push({ row: n + 1, reason: "duplicate in file" });
+      rejected.push({ row: n + 1, reason: "duplicate in file", name: rawName, email: rawEmail, phone: rawPhone, vars: rawVars(cells) });
       return;
     }
     seen.add(key);
 
-    const vars: Record<string, string> = {};
-    parsed.headers.forEach((h, c) => {
-      if (mapped.has(c)) return;
-      const v = (cells[c] ?? "").trim();
-      if (v) vars[h] = v;
-    });
-
-    valid.push({ email, phone, name: rawName, vars });
+    valid.push({ email, phone, name: rawName, vars: rawVars(cells) });
   });
 
   return { valid, rejected };

@@ -44,13 +44,27 @@ describe("mapRows", () => {
   it("rejects a row with no name", () => {
     const out = mapRows({ headers: ["Email", "Name"], rows: [["a@x.com", ""]] }, { email: "Email", name: "Name" });
     expect(out.valid).toHaveLength(0);
-    expect(out.rejected[0]).toEqual({ row: 1, reason: "missing name" });
+    expect(out.rejected[0]).toEqual({
+      row: 1,
+      reason: "missing name",
+      name: "",
+      email: "a@x.com",
+      phone: "",
+      vars: {},
+    });
   });
 
   it("rejects a row with no email and no phone", () => {
     const out = mapRows({ headers: ["Email", "Name"], rows: [["", "Ada"]] }, { email: "Email", name: "Name" });
     expect(out.valid).toHaveLength(0);
-    expect(out.rejected[0]).toEqual({ row: 1, reason: "no email or phone" });
+    expect(out.rejected[0]).toEqual({
+      row: 1,
+      reason: "no email or phone",
+      name: "Ada",
+      email: "",
+      phone: "",
+      vars: {},
+    });
   });
 
   it("rejects a malformed email", () => {
@@ -59,6 +73,10 @@ describe("mapRows", () => {
       { email: "Email", name: "Name" },
     );
     expect(out.rejected[0].reason).toBe("invalid email");
+    // Raw fields ride along so a preview UI can show and fix the row, not just
+    // report that one was rejected.
+    expect(out.rejected[0].name).toBe("Ada");
+    expect(out.rejected[0].email).toBe("not-an-email");
   });
 
   it("drops a duplicate address within the same file", () => {
