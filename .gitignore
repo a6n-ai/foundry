@@ -4,3 +4,8 @@ node_modules/
 *.tsbuildinfo
 .env*
 !.env.example
+
+# Keep .claude/ local except committed skills
+.claude/*
+!.claude/skills/
+!.claude/skills/**
