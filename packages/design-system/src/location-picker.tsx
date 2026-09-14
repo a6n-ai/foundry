@@ -27,9 +27,16 @@ export type PickableLocation = {
 export function LocationPicker<T extends PickableLocation>({
   fetchLocations,
   detectSuggestion,
+  promptEveryVisit = false,
 }: {
   fetchLocations: () => Promise<T[]>;
   detectSuggestion: () => Promise<T | null>;
+  /** Show the suggest/choose popup on every fresh page load, even when a
+   *  `franchise` cookie already picked one — the cookie still drives which
+   *  card is pre-highlighted and which org proxy.ts resolves, it just stops
+   *  being a reason to skip asking. Off by default (existing per-app
+   *  behavior: ask once, then trust the cookie silently). */
+  promptEveryVisit?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -50,7 +57,7 @@ export function LocationPicker<T extends PickableLocation>({
 
   useEffect(() => {
     if (!locations || locations.length < 2) return;
-    if (readFranchiseCookie()) return;
+    if (!promptEveryVisit && readFranchiseCookie()) return;
     detectSuggestion().then((match) => {
       if (match) {
         setSuggestion(match);
