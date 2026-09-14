@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "./select";
 
-const FULL_WIDTH_FIELDS = new Set<AddressFieldKey>(["addressLine", "fullName"]);
+const FULL_WIDTH_FIELDS = new Set<AddressFieldKey>(["addressLine", "fullName", "deliveryInstructions"]);
 
 const DEBOUNCE_MS = 250;
 

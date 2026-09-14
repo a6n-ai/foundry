@@ -3,7 +3,7 @@ import type {
   CloverConnection,
   CloverTokenPair,
 } from "./config";
-import { resolveWebOrderTypeId } from "./config";
+import { loadCloverAppCredentialsFromEnv, resolveWebOrderTypeId } from "./config";
 import {
   isCloverAccessTokenExpired,
   refreshCloverTokens,
@@ -759,6 +759,52 @@ export class CloverApiClient {
       buildAtomicOrderBody(input),
     );
     return normalizeAtomicOrderResult(data);
+  }
+
+  /**
+   * Push a merchant-facing alert to every device running this app on the
+   * connected merchant. Clover POS's native "new order" sound/banner is tied
+   * to a recognized Online Ordering channel (see webOrderTypeId above) — an
+   * order created via the Platform Atomic Order API, even a fully tagged one,
+   * does not reliably reproduce that alert. This is Clover's documented
+   * workaround: POST /v3/apps/{aId}/merchants/{mId}/notifications.
+   *
+   * Different credential than every other call on this client: the App
+   * Notifications API authenticates with the Developer App's own appId/
+   * appSecret (Bearer = appSecret), never the connected merchant's OAuth/API
+   * token — so this reads straight from env rather than `this.credentials`,
+   * which is unset entirely in apiToken connection mode. Silently no-ops
+   * when CLOVER_APP_ID/CLOVER_APP_SECRET aren't configured, same posture as
+   * every other optional Clover feature in this client — an unconfigured
+   * Developer app should degrade the alert, not break checkout.
+   */
+  async sendAppNotification(input: {
+    /** Identifies the notification type to your own app — free-form, but stable
+     *  (e.g. "order.created") so a future device-side handler can switch on it. */
+    event: string;
+    /** Payload text, e.g. "New web order #1234 — $42.10". Clover caps this at 4000 chars. */
+    data?: string;
+  }): Promise<void> {
+    const credentials = loadCloverAppCredentialsFromEnv();
+    if (!credentials) return;
+    const res = await this.fetchImpl(
+      `${this.platformOrigin()}/v3/apps/${encodeURIComponent(credentials.appId)}/merchants/${encodeURIComponent(this.merchantId)}/notifications`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${credentials.appSecret}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          event: input.event,
+          ...(input.data ? { data: input.data.slice(0, 4000) } : {}),
+        }),
+      },
+    );
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Clover app notification failed (${res.status}): ${text.slice(0, 200)}`);
+    }
   }
 
   /**

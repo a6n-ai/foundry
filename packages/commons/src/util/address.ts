@@ -25,13 +25,20 @@ export type AddressFieldKey =
   | "addressUnit"
   | "city"
   | "postalCode"
-  | "province";
+  | "province"
+  | "deliveryInstructions";
 
 export type AddressValues = Partial<Record<AddressFieldKey, string>>;
 
 export const ADDRESS_FIELD_PRESETS = {
   profile: ["addressLine", "addressUnit", "city", "postalCode", "province"] as const,
-  delivery: ["fullName", "addressLine", "city", "postalCode"] as const,
+  // addressUnit is always visible, never behind a toggle — Google's
+  // formatted address/autocomplete has no reliable subpremise/unit field,
+  // so a hidden control is a missed-unit delivery waiting to happen.
+  // deliveryInstructions is one free-text note (gate code, leave at door,
+  // etc.), matching Amazon's pattern of a single instructions field rather
+  // than a separate structured buzzer-code field.
+  delivery: ["fullName", "addressLine", "addressUnit", "city", "postalCode", "deliveryInstructions"] as const,
 } as const;
 
 export type AddressFieldPreset = keyof typeof ADDRESS_FIELD_PRESETS;
@@ -43,6 +50,7 @@ export const ADDRESS_FIELD_LABELS: Record<AddressFieldKey, string> = {
   city: "City",
   postalCode: "Postal code",
   province: "Province",
+  deliveryInstructions: "Delivery instructions (optional)",
 };
 
 export const ADDRESS_FIELD_PLACEHOLDERS: Partial<Record<AddressFieldKey, string>> = {
@@ -51,6 +59,7 @@ export const ADDRESS_FIELD_PLACEHOLDERS: Partial<Record<AddressFieldKey, string>
   addressUnit: "Apt 4B",
   city: "Toronto",
   postalCode: "M5V 2T6",
+  deliveryInstructions: "Gate code, leave at door, call on arrival…",
 };
 
 export const ADDRESS_FIELD_AUTOCOMPLETE: Partial<Record<AddressFieldKey, string>> = {
@@ -79,8 +88,10 @@ export const profileAddressSchema = z.object({
 export const deliveryAddressSchema = z.object({
   fullName: z.string().trim().min(1, "Full name is required").max(120, "Name is too long"),
   addressLine: z.string().trim().min(1, "Address is required").max(200, "Address is too long"),
+  addressUnit: z.string().trim().max(60, "Unit is too long").optional(),
   city: z.string().trim().min(1, "City is required").max(100, "City is too long"),
   postalCode: z.string().trim().min(1, "Postal code is required").max(20, "Postal code is too long"),
+  deliveryInstructions: z.string().trim().max(500, "Instructions are too long").optional(),
 });
 
 export type ProfileAddressValues = z.infer<typeof profileAddressSchema>;
