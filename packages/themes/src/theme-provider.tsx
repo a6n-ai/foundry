@@ -23,9 +23,18 @@ function resolve(theme: Theme): ResolvedTheme {
   return theme;
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
+export function ThemeProvider({
+  children,
+  defaultTheme = "system",
+}: {
+  children: React.ReactNode;
+  /** First-render fallback before localStorage is read (and before any user
+   *  choice exists) — puchkaman wants "light" always, other apps keep
+   *  following the OS. A stored user preference always overrides this. */
+  defaultTheme?: Theme;
+}) {
+  const [theme, setThemeState] = useState<Theme>(defaultTheme);
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(resolve(defaultTheme));
 
   useEffect(() => {
     const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
