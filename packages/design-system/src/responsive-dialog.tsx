@@ -57,7 +57,9 @@ export function ResponsiveDialog({
             <DrawerTitle>{title}</DrawerTitle>
             {description && <DrawerDescription>{description}</DrawerDescription>}
           </DrawerHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+          {children != null ? (
+            <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+          ) : null}
           {footer ? (
             <div className="shrink-0 border-t bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               {footer}
@@ -80,7 +82,9 @@ export function ResponsiveDialog({
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        {children != null ? (
+          <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        ) : null}
         {footer ? (
           <div className="shrink-0 border-t bg-background px-4 py-3">{footer}</div>
         ) : null}
