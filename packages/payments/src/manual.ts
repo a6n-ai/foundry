@@ -22,6 +22,8 @@ export function providerFor(method: PaymentMethodConfig): PaymentProvider {
     case "manual":
       return new ManualProvider(method.id);
     case "online":
+      // Stripe (and other online rails) plug in here later. Manual e-Transfer /
+      // cash / other stay the default until a consumer enables an online method.
       throw new Error("Online payment providers are not implemented yet");
     default: {
       const _exhaustive: never = method.kind;

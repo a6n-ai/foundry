@@ -8,7 +8,7 @@ export const PAYMENTS_PLUGIN: PluginMeta = {
   id: PAYMENTS_PLUGIN_ID,
   label: "Payments",
   description:
-    "Accept payments. Configure providers — e-Transfer, cash, manual — under Settings → Payment.",
+    "Accept payments. Configure providers under Settings → Payment. Online rails (Stripe) plug in later as a provider, not a second plugin.",
   icon: CreditCardIcon,
   settingsHref: "/dashboard/settings/payments",
 };
