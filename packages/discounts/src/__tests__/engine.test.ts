@@ -49,3 +49,14 @@ describe("isRuleActive", () => {
     expect(isRuleActive({ active: true, startsAt: 1, endsAt: 9 }, 5)).toBe(true);
   });
 });
+
+describe("rounding allocation", () => {
+  it("many tiny lines after cap scaling never go negative and sum exactly", () => {
+    const rules = Array.from({ length: 40 }, (_, i) => r(`r${i}`, 0.01 + (i % 3) * 0.01));
+    for (const subtotal of [33.33, 7.77, 100, 1234.56, 0.5]) {
+      const o = resolveCatalogDiscounts(rules, { subtotal, maxDiscountPct: 0.5 });
+      expect(o.lines.every((l) => l.amount >= 0)).toBe(true);
+      expect(sum(o.lines)).toBe(o.totalAmount);
+    }
+  });
+});

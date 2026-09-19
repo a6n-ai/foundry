@@ -37,6 +37,20 @@ export function isRuleActive(
   return true;
 }
 
+// Largest-remainder split of targetCents over exact (fractional) cent shares: every share >= 0 and
+// the sum is exactly targetCents, unlike dumping the rounding residual on the last line.
+function allocateCents(exact: number[], targetCents: number): number[] {
+  const out = exact.map((e) => Math.max(0, Math.floor(e + 1e-9)));
+  let diff = targetCents - out.reduce((s, c) => s + c, 0);
+  const order = exact.map((e, i) => i).sort((a, b) => (exact[b] - Math.floor(exact[b])) - (exact[a] - Math.floor(exact[a])));
+  for (let k = 0; diff > 0 && order.length; k++, diff--) out[order[k % order.length]] += 1;
+  for (let k = 0; diff < 0 && order.length; k++) {
+    const i = order[k % order.length];
+    if (out[i] > 0) { out[i] -= 1; diff++; }
+  }
+  return out;
+}
+
 export function resolveCatalogDiscounts(
   rules: DiscountRule[],
   opts: { subtotal: number; maxDiscountPct: number },
@@ -52,13 +66,12 @@ export function resolveCatalogDiscounts(
   const scale = sum > 0 ? effectiveTotal / sum : 0;
   const totalAmount = round2((subtotal * effectiveTotal) / 100);
 
-  let used = 0;
-  const lines: DiscountLine[] = valid.map(({ r, listed }, i) => {
-    const percent = round2(listed * scale);
-    const amount =
-      i === valid.length - 1 ? round2(totalAmount - used) : round2((subtotal * listed * scale) / 100);
-    used = round2(used + amount);
-    return { key: r.key, name: r.name, kind: r.kind, percent, listedPercent: listed, amount };
-  });
+  const cents = allocateCents(
+    valid.map(({ listed }) => subtotal * listed * scale),
+    Math.round(totalAmount * 100),
+  );
+  const lines: DiscountLine[] = valid.map(({ r, listed }, i) => ({
+    key: r.key, name: r.name, kind: r.kind, percent: round2(listed * scale), listedPercent: listed, amount: cents[i] / 100,
+  }));
   return { lines, totalPercent: round2(effectiveTotal), totalAmount, capped };
 }
