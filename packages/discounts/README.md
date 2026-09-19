@@ -23,4 +23,6 @@ Central discounts + coupons contract. Pure, storage-agnostic, no I/O, no clock (
 4. Call `resolveCart` server-side with an injected `now`, and apply the result to the app's own order totals.
 5. The app owns persistence, admin UI and order totals. Totals are computed server-side only; never trust client amounts.
 
-TODO: `./schema` export (drizzle table factory) in a follow-up.
+## Schema (`@foundry/discounts/schema`)
+
+`makeDiscountTables({ organization, kinds? })` returns `{ discountKind, discounts }` so every app gets the same `discounts` table. Call it from the app's schema barrel and re-export, then run drizzle-kit. `kinds` defaults to `["delivery", "duration"]`; pass a longer tuple to add app kinds. Also exports `DiscountRow` / `NewDiscountRow`. Add `@foundry/discounts` and `@foundry/database` to the app's direct dependencies.

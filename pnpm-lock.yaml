@@ -262,7 +262,13 @@ importers:
       '@foundry/coupons':
         specifier: workspace:*
         version: link:../coupons
+      '@foundry/database':
+        specifier: workspace:*
+        version: link:../database
     devDependencies:
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(kysely@0.29.5)(postgres@3.4.9)
       typescript:
         specifier: ^5
         version: 5.9.3
