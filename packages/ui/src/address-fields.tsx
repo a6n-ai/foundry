@@ -118,6 +118,8 @@ export type AddressUi = {
   Field: ComponentType<AddressFieldSlotProps>;
   Select: ComponentType<AddressSelectSlotProps>;
   Suggestions: ComponentType<AddressSuggestionsSlotProps>;
+  /** In-input loading indicator; a kit without one passes `() => null`. */
+  Spinner: ComponentType;
 };
 
 function DefaultField({ id, label, error, wide, inputProps, overlay, combo, footer }: AddressFieldSlotProps) {
@@ -199,7 +201,7 @@ function DefaultSpinner() {
   );
 }
 
-export const defaultAddressUi: AddressUi = { Field: DefaultField, Select: DefaultSelect, Suggestions: DefaultSuggestions };
+export const defaultAddressUi: AddressUi = { Field: DefaultField, Select: DefaultSelect, Suggestions: DefaultSuggestions, Spinner: DefaultSpinner };
 
 /** Description of one field to draw, produced by `useAddressFields`. */
 export type AddressFieldRow =
@@ -481,7 +483,7 @@ export function AddressLineField({
   onResolve: (place: ResolvedPlaceFields) => void;
   ui?: Partial<AddressUi>;
 }) {
-  const { Field, Suggestions } = resolveAddressUi(ui);
+  const { Field, Suggestions, Spinner } = resolveAddressUi(ui);
   const a = useAddressAutocomplete({ id, onChange, onResolve, resolveUrl, suggestUrl });
   return (
     <Field
@@ -507,7 +509,7 @@ export function AddressLineField({
       }}
       overlay={
         <>
-          {a.loading ? <DefaultSpinner /> : null}
+          {a.loading ? <Spinner /> : null}
           {a.open ? (
             <Suggestions id={a.listId} items={a.suggestions} activeIndex={a.activeIndex} optionId={a.optionId} onPick={(s) => void a.pick(s)} />
           ) : null}

@@ -71,6 +71,7 @@ describe("AddressFields ui slots and hooks", () => {
         fields={["addressLine", "province"]}
         ui={{
           Field: ({ label, inputProps }) => <input data-kit="f" aria-label={label} {...inputProps} />,
+          Spinner: () => null,
           Select: ({ label, onChange: c }) => <button data-kit="s" onClick={() => c("ON")}>{label}</button>,
         }}
       />,
