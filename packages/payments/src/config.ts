@@ -39,3 +39,22 @@ export function enabledMethods(cfg: PaymentConfig): PaymentMethodConfig[] {
 export function findMethod(cfg: PaymentConfig, id: string): PaymentMethodConfig | undefined {
   return cfg.methods.find((m) => m.id === id);
 }
+
+/** App-level save rules the shared schema cannot know. Never throws. */
+export function paymentConfigSaveError(cfg: PaymentConfig): string | null {
+  const parsed = paymentConfigSchema.safeParse(cfg);
+  if (!parsed.success) return "Invalid payment configuration";
+
+  const seen = new Set<string>();
+  for (const m of parsed.data.methods) {
+    if (seen.has(m.id)) return `Duplicate payment method: ${m.id}`;
+    seen.add(m.id);
+    if (m.enabled && m.id === "etransfer" && !m.payeeHandle?.trim()) {
+      return `${m.label}: add a payee handle before enabling it`;
+    }
+    for (const t of m.taxes) {
+      if (!t.name.trim()) return `${m.label}: a tax line is missing a name`;
+    }
+  }
+  return null;
+}

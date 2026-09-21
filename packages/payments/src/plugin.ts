@@ -1,4 +1,4 @@
-import { CreditCardIcon } from "lucide-react";
+import { BanknoteIcon } from "lucide-react";
 import type { PluginMeta } from "@foundry/commons/plugin";
 
 export const PAYMENTS_PLUGIN_ID = "payments" as const;
@@ -8,7 +8,7 @@ export const PAYMENTS_PLUGIN: PluginMeta = {
   id: PAYMENTS_PLUGIN_ID,
   label: "Payments",
   description:
-    "Accept payments. Configure providers under Settings → Payment. Online rails (Stripe) plug in later as a provider, not a second plugin.",
-  icon: CreditCardIcon,
+    "Accept payments. Cash on delivery is on by default. Card payments come later via Stripe as a provider, not a second plugin.",
+  icon: BanknoteIcon,
   settingsHref: "/dashboard/settings/payments",
 };

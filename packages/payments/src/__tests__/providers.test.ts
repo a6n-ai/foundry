@@ -1,12 +1,24 @@
 import { describe, it, expect } from "vitest";
-import { PAYMENT_PROVIDERS, findPaymentProvider } from "../providers";
+import { PAYMENT_PROVIDERS, findPaymentProvider, mergePaymentCatalog } from "../providers";
 
 describe("PAYMENT_PROVIDERS", () => {
-  it("ships exactly the three manual providers, in order", () => {
-    expect(PAYMENT_PROVIDERS.map((p) => p.id)).toEqual(["etransfer", "cash", "manual"]);
+  it("ships cash (default on) then e-Transfer — no card/Stripe rail", () => {
+    expect(PAYMENT_PROVIDERS.map((p) => p.id)).toEqual(["cash", "etransfer"]);
+    expect(findPaymentProvider("stripe")).toBeUndefined();
+    expect(findPaymentProvider("manual")).toBeUndefined();
   });
 
-  it("seeds etransfer identically to the pre-move catalog", () => {
+  it("seeds cash enabled so it is available without an extra toggle", () => {
+    expect(findPaymentProvider("cash")!.seed()).toEqual({
+      id: "cash",
+      kind: "manual",
+      enabled: true,
+      label: "Cash on delivery",
+      taxes: [],
+    });
+  });
+
+  it("seeds etransfer disabled until a payee handle is set", () => {
     expect(findPaymentProvider("etransfer")!.seed()).toEqual({
       id: "etransfer",
       kind: "manual",
@@ -15,28 +27,22 @@ describe("PAYMENT_PROVIDERS", () => {
       taxes: [],
     });
   });
+});
 
-  it("seeds cash identically to the pre-move catalog", () => {
-    expect(findPaymentProvider("cash")!.seed()).toEqual({
-      id: "cash",
-      kind: "manual",
-      enabled: false,
-      label: "Cash on delivery",
-      taxes: [],
-    });
+describe("mergePaymentCatalog", () => {
+  it("inserts enabled cash into an empty config", () => {
+    const next = mergePaymentCatalog({ methods: [] });
+    expect(next.methods.map((m) => [m.id, m.enabled])).toEqual([
+      ["cash", true],
+      ["etransfer", false],
+    ]);
   });
 
-  it("seeds manual identically to the pre-move catalog", () => {
-    expect(findPaymentProvider("manual")!.seed()).toEqual({
-      id: "manual",
-      kind: "manual",
-      enabled: false,
-      label: "Manual / Other",
-      taxes: [],
+  it("does not re-enable cash the admin turned off", () => {
+    const next = mergePaymentCatalog({
+      methods: [{ id: "cash", kind: "manual", enabled: false, label: "Cash on delivery", taxes: [] }],
     });
-  });
-
-  it("returns undefined for an unknown provider", () => {
-    expect(findPaymentProvider("stripe")).toBeUndefined();
+    expect(next.methods.find((m) => m.id === "cash")?.enabled).toBe(false);
+    expect(next.methods.map((m) => m.id)).toEqual(["cash", "etransfer"]);
   });
 });

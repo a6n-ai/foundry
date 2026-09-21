@@ -3,6 +3,7 @@ import {
   parsePaymentConfig,
   enabledMethods,
   findMethod,
+  paymentConfigSaveError,
   DEFAULT_PAYMENT_CONFIG,
   type PaymentConfig,
 } from "../index";
@@ -35,5 +36,25 @@ describe("selectors", () => {
   it("findMethod finds by id", () => {
     expect(findMethod(sample, "cash")?.label).toBe("Cash");
     expect(findMethod(sample, "nope")).toBeUndefined();
+  });
+});
+
+describe("paymentConfigSaveError", () => {
+  it("allows cash and other manual rails without a payee handle", () => {
+    expect(
+      paymentConfigSaveError({
+        methods: [{ id: "cash", kind: "manual", enabled: true, label: "Cash on delivery", taxes: [] }],
+      }),
+    ).toBeNull();
+  });
+
+  it("requires a payee handle only for enabled e-Transfer", () => {
+    expect(
+      paymentConfigSaveError({
+        methods: [
+          { id: "etransfer", kind: "manual", enabled: true, label: "Interac e-Transfer", taxes: [] },
+        ],
+      }),
+    ).toMatch(/payee handle/);
   });
 });
