@@ -4,10 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
-import { Button } from "@foundry/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@foundry/ui/form";
-import { Input } from "@foundry/ui/input";
+import { resolveUi, type AuthUi } from "./ui";
 
 type Result = { error?: unknown };
 
@@ -19,6 +16,7 @@ type Result = { error?: unknown };
 export interface DeleteAccountFormProps {
   onDelete: (input: { password: string }) => Promise<Result>;
   onSuccess?: () => void;
+  ui?: Partial<AuthUi>;
 }
 
 const schema = z
@@ -28,7 +26,8 @@ const schema = z
   })
   .refine((d) => d.confirm === "DELETE", { message: "Type DELETE to confirm", path: ["confirm"] });
 
-export function DeleteAccountForm({ onDelete, onSuccess }: DeleteAccountFormProps) {
+export function DeleteAccountForm({ onDelete, onSuccess, ui }: DeleteAccountFormProps) {
+  const { Button, Field, Notice } = resolveUi(ui);
   const [open, setOpen] = useState(false);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -46,39 +45,22 @@ export function DeleteAccountForm({ onDelete, onSuccess }: DeleteAccountFormProp
 
   if (!open) {
     return (
-      <Button type="button" variant="destructive" className="w-full sm:w-auto" onClick={() => setOpen(true)}>
+      <Button type="button" variant="danger" className="w-full sm:w-auto" onClick={() => setOpen(true)}>
         Delete account
       </Button>
     );
   }
 
+  const { errors, isSubmitting } = form.formState;
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid max-w-md gap-3">
-        <p className="text-muted-foreground text-sm">
-          This permanently deletes your account and cannot be undone.
-        </p>
-        <FormField control={form.control} name="password" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Password</FormLabel>
-            <FormControl><Input type="password" autoComplete="current-password" {...field} /></FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
-        <FormField control={form.control} name="confirm" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Type DELETE to confirm</FormLabel>
-            <FormControl><Input autoComplete="off" placeholder="DELETE" {...field} /></FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button type="submit" variant="destructive" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? <Loader2 className="size-4 animate-spin" aria-hidden /> : "Permanently delete"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="grid max-w-md gap-3">
+      <Notice tone="muted">This permanently deletes your account and cannot be undone.</Notice>
+      <Field label="Password" type="password" autoComplete="current-password" error={errors.password?.message} {...form.register("password")} />
+      <Field label="Type DELETE to confirm" autoComplete="off" placeholder="DELETE" error={errors.confirm?.message} {...form.register("confirm")} />
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+        <Button type="submit" variant="danger" pending={isSubmitting}>Permanently delete</Button>
+      </div>
+    </form>
   );
 }

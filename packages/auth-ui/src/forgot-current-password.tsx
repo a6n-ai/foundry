@@ -1,16 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { passwordSchema } from "@foundry/commons";
-import { Button } from "@foundry/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@foundry/ui/form";
-import { Input } from "@foundry/ui/input";
-import { CodeOtp } from "./code-otp";
+import { resolveUi, type AuthUi } from "./ui";
 
 type Result = { error?: unknown };
 
@@ -20,6 +16,7 @@ export interface ForgotCurrentPasswordProps {
   onSendEmailOtp: (email: string) => Promise<Result>;
   onResetWithEmailOtp: (input: { email: string; otp: string; password: string }) => Promise<Result>;
   onDone: () => void;
+  ui?: Partial<AuthUi>;
 }
 
 const verifySchema = z.object({
@@ -41,6 +38,7 @@ const verifySchema = z.object({
  * already known and this sits inside a settings card.
  */
 export function ForgotCurrentPassword(props: ForgotCurrentPasswordProps) {
+  const { Button, Field, Code, Notice } = resolveUi(props.ui);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,10 +79,10 @@ export function ForgotCurrentPassword(props: ForgotCurrentPasswordProps) {
           it here with your new password — you&apos;ll stay signed in on this device.
         </p>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" onClick={send} disabled={sending} className="min-w-32">
-            {sending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : "Email me a code"}
+          <Button type="button" variant="primary" onClick={send} pending={sending} className="min-w-32">
+            Email me a code
           </Button>
-          <Button type="button" variant="ghost" onClick={props.onDone}>
+          <Button type="button" variant="quiet" onClick={props.onDone}>
             Cancel
           </Button>
         </div>
@@ -92,57 +90,27 @@ export function ForgotCurrentPassword(props: ForgotCurrentPasswordProps) {
     );
   }
 
+  const { errors, isSubmitting } = form.formState;
   return (
-    <Form {...form}>
-      {/* key forces a remount across the step swap — a reused input's native
-          value-tracker can desync from the segmented OTP field's controlled value. */}
-      <form key="verify" onSubmit={form.handleSubmit(onVerify)} className="grid max-w-md gap-3">
-        <p className="text-muted-foreground text-sm">
-          We sent a 6-digit code to <span className="font-medium">{props.email}</span>.
-        </p>
-        <FormField
-          control={form.control}
-          name="code"
-          render={({ field, fieldState }) => (
-            <FormItem>
-              <FormLabel>Verification code</FormLabel>
-              <FormControl>
-                <CodeOtp value={field.value} onChange={field.onChange} aria-invalid={!!fieldState.error} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="newPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>New password</FormLabel>
-              <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {error ? <p className="text-destructive text-sm">{error}</p> : null}
-        <div className="flex flex-wrap gap-2">
-          <Button type="submit" disabled={form.formState.isSubmitting} className="min-w-32">
-            {form.formState.isSubmitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden />
-                Saving...
-              </>
-            ) : (
-              "Set new password"
-            )}
-          </Button>
-          <Button type="button" variant="ghost" onClick={send} disabled={sending}>
-            Resend code
-          </Button>
-        </div>
-      </form>
-    </Form>
+    // key forces a remount across the step swap — a reused input's native
+    // value-tracker can desync from the segmented OTP field's controlled value.
+    <form key="verify" onSubmit={form.handleSubmit(onVerify)} className="grid max-w-md gap-3">
+      <p className="text-muted-foreground text-sm">
+        We sent a 6-digit code to <span className="font-medium">{props.email}</span>.
+      </p>
+      <Controller control={form.control} name="code" render={({ field }) => (
+        <Code label="Verification code" length={6} value={field.value} onChange={field.onChange} error={errors.code?.message} />
+      )} />
+      <Field label="New password" type="password" autoComplete="new-password" error={errors.newPassword?.message} {...form.register("newPassword")} />
+      {error ? <Notice tone="error">{error}</Notice> : null}
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" variant="primary" pending={isSubmitting} className="min-w-32">
+          {isSubmitting ? "Saving..." : "Set new password"}
+        </Button>
+        <Button type="button" variant="quiet" onClick={send} disabled={sending}>
+          Resend code
+        </Button>
+      </div>
+    </form>
   );
 }

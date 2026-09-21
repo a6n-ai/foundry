@@ -14,17 +14,19 @@ type CodeOtpProps = {
   // Forwarded by FormControl's Slot (id / aria-describedby) so FormLabel/FormMessage stay wired.
   id?: string;
   "aria-describedby"?: string;
+  length?: 4 | 6;
+  masked?: boolean;
 };
 
 // 6-digit verification code entry, unmasked. Segmented input-otp component —
 // plain controlled <Input> here misses real keystrokes' onChange in prod.
-export function CodeOtp({ value, onChange, onComplete, autoFocus, disabled, ...rest }: CodeOtpProps) {
+export function CodeOtp({ value, onChange, onComplete, autoFocus, disabled, length = 6, masked, ...rest }: CodeOtpProps) {
   return (
     <InputOTP
-      maxLength={6}
+      maxLength={length}
       pattern={REGEXP_ONLY_DIGITS}
       inputMode="numeric"
-      autoComplete="one-time-code"
+      autoComplete={masked ? "off" : "one-time-code"}
       value={value}
       onChange={onChange}
       onComplete={onComplete}
@@ -33,8 +35,8 @@ export function CodeOtp({ value, onChange, onComplete, autoFocus, disabled, ...r
       {...rest}
     >
       <InputOTPGroup>
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <InputOTPSlot key={i} index={i} className="size-10 text-lg" />
+        {Array.from({ length }, (_, i) => (
+          <InputOTPSlot key={i} index={i} masked={masked} className={masked ? "size-12 text-xl" : "size-10 text-lg"} />
         ))}
       </InputOTPGroup>
     </InputOTP>
