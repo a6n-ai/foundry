@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
@@ -10,6 +10,7 @@ import { Button } from "@foundry/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@foundry/ui/form";
 import { Input } from "@foundry/ui/input";
 import { CodeOtp } from "./code-otp";
+import { resolveUi, type AuthUi } from "./ui";
 
 type Result = { error?: unknown };
 
@@ -21,6 +22,8 @@ export interface ForgotPasswordFormProps {
   onSendEmailOtp: (email: string) => Promise<Result>;
   onResetWithEmailOtp: (input: { email: string; otp: string; password: string }) => Promise<Result>;
   onSuccess?: () => void;
+  /** Restyle with the app's own primitives. Omit for the default shadcn form. */
+  ui?: Partial<AuthUi>;
 }
 
 const requestSchema = z.object({ identifier: z.email("Enter a valid email") });
@@ -30,6 +33,10 @@ const verifySchema = z.object({
 });
 
 export function ForgotPasswordForm(props: ForgotPasswordFormProps) {
+  return props.ui ? <SlotForgotPasswordForm {...props} ui={props.ui} /> : <DefaultForgotPasswordForm {...props} />;
+}
+
+function DefaultForgotPasswordForm(props: ForgotPasswordFormProps) {
   const [step, setStep] = useState<"request" | "verify">("request");
   const [identifier, setIdentifier] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -127,5 +134,71 @@ export function ForgotPasswordForm(props: ForgotPasswordFormProps) {
         </Button>
       </form>
     </Form>
+  );
+}
+
+/** Same flow drawn with app-supplied primitives; the default path above is left byte-for-byte as shipped. */
+function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<AuthUi> }) {
+  const { Button, Field, Code, Notice } = resolveUi(props.ui);
+  const [step, setStep] = useState<"request" | "verify">("request");
+  const [identifier, setIdentifier] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const requestForm = useForm<z.infer<typeof requestSchema>>({ resolver: zodResolver(requestSchema), defaultValues: { identifier: "" } });
+  const verifyForm = useForm<z.infer<typeof verifySchema>>({ resolver: zodResolver(verifySchema), defaultValues: { code: "", newPassword: "" } });
+
+  async function onRequest(values: z.infer<typeof requestSchema>) {
+    setError(null);
+    const email = values.identifier.trim();
+    await props.onSendEmailOtp(email);
+    setIdentifier(email);
+    setStep("verify");
+  }
+
+  async function onVerify(values: z.infer<typeof verifySchema>) {
+    setError(null);
+    const res = await props.onResetWithEmailOtp({ email: identifier, otp: values.code, password: values.newPassword });
+    if (res.error) return setError("Invalid or expired code.");
+    props.onSuccess?.();
+  }
+
+  if (step === "verify") {
+    const { errors, isSubmitting } = verifyForm.formState;
+    return (
+      <form key="verify" onSubmit={verifyForm.handleSubmit(onVerify)} className="grid gap-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Enter your code</h1>
+          <p className="text-muted-foreground text-sm">We sent a 6-digit code to {identifier}.</p>
+        </div>
+        <Controller
+          control={verifyForm.control}
+          name="code"
+          render={({ field }) => (
+            <Code
+              label="Verification code"
+              length={6}
+              value={field.value}
+              onChange={field.onChange}
+              onComplete={() => verifyForm.handleSubmit(onVerify)()}
+              error={errors.code?.message}
+            />
+          )}
+        />
+        <Field label="New password" type="password" autoComplete="new-password" error={errors.newPassword?.message} {...verifyForm.register("newPassword")} />
+        {error ? <Notice tone="error">{error}</Notice> : null}
+        <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>{isSubmitting ? null : "Reset password"}</Button>
+      </form>
+    );
+  }
+
+  const { errors, isSubmitting } = requestForm.formState;
+  return (
+    <form key="request" onSubmit={requestForm.handleSubmit(onRequest)} className="grid gap-4">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold">Reset your password</h1>
+        <p className="text-muted-foreground text-sm">Enter your email — we&apos;ll send a code.</p>
+      </div>
+      <Field label="Email" type="email" autoComplete="username" placeholder="you@example.com" error={errors.identifier?.message} {...requestForm.register("identifier")} />
+      <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>{isSubmitting ? null : "Send code"}</Button>
+    </form>
   );
 }

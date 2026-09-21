@@ -32,6 +32,7 @@ export interface AuthCodeProps {
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  onComplete?: () => void;
 }
 
 export interface AuthNoticeProps {
@@ -76,11 +77,11 @@ function DefaultField({ label, error, trailing, id, ref, ...input }: AuthFieldPr
   );
 }
 
-function DefaultCode({ label, length, masked: _masked, value, onChange, error }: AuthCodeProps) {
+function DefaultCode({ label, length, masked: _masked, value, onChange, onComplete, error }: AuthCodeProps) {
   return (
     <div className="grid gap-2">
       <Label>{label}</Label>
-      <CodeOtp value={value} onChange={onChange} aria-invalid={!!error} length={length} masked={_masked} />
+      <CodeOtp value={value} onChange={onChange} onComplete={onComplete} aria-invalid={!!error} length={length} masked={_masked} />
       <ErrorText>{error}</ErrorText>
     </div>
   );
