@@ -33,7 +33,7 @@ describe("auth-ui ui slots", () => {
     expect(kit).toContain('data-kit="field"');
     expect(kit).toContain('data-kit="btn"');
     const def = renderToStaticMarkup(<ForgotPasswordForm onSendEmailOtp={vi.fn()} onResetWithEmailOtp={vi.fn()} />);
-    expect(def).toContain('data-slot="input"');
+    expect(def).toContain('data-slot="form-item"');
     expect(def).not.toContain("data-kit");
   });
 });
