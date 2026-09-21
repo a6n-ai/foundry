@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition, type ChangeEvent, type ComponentType, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2Icon, PaperclipIcon, SendIcon, XIcon } from "lucide-react";
 import type { RealtimeRole } from "@foundry/realtime";
@@ -25,38 +25,81 @@ export type MessageComposerProps = {
   makeThumbnail?: (file: File) => Promise<File>;
   submitLabel?: string;
   submittingLabel?: string;
+  /** Restyle with the app's own primitives; defaults to the shadcn kit. */
+  ui?: Partial<ComposerUi>;
 };
 
+export interface ComposerTextareaProps {
+  value: string;
+  placeholder: string;
+  rows: number;
+  onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+}
+export interface ComposerButtonProps {
+  variant: "outline" | "primary";
+  disabled?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}
+export interface ComposerFilesProps {
+  files: File[];
+  onRemove: (index: number) => void;
+}
+export interface ComposerUi {
+  Textarea: ComponentType<ComposerTextareaProps>;
+  Button: ComponentType<ComposerButtonProps>;
+  Notice: ComponentType<{ tone: "error" | "muted"; children: ReactNode }>;
+  Files: ComponentType<ComposerFilesProps>;
+}
+
+const DefaultTextarea = (p: ComposerTextareaProps) => <Textarea {...p} />;
+const DefaultButton = ({ variant, disabled, onClick, children }: ComposerButtonProps) =>
+  variant === "outline" ? (
+    <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={onClick}>{children}</Button>
+  ) : (
+    <Button onClick={onClick} disabled={disabled} className="w-fit active:scale-[0.98]">{children}</Button>
+  );
+const DefaultNotice = ({ tone, children }: { tone: "error" | "muted"; children: ReactNode }) =>
+  tone === "error" ? (
+    <p className="text-destructive text-sm" role="alert">{children}</p>
+  ) : (
+    <p className="text-muted-foreground text-xs">{children}</p>
+  );
+const DefaultFiles = ({ files, onRemove }: ComposerFilesProps) => (
+  <div className="flex flex-wrap gap-2">
+    {files.map((f, i) => (
+      <span key={i} className="bg-muted flex items-center gap-1 rounded-md border px-2 py-1 text-xs">
+        {f.name}
+        <button type="button" aria-label={`Remove ${f.name}`} onClick={() => onRemove(i)} className="text-muted-foreground hover:text-foreground">
+          <XIcon className="size-3" />
+        </button>
+      </span>
+    ))}
+  </div>
+);
+
+export const defaultComposerUi: ComposerUi = { Textarea: DefaultTextarea, Button: DefaultButton, Notice: DefaultNotice, Files: DefaultFiles };
+
+export const COMPOSER_LIMITS = { accept: ACCEPT, maxBytes: MAX_BYTES, maxFiles: MAX_FILES };
+
 /**
- * Reply composer with optional image attachments + realtime typing.
- * Apps inject the server action; FormData keys: `body`, `attachment[]`, `attachment_thumb[]`.
+ * Headless reply-composer logic: body, validated image picks, thumbnailed
+ * FormData submit, realtime typing. Draw it with any kit.
  */
-export function MessageComposer({
+export function useMessageComposer({
   action,
-  closed,
-  placeholder = "Write a reply…",
   channel,
   peerRole,
-  closedMessage = "This conversation is closed.",
   makeThumbnail = makeImageThumbnail,
-  submitLabel = "Send reply",
-  submittingLabel = "Sending…",
-}: MessageComposerProps) {
+}: Pick<MessageComposerProps, "action" | "channel" | "peerRole" | "makeThumbnail">) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Hooks can't be conditional — call unconditionally with a possibly-empty
-  // channel; useChannel no-ops on empty. Gate the UI/side-effects on `channel`.
+  // Hooks can't be conditional: call with a possibly-empty channel; useChannel no-ops on empty.
   const { peerTyping, notifyTyping } = useTyping(channel ?? "", peerRole ?? "staff");
-
-  if (closed) {
-    return (
-      <p className="text-muted-foreground rounded-lg border border-dashed p-3 text-sm">{closedMessage}</p>
-    );
-  }
 
   function addFiles(picked: FileList | null) {
     if (!picked) return;
@@ -104,65 +147,65 @@ export function MessageComposer({
     });
   }
 
+  return {
+    body,
+    onBodyChange: (v: string) => {
+      setBody(v);
+      if (channel) notifyTyping();
+    },
+    files,
+    removeFile: (i: number) => setFiles((fs) => fs.filter((_, j) => j !== i)),
+    inputRef,
+    addFiles,
+    pending,
+    error,
+    peerTyping: Boolean(channel && peerTyping),
+    submit,
+  };
+}
+
+
+
+/**
+ * Reply composer with optional image attachments + realtime typing.
+ * Apps inject the server action; FormData keys: `body`, `attachment[]`, `attachment_thumb[]`.
+ */
+export function MessageComposer({
+  action,
+  closed,
+  placeholder = "Write a reply…",
+  channel,
+  peerRole,
+  closedMessage = "This conversation is closed.",
+  makeThumbnail = makeImageThumbnail,
+  submitLabel = "Send reply",
+  submittingLabel = "Sending…",
+  ui,
+}: MessageComposerProps) {
+  const { Textarea: TextareaSlot, Button: ButtonSlot, Notice, Files } = ui ? { ...defaultComposerUi, ...ui } : defaultComposerUi;
+  const c = useMessageComposer({ action, channel, peerRole, makeThumbnail });
+
+  if (closed) {
+    return (
+      <p className="text-muted-foreground rounded-lg border border-dashed p-3 text-sm">{closedMessage}</p>
+    );
+  }
+
   return (
     <div className="space-y-2">
-      {channel && peerTyping ? <p className="text-muted-foreground text-xs">Typing…</p> : null}
-      <Textarea
-        rows={3}
-        placeholder={placeholder}
-        value={body}
-        onChange={(e) => {
-          setBody(e.target.value);
-          if (channel) notifyTyping();
-        }}
-      />
-
-      {files.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {files.map((f, i) => (
-            <span key={i} className="bg-muted flex items-center gap-1 rounded-md border px-2 py-1 text-xs">
-              {f.name}
-              <button
-                type="button"
-                aria-label={`Remove ${f.name}`}
-                onClick={() => setFiles(files.filter((_, j) => j !== i))}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <XIcon className="size-3" />
-              </button>
-            </span>
-          ))}
-        </div>
-      ) : null}
-
-      {error ? (
-        <p className="text-destructive text-sm" role="alert">
-          {error}
-        </p>
-      ) : null}
-
+      {c.peerTyping ? <Notice tone="muted">Typing…</Notice> : null}
+      <TextareaSlot rows={3} placeholder={placeholder} value={c.body} onChange={(e) => c.onBodyChange(e.target.value)} />
+      {c.files.length > 0 ? <Files files={c.files} onRemove={c.removeFile} /> : null}
+      {c.error ? <Notice tone="error">{c.error}</Notice> : null}
       <div className="flex items-center gap-2">
-        <input
-          ref={inputRef}
-          type="file"
-          accept={ACCEPT.join(",")}
-          multiple
-          hidden
-          onChange={(e) => addFiles(e.target.files)}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={pending || files.length >= MAX_FILES}
-          onClick={() => inputRef.current?.click()}
-        >
+        <input ref={c.inputRef} type="file" accept={ACCEPT.join(",")} multiple hidden onChange={(e) => c.addFiles(e.target.files)} />
+        <ButtonSlot variant="outline" disabled={c.pending || c.files.length >= MAX_FILES} onClick={() => c.inputRef.current?.click()}>
           <PaperclipIcon className="size-4" /> Attach
-        </Button>
-        <Button onClick={submit} disabled={pending} className="w-fit active:scale-[0.98]">
-          {pending ? <Loader2Icon className="size-4 animate-spin" /> : <SendIcon className="size-4" />}
-          {pending ? submittingLabel : submitLabel}
-        </Button>
+        </ButtonSlot>
+        <ButtonSlot variant="primary" disabled={c.pending} onClick={c.submit}>
+          {c.pending ? <Loader2Icon className="size-4 animate-spin" /> : <SendIcon className="size-4" />}
+          {c.pending ? submittingLabel : submitLabel}
+        </ButtonSlot>
       </div>
     </div>
   );
