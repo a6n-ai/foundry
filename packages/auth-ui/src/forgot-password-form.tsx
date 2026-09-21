@@ -185,7 +185,7 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
         />
         <Field label="New password" type="password" autoComplete="new-password" error={errors.newPassword?.message} {...verifyForm.register("newPassword")} />
         {error ? <Notice tone="error">{error}</Notice> : null}
-        <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>{isSubmitting ? null : "Reset password"}</Button>
+        <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>Reset password</Button>
       </form>
     );
   }
@@ -198,7 +198,7 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
         <p className="text-muted-foreground text-sm">Enter your email — we&apos;ll send a code.</p>
       </div>
       <Field label="Email" type="email" autoComplete="username" placeholder="you@example.com" error={errors.identifier?.message} {...requestForm.register("identifier")} />
-      <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>{isSubmitting ? null : "Send code"}</Button>
+      <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>Send code</Button>
     </form>
   );
 }

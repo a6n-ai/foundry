@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import type { ComponentType, InputHTMLAttributes, ReactNode, Ref } from "react";
+import { useId, type ComponentType, type InputHTMLAttributes, type ReactNode, type Ref } from "react";
 import { Button as ShadcnButton } from "@foundry/ui/button";
 import { Input } from "@foundry/ui/input";
 import { Label } from "@foundry/ui/label";
@@ -12,6 +12,8 @@ export interface AuthButtonProps {
   variant?: "primary" | "outline" | "quiet" | "danger";
   disabled?: boolean;
   pending?: boolean;
+  /** Text shown beside the spinner while `pending`. The default kit shows the spinner alone when omitted. */
+  pendingLabel?: ReactNode;
   className?: string;
   onClick?: () => void;
   children?: ReactNode;
@@ -20,7 +22,7 @@ export interface AuthButtonProps {
 export interface AuthFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "ref"> {
   label: string;
   error?: string;
-  /** Small control shown inside the field's right edge (e.g. Show/Hide). A kit that cannot host it may ignore it. */
+  /** Show/Hide toggle. Render it as-is inside a `relative` box around the input: it positions itself at the right edge. A kit that cannot host it may ignore it. */
   trailing?: ReactNode;
   ref?: Ref<HTMLInputElement>;
 }
@@ -50,39 +52,76 @@ export interface AuthUi {
 
 const VARIANT = { primary: "default", outline: "outline", quiet: "ghost", danger: "destructive" } as const;
 
-function DefaultButton({ variant = "primary", pending, disabled, type = "button", className, onClick, children }: AuthButtonProps) {
+function DefaultButton({ variant = "primary", pending, pendingLabel, disabled, type = "button", className, onClick, children }: AuthButtonProps) {
   return (
     <ShadcnButton type={type} variant={VARIANT[variant]} disabled={disabled || pending} className={className} onClick={onClick}>
-      {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
-      {children}
+      {pending ? (
+        <>
+          <Loader2 className="size-4 animate-spin" aria-hidden />
+          {pendingLabel}
+        </>
+      ) : (
+        children
+      )}
     </ShadcnButton>
   );
 }
 
-function ErrorText({ children }: { children?: ReactNode }) {
-  return children ? <p className="text-destructive text-sm">{children}</p> : null;
+// The markup below reproduces what the forms rendered before slots existed
+// (FormItem/FormLabel/FormControl/FormMessage output) so default apps see no change.
+function FieldMessage({ id, children }: { id: string; children?: ReactNode }) {
+  return children ? (
+    <p data-slot="form-message" id={id} className="text-destructive text-sm">
+      {children}
+    </p>
+  ) : null;
 }
 
 function DefaultField({ label, error, trailing, id, ref, ...input }: AuthFieldProps) {
-  const fid = id ?? `af-${input.name ?? label}`;
+  const itemId = `${useId()}-form-item`;
   return (
-    <div className="grid gap-2">
-      <Label htmlFor={fid} className={error ? "text-destructive" : undefined}>{label}</Label>
-      <div className="relative">
-        <Input id={fid} ref={ref} aria-invalid={error ? true : undefined} {...input} />
-        {trailing ? <div className="absolute right-2 top-1/2 -translate-y-1/2">{trailing}</div> : null}
-      </div>
-      <ErrorText>{error}</ErrorText>
+    <div data-slot="form-item" className="grid gap-2">
+      <Label data-slot="form-label" data-error={!!error} className="data-[error=true]:text-destructive" htmlFor={itemId}>
+        {label}
+      </Label>
+      {trailing ? (
+        <div className="relative">
+          <Input id={id} ref={ref} {...input} />
+          {trailing}
+        </div>
+      ) : (
+        <Input
+          data-slot="form-control"
+          id={id ?? itemId}
+          ref={ref}
+          aria-describedby={error ? `${itemId}-description ${itemId}-message` : `${itemId}-description`}
+          aria-invalid={!!error}
+          {...input}
+        />
+      )}
+      <FieldMessage id={`${itemId}-message`}>{error}</FieldMessage>
     </div>
   );
 }
 
-function DefaultCode({ label, length, masked: _masked, value, onChange, onComplete, error }: AuthCodeProps) {
+function DefaultCode({ label, length, masked, value, onChange, onComplete, error }: AuthCodeProps) {
+  const itemId = `${useId()}-form-item`;
   return (
-    <div className="grid gap-2">
-      <Label>{label}</Label>
-      <CodeOtp value={value} onChange={onChange} onComplete={onComplete} aria-invalid={!!error} length={length} masked={_masked} />
-      <ErrorText>{error}</ErrorText>
+    <div data-slot="form-item" className="grid gap-2">
+      <Label data-slot="form-label" data-error={!!error} className="data-[error=true]:text-destructive" htmlFor={itemId}>
+        {label}
+      </Label>
+      <CodeOtp
+        id={itemId}
+        aria-describedby={error ? `${itemId}-description ${itemId}-message` : `${itemId}-description`}
+        value={value}
+        onChange={onChange}
+        onComplete={onComplete}
+        aria-invalid={!!error}
+        length={length}
+        masked={masked}
+      />
+      <FieldMessage id={`${itemId}-message`}>{error}</FieldMessage>
     </div>
   );
 }
@@ -100,7 +139,7 @@ export function resolveUi(ui?: Partial<AuthUi>): AuthUi {
 /** Show/Hide toggle used as a `trailing` slot. */
 export function RevealToggle({ shown, onToggle }: { shown: boolean; onToggle: () => void }) {
   return (
-    <button type="button" className="text-muted-foreground text-xs" onClick={onToggle}>
+    <button type="button" className="text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 text-xs" onClick={onToggle}>
       {shown ? "Hide" : "Show"}
     </button>
   );

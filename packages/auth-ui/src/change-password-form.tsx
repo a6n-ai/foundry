@@ -76,8 +76,8 @@ export function ChangePasswordForm({ onChangePassword, forgotCurrent, ui }: Chan
       {field("newPassword", "next", "New password", "new-password")}
       {field("confirm", "confirm", "Confirm new password", "new-password")}
       {errors.root && <Notice tone="error">{errors.root.message}</Notice>}
-      <Button type="submit" variant="primary" disabled={!isDirty} pending={isSubmitting} className="w-full min-w-32 sm:w-auto">
-        {isSubmitting ? "Saving..." : "Change password"}
+      <Button type="submit" variant="primary" disabled={!isDirty} pending={isSubmitting} pendingLabel="Saving..." className="w-full min-w-32 sm:w-auto">
+        Change password
       </Button>
       {forgotCurrent ? (
         <button

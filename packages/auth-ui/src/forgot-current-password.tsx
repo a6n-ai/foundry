@@ -104,8 +104,8 @@ export function ForgotCurrentPassword(props: ForgotCurrentPasswordProps) {
       <Field label="New password" type="password" autoComplete="new-password" error={errors.newPassword?.message} {...form.register("newPassword")} />
       {error ? <Notice tone="error">{error}</Notice> : null}
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" variant="primary" pending={isSubmitting} className="min-w-32">
-          {isSubmitting ? "Saving..." : "Set new password"}
+        <Button type="submit" variant="primary" pending={isSubmitting} pendingLabel="Saving..." className="min-w-32">
+          Set new password
         </Button>
         <Button type="button" variant="quiet" onClick={send} disabled={sending}>
           Resend code

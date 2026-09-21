@@ -16,6 +16,11 @@ describe("auth-ui ui slots", () => {
     const html = renderToStaticMarkup(<ChangePasswordForm onChangePassword={vi.fn()} />);
     expect(html).toContain('data-slot="input"');
     expect(html).not.toContain("data-kit");
+    // original pre-slot markup: form-item wrapper, form-label, self-positioned Show toggle inside a relative box
+    expect(html).toContain('data-slot="form-item"');
+    expect(html).toContain('data-slot="form-label"');
+    expect(html).toContain('<div class="relative"><input');
+    expect(html).toContain('class="text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 text-xs">Show</button>');
   });
   it("uses app-supplied primitives", () => {
     const html = renderToStaticMarkup(<ChangePasswordForm onChangePassword={vi.fn()} ui={custom} />);
