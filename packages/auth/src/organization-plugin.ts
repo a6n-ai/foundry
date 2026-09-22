@@ -21,6 +21,8 @@ export interface OrganizationPluginConfig {
   allowUserToCreateOrganization: (user: { role?: string }) => boolean | Promise<boolean>;
   /** Extra fields beyond clientCode/parentOrganizationId/region, e.g. puchkaman's future Clover-linked fields. */
   additionalOrganizationFields?: Record<string, { type: string; required?: boolean; input?: boolean }>;
+  /** Pass-through to better-auth's organization plugin — sends the branded staff-invite email. Optional: apps without staff invites yet can omit it. */
+  sendInvitationEmail?: Parameters<typeof organizationPlugin>[0] extends { sendInvitationEmail?: infer T } ? T : never;
 }
 
 /**
@@ -30,9 +32,10 @@ export interface OrganizationPluginConfig {
  * shared config, parameterized only on the app's db handle and creation gate.
  */
 export function createOrganizationPlugin(config: OrganizationPluginConfig) {
-  const { db, organizationTable, eq, allowUserToCreateOrganization, additionalOrganizationFields } = config;
+  const { db, organizationTable, eq, allowUserToCreateOrganization, additionalOrganizationFields, sendInvitationEmail } = config;
   return organizationPlugin({
     allowUserToCreateOrganization: async (user) => allowUserToCreateOrganization(user as { role?: string }),
+    ...(sendInvitationEmail ? { sendInvitationEmail } : {}),
     schema: {
       organization: {
         modelName: "organization",
