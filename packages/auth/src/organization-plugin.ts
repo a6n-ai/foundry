@@ -37,6 +37,8 @@ export function createOrganizationPlugin(config: OrganizationPluginConfig) {
   return organizationPlugin({
     allowUserToCreateOrganization: async (user) => allowUserToCreateOrganization(user as { role?: string }),
     ...(sendInvitationEmail ? { sendInvitationEmail } : {}),
+    // Every app's invite email promises 7 days; better-auth's default is 48h.
+    invitationExpiresIn: 7 * 24 * 60 * 60,
     schema: {
       organization: {
         modelName: "organization",
