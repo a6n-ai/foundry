@@ -16,3 +16,5 @@ export {
 } from "./emails";
 export { assertHierarchyDepth, resolveVisibleOrgIds } from "./organization";
 export type { OrgParentRef } from "./organization";
+export { createOrganizationPlugin } from "./organization-plugin";
+export type { OrganizationPluginConfig } from "./organization-plugin";
