@@ -1,4 +1,5 @@
 import { organization as organizationPlugin } from "better-auth/plugins";
+import type { OrganizationOptions } from "better-auth/plugins/organization";
 import { APIError } from "better-auth/api";
 import { assertHierarchyDepth, type OrgParentRef } from "./organization";
 
@@ -22,7 +23,7 @@ export interface OrganizationPluginConfig {
   /** Extra fields beyond clientCode/parentOrganizationId/region, e.g. puchkaman's future Clover-linked fields. */
   additionalOrganizationFields?: Record<string, { type: string; required?: boolean; input?: boolean }>;
   /** Pass-through to better-auth's organization plugin — sends the branded staff-invite email. Optional: apps without staff invites yet can omit it. */
-  sendInvitationEmail?: Parameters<typeof organizationPlugin>[0] extends { sendInvitationEmail?: infer T } ? T : never;
+  sendInvitationEmail?: OrganizationOptions["sendInvitationEmail"];
 }
 
 /**
