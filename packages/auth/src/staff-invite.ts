@@ -43,11 +43,12 @@ export function createStaffInvite(deps: StaffInviteDeps) {
       });
       return { publicId: created.publicId, email: created.email, invitationId: invitation.id };
     } catch {
-      // Account is real and usable — an admin can retry via a resend action.
+      // Account is real and usable, but with no member or invitation row it
+      // appears on neither Members nor Invites, so there's no in-app resend.
       // Rolling back would silently discard the created account over a
       // transient invite-send failure. Matches the current inviteUser
       // behavior in apps/*/lib/services/users-invite.ts.
-      throw new StaffInviteError("Account created, but the invite could not be sent. Use Resend invite on their row to retry.");
+      throw new StaffInviteError("Account created, but the invite email could not be sent. Contact the invitee directly, or ask them to check for an invite link, since resending isn't available for this account yet.");
     }
   }
 
