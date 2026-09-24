@@ -23,6 +23,9 @@ export const fileSystem = pgTable(
     index("idx_fs_rtype_ftype_parent").on(t.resourceType, t.fileType, t.parentId),
     index("idx_fs_rtype_ftype").on(t.resourceType, t.fileType),
     index("idx_fs_path").on(t.path),
+    // FK: parentId is only the trailing column above, so a lookup by parent
+    // alone (list children, cascade-delete) still seq scans without this.
+    index("idx_fs_parent").on(t.parentId),
   ],
 );
 

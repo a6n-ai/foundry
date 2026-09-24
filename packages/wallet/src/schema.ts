@@ -71,6 +71,8 @@ export function makeWalletTables<
     index("wallet_user_created_idx").on(t.userId, t.createdAt),
     index("wallet_reserved_until_idx").on(t.reservedUntil),
     uniqueIndex("wallet_earn_idempotent_idx").on(t.sourceType, t.sourceId, t.eventType),
+    // FK: Postgres never auto-indexes FOREIGN KEY, only PRIMARY KEY/UNIQUE.
+    index("wallet_order_idx").on(t.orderId),
   ]);
 
   const eventPayout = pgTable("event_payout", {
