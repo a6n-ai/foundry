@@ -116,7 +116,7 @@ export function LocationPicker<T extends PickableLocation>({
           </div>
         }
       >
-        <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="size-4" />
           {suggestion?.name}
         </div>
@@ -129,7 +129,7 @@ export function LocationPicker<T extends PickableLocation>({
         description="Search by city or address, or pick a card below."
         contentClassName="location-picker-dialog"
       >
-        <div className="space-y-3 p-4">
+        <div className="space-y-3">
           <Input
             autoFocus
             placeholder="Search by city or address"

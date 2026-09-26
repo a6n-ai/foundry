@@ -152,8 +152,21 @@ export function TypeEditDialog({
       title={isNew ? "Add delivery type" : form.label || form.key}
       description="What a customer can pick at checkout, and the rules this option carries."
       contentClassName="sm:max-w-lg"
+      footer={
+        <>
+          {!isNew && (
+            // Retire sits apart from the primary action, on the left.
+            <Button type="button" variant="outline" className="sm:mr-auto" disabled={busy || !form.active} onClick={retire}>
+              {form.active ? "Retire" : "Retired"}
+            </Button>
+          )}
+          <Button type="button" disabled={busy} onClick={save}>
+            {pending ? "Saving…" : isNew ? "Create" : "Save"}
+          </Button>
+        </>
+      }
     >
-      <div className="grid gap-4 px-4 py-4">
+      <div className="grid gap-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="type-key">Key</Label>
@@ -248,25 +261,6 @@ export function TypeEditDialog({
             <span className="text-sm font-medium">Active</span>
             <Switch checked={form.active} onCheckedChange={(v) => set("active", v)} />
           </label>
-        </div>
-
-        <div className="flex items-center justify-between gap-2">
-          {!isNew ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={busy || !form.active}
-              onClick={retire}
-            >
-              {form.active ? "Retire" : "Retired"}
-            </Button>
-          ) : (
-            <span />
-          )}
-          <Button type="button" size="sm" disabled={busy} onClick={save}>
-            {pending ? "Saving…" : isNew ? "Create" : "Save"}
-          </Button>
         </div>
       </div>
     </ResponsiveDialog>

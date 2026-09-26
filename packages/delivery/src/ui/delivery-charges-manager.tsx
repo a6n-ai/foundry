@@ -390,29 +390,10 @@ export function DeliveryChargesManager({
       <ResponsiveDialog
         open={baseChargeOpen}
         onOpenChange={setBaseChargeOpen}
-        title="Edit Base Delivery Charge"
-      >
-        <div className="space-y-4 pt-2">
-          <div className="space-y-2">
-            <Label htmlFor="base-charge-val">Base Charge ($)</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">$</span>
-              <Input
-                id="base-charge-val"
-                type="number"
-                step="0.01"
-                min="0"
-                className="pl-7"
-                value={baseChargeInput}
-                onChange={(e) => setBaseChargeInput(e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Applied automatically to all orders as the base delivery fee.
-            </p>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
+        title="Edit base delivery charge"
+        description="Added to every order before any delivery strategy charge."
+        footer={
+          <>
             <Button
               type="button"
               variant="outline"
@@ -429,6 +410,28 @@ export function DeliveryChargesManager({
               {isSavingBase && <Loader2Icon className="mr-1.5 size-4 animate-spin" />}
               Save changes
             </Button>
+          </>
+        }
+      >
+        <div className="grid gap-5">
+          <div className="space-y-2">
+            <Label htmlFor="base-charge-val">Amount</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">$</span>
+              <Input
+                id="base-charge-val"
+                type="number"
+                step="0.01"
+                min="0"
+                className="pl-7"
+                value={baseChargeInput}
+                onChange={(e) => setBaseChargeInput(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Applied automatically to all orders as the base delivery fee.
+            </p>
           </div>
         </div>
       </ResponsiveDialog>
@@ -578,10 +581,35 @@ function ItemChargeDialogBody({
   };
 
   return (
-    <ResponsiveDialog open onOpenChange={onOpenChange} title={title}>
-      <div className="space-y-4 pt-2">
+    <ResponsiveDialog
+      open
+      onOpenChange={onOpenChange}
+      title={title}
+      description="Customers see the name; the charge is added to their plan price."
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving && <Loader2Icon className="mr-1.5 size-4 animate-spin" />}
+            Save
+          </Button>
+        </>
+      }
+    >
+      <div className="grid gap-5">
         <div className="space-y-2">
-          <Label htmlFor="charge-item-name">Name *</Label>
+          <Label htmlFor="charge-item-name">Name</Label>
           <Input
             id="charge-item-name"
             value={name}
@@ -591,7 +619,9 @@ function ItemChargeDialogBody({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="charge-item-desc">Description (optional)</Label>
+          <Label htmlFor="charge-item-desc">
+            Description <span className="font-normal text-muted-foreground">(optional)</span>
+          </Label>
           <Input
             id="charge-item-desc"
             value={description}
@@ -600,13 +630,15 @@ function ItemChargeDialogBody({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="charge-item-type">Charge Type</Label>
+        <div className="grid gap-5 sm:grid-cols-2">
+        {/* Free has no amount: the type takes the whole row so it never sits half-empty. */}
+        <div className={chargeType === "none" ? "space-y-2 sm:col-span-2" : "space-y-2"}>
+          <Label htmlFor="charge-item-type">Charge type</Label>
           <Select
             value={chargeType}
             onValueChange={(val) => setChargeType(val as DeliveryChargeType)}
           >
-            <SelectTrigger id="charge-item-type">
+            <SelectTrigger id="charge-item-type" className="w-full">
               <SelectValue placeholder="Select charge type" />
             </SelectTrigger>
             <SelectContent>
@@ -620,7 +652,7 @@ function ItemChargeDialogBody({
         {chargeType !== "none" && (
           <div className="space-y-2">
             <Label htmlFor="charge-item-val">
-              {chargeType === "fixed" ? "Charge Amount ($)" : "Percentage (%)"}
+              {chargeType === "fixed" ? "Amount" : "Percentage"}
             </Label>
             <div className="relative">
               {chargeType === "fixed" && (
@@ -649,13 +681,15 @@ function ItemChargeDialogBody({
           </div>
         )}
 
-        <div className="flex items-center justify-between rounded-lg border p-3">
+        </div>
+
+        <div className="flex items-center justify-between gap-4 rounded-xl border bg-muted/30 px-4 py-3.5">
           <div className="space-y-0.5">
             <Label htmlFor="charge-item-active" className="text-sm font-medium">
-              Active status
+              Active
             </Label>
             <p className="text-xs text-muted-foreground">
-              Inactive rules cannot be selected on new orders.
+              Inactive options can't be picked on new orders.
             </p>
           </div>
           <Switch
@@ -665,24 +699,6 @@ function ItemChargeDialogBody({
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-          >
-            {saving && <Loader2Icon className="mr-1.5 size-4 animate-spin" />}
-            Save
-          </Button>
-        </div>
       </div>
     </ResponsiveDialog>
   );
