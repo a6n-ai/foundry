@@ -74,7 +74,10 @@ export function makeDeliveryTables(deps: {
       zoneId: bigint("zone_id", { mode: "bigint" }).notNull().references(() => deliveryZones.id),
       typeId: bigint("type_id", { mode: "bigint" }).notNull().references(() => deliveryTypes.id),
     },
-    (t) => [uniqueIndex("delivery_zone_types_zone_type_unique").on(t.zoneId, t.typeId)],
+    (t) => [
+      uniqueIndex("delivery_zone_types_zone_type_unique").on(t.zoneId, t.typeId),
+      index("delivery_zone_types_type_idx").on(t.typeId),
+    ],
   );
 
   // ── Charges: surcharges on top of the order ────────────────────────────────

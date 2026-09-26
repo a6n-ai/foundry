@@ -15,7 +15,7 @@ describe("makeDeliveryTables", () => {
     expect(getTableConfig(t.deliveryZones).name).toBe("delivery_zones");
     expect(getTableConfig(t.deliveryZones).checks.map((c) => c.name)).toEqual(["delivery_zones_shape_check"]);
     expect(getTableConfig(t.deliveryTypes).name).toBe("delivery_types");
-    expect(getTableConfig(t.deliveryZoneTypes).indexes.map((i) => i.config.name)).toEqual(["delivery_zone_types_zone_type_unique"]);
+    expect(getTableConfig(t.deliveryZoneTypes).indexes.map((i) => i.config.name)).toEqual(["delivery_zone_types_zone_type_unique", "delivery_zone_types_type_idx"]);
 
     for (const [table, name] of [
       [t.deliveryStrategies, "delivery_strategies"],
