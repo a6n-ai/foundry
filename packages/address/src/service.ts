@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, ne, or } from "drizzle-orm";
 import type { PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { ValidationError } from "@foundry/commons";
 import type { Database } from "@foundry/database";
@@ -71,8 +71,14 @@ export function createAddressService(deps: AddressServiceDeps) {
   const audit = async (e: AuditEntry) => {
     if (deps.audit) await deps.audit(e);
   };
+  // The org's own rows plus shared (null-org) ones — the same visibility rule apps use elsewhere,
+  // so an address saved without an org (e.g. guest checkout) is still usable on an org-scoped plan.
   const owned = (scope: AddressScope) =>
-    and(eq(t.userId, scope.userId), isNull(t.archivedAt), scope.orgId ? eq(t.organizationId, scope.orgId) : undefined);
+    and(
+      eq(t.userId, scope.userId),
+      isNull(t.archivedAt),
+      scope.orgId ? or(eq(t.organizationId, scope.orgId), isNull(t.organizationId)) : undefined,
+    );
   const geocode = async (s: AddressSnapshot) => {
     if (!deps.geocode) return null;
     return deps.geocode([s.addressLine, s.city, s.postalCode].join(", ")).catch(() => null);
@@ -102,10 +108,11 @@ export function createAddressService(deps: AddressServiceDeps) {
   async function create(
     scope: AddressScope,
     input: AddressInput,
-    opts: { makeDefault?: boolean; tx?: AddressTx } = {},
+    opts: { makeDefault?: boolean; tx?: AddressTx; coords?: { lat: number; lng: number } | null } = {},
   ): Promise<SavedAddress & { id: bigint }> {
     const v = normalizeAddressInput(input);
-    const point = await geocode(v);
+    // A caller that already geocoded (checkout) passes its point — never pay for a second lookup.
+    const point = opts.coords ?? (await geocode(v));
     const by = await actor();
     const run = async (tx: AddressTx) => {
       const labels = await liveLabels(scope, tx);
