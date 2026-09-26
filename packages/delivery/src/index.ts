@@ -1,7 +1,12 @@
 export * from "./charges";
+export * from "./zones";
+export * from "./distance";
 export type {
+  AuditEntry,
   DeleteRuleResult,
   DeliveryChargeRuleDto,
   DeliveryChargeRuleInput,
-  DeliveryChargesService,
+  DeliveryService,
+  DeliveryTypeInput,
+  ZoneInput,
 } from "./service";
