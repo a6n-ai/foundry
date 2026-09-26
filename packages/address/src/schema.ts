@@ -17,7 +17,8 @@ import {
  * attach its own fields (tiffin-grab: address_tag_id, delivery_strategy_id) without this
  * package knowing about delivery. Names are load-bearing — renaming needs a migration per app.
  */
-export function makeAddressTables<X extends Record<string, PgColumnBuilderBase> = Record<string, never>>(deps: {
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- `{}` (not Record<string, never>) keeps base column types intact
+export function makeAddressTables<X extends Record<string, PgColumnBuilderBase> = {}>(deps: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   users: AnyPgTable & { id: any };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,5 +61,7 @@ export function makeAddressTables<X extends Record<string, PgColumnBuilderBase> 
   return { customerAddresses };
 }
 
-export type AddressTables = ReturnType<typeof makeAddressTables>;
+/** The base shape the service needs; an app's table with extra columns is a superset of it. */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type AddressTables = ReturnType<typeof makeAddressTables<{}>>;
 export type CustomerAddressRow = AddressTables["customerAddresses"]["$inferSelect"];
