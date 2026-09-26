@@ -441,7 +441,7 @@ export function DeliveryChargesManager({
         open={deliveryStrategyDialogOpen}
         onOpenChange={setDeliveryStrategyDialogOpen}
         item={editingDeliveryStrategy}
-        title={editingDeliveryStrategy ? "Edit Delivery Strategy" : "Add Delivery Strategy"}
+        title={editingDeliveryStrategy ? "Edit delivery strategy" : "Add delivery strategy"}
         namePlaceholder="e.g. Front Door, Lobby, Garage"
         onSave={async (values) => {
           const saved = await saveDeliveryStrategyAction(values);
@@ -464,7 +464,7 @@ export function DeliveryChargesManager({
         open={addressTagDialogOpen}
         onOpenChange={setAddressTagDialogOpen}
         item={editingAddressTag}
-        title={editingAddressTag ? "Edit Address Tag" : "Add Address Tag"}
+        title={editingAddressTag ? "Edit address tag" : "Add address tag"}
         namePlaceholder="e.g. House, Apartment, Commercial Building"
         onSave={async (values) => {
           const saved = await saveAddressTagAction(values);
