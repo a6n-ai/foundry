@@ -105,7 +105,7 @@ export function DeliveryChargesManager({
     });
   };
 
-  // Delivery Types Actions
+  // Delivery Strategies Actions
   const handleOpenAddDeliveryStrategy = () => {
     setEditingDeliveryStrategy(null);
     setDeliveryStrategyDialogOpen(true);
@@ -117,7 +117,7 @@ export function DeliveryChargesManager({
   };
 
   const handleDeleteDeliveryStrategy = (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to remove delivery type "${name}"?`)) return;
+    if (!window.confirm(`Are you sure you want to remove delivery strategy "${name}"?`)) return;
     void (async () => {
       try {
         const res = await deleteDeliveryStrategyAction(id);
@@ -129,7 +129,7 @@ export function DeliveryChargesManager({
           setDeliveryStrategies((prev) => prev.filter((t) => t.id !== id));
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to delete delivery type.");
+        toast.error(err instanceof Error ? err.message : "Failed to delete delivery strategy.");
       }
     })();
   };
@@ -198,14 +198,14 @@ export function DeliveryChargesManager({
         </div>
       </SectionCard>
 
-      {/* 2. Delivery Types Table */}
+      {/* 2. Delivery Strategies Table */}
       <SectionCard
-        title="Delivery Types"
+        title="Delivery Strategies"
         subtitle="Configurable options for how or where the order is dropped off (e.g. Front Door, Lobby, Rear Door)."
         action={
           <Button size="sm" onClick={handleOpenAddDeliveryStrategy}>
             <PlusIcon className="mr-1.5 size-3.5" />
-            Add delivery type
+            Add delivery strategy
           </Button>
         }
       >
@@ -225,7 +225,7 @@ export function DeliveryChargesManager({
               {deliveryStrategies.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                    No delivery types configured yet. Click &quot;Add delivery type&quot; to create one.
+                    No delivery strategies configured yet. Click &quot;Add delivery strategy&quot; to create one.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -427,12 +427,12 @@ export function DeliveryChargesManager({
         </div>
       </ResponsiveDialog>
 
-      {/* Delivery Type Add/Edit Dialog */}
+      {/* Delivery Strategy Add/Edit Dialog */}
       <ItemChargeDialog
         open={deliveryStrategyDialogOpen}
         onOpenChange={setDeliveryStrategyDialogOpen}
         item={editingDeliveryStrategy}
-        title={editingDeliveryStrategy ? "Edit Delivery Type" : "Add Delivery Type"}
+        title={editingDeliveryStrategy ? "Edit Delivery Strategy" : "Add Delivery Strategy"}
         namePlaceholder="e.g. Front Door, Lobby, Garage"
         onSave={async (values) => {
           const saved = await saveDeliveryStrategyAction(values);

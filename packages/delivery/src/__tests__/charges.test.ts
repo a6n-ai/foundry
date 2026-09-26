@@ -11,6 +11,8 @@ describe("calculateDeliveryCharge", () => {
     });
     expect(r.totalDeliveryCharge).toBe(8);
     expect(r.lines.map((l) => l.amount)).toEqual([2, 1, 5]);
+    // "Delivery type" means pickup vs delivery; front door etc. are strategies.
+    expect(r.lines[1]!.label).toBe("Delivery strategy: Doorstep");
   });
 
   it("treats 'none' as zero and omits zero lines", () => {

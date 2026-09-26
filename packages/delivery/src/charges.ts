@@ -31,7 +31,7 @@ const round2 = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 1
 
 /**
  * Pure calculation function for delivery charges.
- * Total = Base Charge + Delivery Type Charge + Address Tag Charge.
+ * Total = Base Charge + Delivery Strategy Charge + Address Tag Charge.
  * Percentage charges are computed strictly against planPrice (customer's selected plan price / tiffinSubtotal).
  */
 export function calculateDeliveryCharge(params: {
@@ -87,7 +87,7 @@ export function calculateDeliveryCharge(params: {
   }
   if (deliveryStrategyInfo && deliveryStrategyAmount > 0) {
     const detail = deliveryStrategyInfo.chargeType === "percent" ? ` (${deliveryStrategyInfo.chargeValue}%)` : "";
-    lines.push({ label: `Delivery type: ${deliveryStrategyInfo.name}${detail}`, amount: deliveryStrategyAmount });
+    lines.push({ label: `Delivery strategy: ${deliveryStrategyInfo.name}${detail}`, amount: deliveryStrategyAmount });
   }
   if (addressTagInfo && addressTagAmount > 0) {
     const detail = addressTagInfo.chargeType === "percent" ? ` (${addressTagInfo.chargeValue}%)` : "";
