@@ -105,7 +105,8 @@ export function CustomerAddressesCard({
             }
           />
         ))}
-        {book.error && <p className="text-destructive text-sm">{book.error}</p>}
+        {/* The dialog shows its own error; this covers make-default and delete. */}
+        {book.error && !editing && <p className="text-destructive text-sm">{book.error}</p>}
         <Button variant="outline" size="sm" onClick={() => setEditing({ publicId: null, label: "", values: {} })}>
           <PlusIcon /> Add address
         </Button>
@@ -133,6 +134,11 @@ export function CustomerAddressesCard({
                 values={editing.values}
                 onChange={(patch) => setEditing({ ...editing, values: { ...editing.values, ...patch } })}
               />
+              {book.error && (
+                <p role="alert" className="text-destructive text-sm">
+                  {book.error}
+                </p>
+              )}
             </div>
           )}
           <DialogFooter>
