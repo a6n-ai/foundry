@@ -1,0 +1,40 @@
+{
+  "name": "@foundry/address",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts",
+    "./service": "./src/service.ts",
+    "./hooks": "./src/hooks.ts",
+    "./ui": "./src/ui/index.ts"
+  },
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@foundry/commons": "workspace:*",
+    "@foundry/database": "workspace:*",
+    "@foundry/design-system": "workspace:*",
+    "@foundry/ui": "workspace:*",
+    "lucide-react": "^1.20.0",
+    "sonner": "^2.0.7"
+  },
+  "peerDependencies": {
+    "drizzle-orm": "^0.45.2",
+    "react": "^19"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19",
+    "drizzle-orm": "^0.45.2",
+    "jsdom": "^29.1.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "typescript": "^5",
+    "vitest": "^4.1.9"
+  }
+}
