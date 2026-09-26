@@ -17,3 +17,6 @@ pnpm typecheck
 ## License
 
 Apache License 2.0. See [`LICENSE`](LICENSE). Products that consume Foundry (Relay, Realm) keep their own licenses; this repo does not become AGPL because an app imports `@foundry/*`.
+
+<!-- Delivery Types rename -->
+*The `deliveryTypes` → `deliveryStrategies` rename has been applied in the Realm monorepo (`apps/tiffin-grab`).*
