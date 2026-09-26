@@ -31,7 +31,9 @@ export function makeAddressTables<X extends Record<string, PgColumnBuilderBase> 
     "customer_addresses",
     {
       ...updatableColumns("adr"),
-      userId: bigint("user_id", { mode: "bigint" }).notNull().references(() => users.id),
+      // Cascade: the address book belongs to its user. Apps soft-delete users, so this only fires
+      // on hard deletes (tests, GDPR purges) — orders/deliveries keep their own snapshots.
+      userId: bigint("user_id", { mode: "bigint" }).notNull().references(() => users.id, { onDelete: "cascade" }),
       /** "Home", "Work", or the street line. Unique per user among live rows (enforced in the service). */
       label: text("label").notNull(),
       fullName: text("full_name"),

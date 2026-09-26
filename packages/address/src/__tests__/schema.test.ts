@@ -23,6 +23,11 @@ describe("makeAddressTables", () => {
     );
   });
 
+  it("deletes a user's addresses with the user", () => {
+    const fk = cfg.foreignKeys.find((f) => f.reference().columns[0]?.name === "user_id");
+    expect(fk?.onDelete).toBe("cascade");
+  });
+
   it("allows one live default per user and indexes every FK", () => {
     const idx = Object.fromEntries(cfg.indexes.map((i) => [i.config.name, i.config]));
     expect(idx["customer_addresses_one_default"]?.unique).toBe(true);
