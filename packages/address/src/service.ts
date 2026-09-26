@@ -113,11 +113,17 @@ export function createAddressService(deps: AddressServiceDeps) {
   async function create(
     scope: AddressScope,
     input: AddressInput,
-    opts: { makeDefault?: boolean; tx?: AddressTx; coords?: { lat: number; lng: number } | null } = {},
+    opts: {
+      makeDefault?: boolean;
+      tx?: AddressTx;
+      /** Known point; `null` means "skip geocoding". Omit to geocode. */
+      coords?: { lat: number; lng: number } | null;
+    } = {},
   ): Promise<SavedAddress & { id: bigint }> {
     const v = normalizeAddressInput(input);
-    // A caller that already geocoded (checkout) passes its point — never pay for a second lookup.
-    const point = opts.coords ?? (await geocode(v));
+    // coords given → use them (checkout already geocoded); coords: null → store none, don't look up;
+    // omitted → geocode here.
+    const point = opts.coords !== undefined ? opts.coords : await geocode(v);
     const by = await actor();
     const run = async (tx: AddressTx) => {
       // Serialize per customer: two concurrent first addresses would otherwise both read an empty
