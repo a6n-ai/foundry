@@ -50,7 +50,8 @@ export interface DeliveryChargesActions {
 export interface DeliveryChargesManagerProps {
   initialBaseCharge: number;
   initialDeliveryStrategies: DeliveryStrategyDto[];
-  initialAddressTags: AddressTagDto[];
+  /** Omit to hide address tags entirely — for an app that charges by delivery strategy only. */
+  initialAddressTags?: AddressTagDto[];
   actions: DeliveryChargesActions;
 }
 
@@ -69,7 +70,8 @@ export function DeliveryChargesManager({
   } = actions;
   const [baseCharge, setBaseCharge] = useState(initialBaseCharge);
   const [deliveryStrategies, setDeliveryStrategies] = useState(initialDeliveryStrategies);
-  const [addressTags, setAddressTags] = useState(initialAddressTags);
+  const showAddressTags = initialAddressTags !== undefined;
+  const [addressTags, setAddressTags] = useState(initialAddressTags ?? []);
 
   // Dialog states
   const [baseChargeOpen, setBaseChargeOpen] = useState(false);
@@ -175,7 +177,7 @@ export function DeliveryChargesManager({
       {/* 1. Base Delivery Charge Card */}
       <SectionCard
         title="Base Delivery Charge"
-        subtitle="Standard baseline charge added to every order before specific delivery location or address tag rules are applied."
+        subtitle={`Standard baseline charge added to every order before delivery strategy${showAddressTags ? " or address tag" : ""} charges are applied.`}
         action={
           <Button variant="outline" size="sm" onClick={handleOpenBaseDialog}>
             <PencilIcon className="mr-1.5 size-3.5" />
@@ -289,6 +291,8 @@ export function DeliveryChargesManager({
         </div>
       </SectionCard>
 
+      {showAddressTags && (
+        <>
       {/* 3. Address Tags Table */}
       <SectionCard
         title="Address Tags"
@@ -379,6 +383,8 @@ export function DeliveryChargesManager({
           </Table>
         </div>
       </SectionCard>
+        </>
+      )}
 
       {/* Edit Base Charge Dialog */}
       <ResponsiveDialog
@@ -448,6 +454,8 @@ export function DeliveryChargesManager({
         }}
       />
 
+      {showAddressTags && (
+        <>
       {/* Address Tag Add/Edit Dialog */}
       <ItemChargeDialog
         open={addressTagDialogOpen}
@@ -468,6 +476,8 @@ export function DeliveryChargesManager({
           });
         }}
       />
+        </>
+      )}
     </div>
   );
 }
