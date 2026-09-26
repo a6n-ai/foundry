@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, ne, or } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, ne, or, sql } from "drizzle-orm";
 import type { PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { ValidationError } from "@foundry/commons";
 import type { Database } from "@foundry/database";
@@ -100,6 +100,11 @@ export function createAddressService(deps: AddressServiceDeps) {
     return row;
   }
 
+  /** Transaction-scoped lock on one customer's book (ids are globally unique, so no key clashes). */
+  async function lockBook(tx: AddressTx, scope: AddressScope) {
+    await tx.execute(sql`select pg_advisory_xact_lock(${scope.userId})`);
+  }
+
   async function assertLabelFree(scope: AddressScope, label: string, tx: AddressTx, exceptId?: bigint) {
     const taken = (await liveLabels(scope, tx, exceptId)).some((l) => l.toLowerCase() === label.toLowerCase());
     if (taken) throw new ValidationError(`You already have an address called "${label}"`);
@@ -115,6 +120,9 @@ export function createAddressService(deps: AddressServiceDeps) {
     const point = opts.coords ?? (await geocode(v));
     const by = await actor();
     const run = async (tx: AddressTx) => {
+      // Serialize per customer: two concurrent first addresses would otherwise both read an empty
+      // book, both claim the default, and the second would hit customer_addresses_one_default.
+      await lockBook(tx, scope);
       const labels = await liveLabels(scope, tx);
       const isFirst = labels.length === 0;
       const label = v.label ?? defaultLabel(v, labels, isFirst);
@@ -181,6 +189,7 @@ export function createAddressService(deps: AddressServiceDeps) {
     async setDefault(scope: AddressScope, publicId: string): Promise<void> {
       const by = await actor();
       await db.transaction(async (tx) => {
+        await lockBook(tx, scope);
         const row = await getRow(scope, publicId, tx);
         if (row.isDefault) return;
         await tx
