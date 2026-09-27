@@ -255,6 +255,8 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
           return { success: true, deactivatedInstead: true };
         }
         await db.delete(table).where(eq(table.id, row.id));
+        // Its set may now hold a single strategy, which connects nothing.
+        if (grouped) await pruneSets();
         await audit({ entity, entityPublicId: publicId, operation: "delete", changes: {} });
         return { success: true, deactivatedInstead: false };
       },
