@@ -105,6 +105,8 @@ export type DeliveryServiceDeps = {
   tables: DeliveryTables;
   /** Whether an app-owned row (order, user…) still points at this rule. In use = deactivate, not delete. */
   isStrategyInUse: (id: bigint) => Promise<boolean>;
+  /** Whether an app row (an address, order…) still names this tag. In use = retire, not delete. */
+  isTagInUse?: (id: bigint) => Promise<boolean>;
   isAddressTagInUse: (id: bigint) => Promise<boolean>;
   /** Session user for created_by/updated_by. Never taken from input. */
   currentUserId?: () => Promise<bigint | null>;
@@ -411,13 +413,14 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
       await audit({ entity: "delivery_strategy_connections", entityPublicId: publicId, operation: "delete", changes: {} });
     },
 
-    /** A tag that still has strategies is retired, not deleted — its strategies stay resolvable. */
+    /** A tag still in use (strategies, sets, or app rows) is retired, not deleted, so it stays resolvable. */
     async deleteDeliveryStrategyGroup(publicId: string, orgId?: string | null): Promise<DeleteRuleResult> {
       const [row] = await db.select({ id: groups.id }).from(groups).where(ownedGroup(publicId, orgId)).limit(1);
       if (!row) throw new ValidationError("Tag not found");
       const strategyTable = tables.deliveryStrategies;
       const [option] = await db.select({ id: strategyTable.id }).from(strategyTable).where(eq(strategyTable.groupId, row.id)).limit(1);
-      if (option) {
+      const [set] = await db.select({ id: connections.id }).from(connections).where(eq(connections.groupId, row.id)).limit(1);
+      if (option || set || (await deps.isTagInUse?.(row.id))) {
         await db.update(groups).set({ active: false, updatedAt: Date.now(), updatedBy: await actor() }).where(eq(groups.id, row.id));
         await audit({ entity: "delivery_strategy_groups", entityPublicId: publicId, operation: "update", changes: { active: false } });
         return { success: true, deactivatedInstead: true };

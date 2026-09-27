@@ -146,7 +146,7 @@ export function DeliveryChargesManager({
       try {
         const res = await deleteGroupAction(id);
         if (res.deactivatedInstead) {
-          toast.info(`"${name}" still has strategies, so it was deactivated instead. Customers no longer see it.`);
+          toast.info(`"${name}" is still in use, so it was deactivated instead. Customers no longer see it.`);
           setGroups((prev) => prev.map((g) => (g.id === id ? { ...g, active: false } : g)));
         } else {
           toast.success(`"${name}" removed.`);
