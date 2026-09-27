@@ -43,6 +43,9 @@ export function makeDiscountTables<
       startsAt: bigint("starts_at", { mode: "number" }),
       endsAt: bigint("ends_at", { mode: "number" }),
       minWeeks: integer("min_weeks"),
+      // Flat money off, for kinds an app prices per unit (e.g. a meal size's list price).
+      // The additive engine reads only `percent`, so a flat row there keeps percent 0.
+      amount: numeric("amount", { precision: 10, scale: 2 }),
       organizationId: text("organization_id").references(() => organization.id),
     },
     (t) => [check("discounts_percent_range", sql`${t.percent} >= 0 AND ${t.percent} <= 100`)],

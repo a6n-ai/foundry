@@ -16,7 +16,7 @@ describe("makeDiscountTables", () => {
 
   it("has the expected columns and nullability", () => {
     for (const n of ["key", "name", "kind", "percent", "active"]) expect(col(n).notNull).toBe(true);
-    for (const n of ["target_id", "starts_at", "ends_at", "min_weeks", "organization_id"])
+    for (const n of ["target_id", "starts_at", "ends_at", "min_weeks", "amount", "organization_id"])
       expect(col(n).notNull).toBe(false);
     expect(col("key").isUnique).toBe(true);
     expect(col("active").default).toBe(true);

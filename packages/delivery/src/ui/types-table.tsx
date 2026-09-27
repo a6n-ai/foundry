@@ -24,10 +24,10 @@ const COLUMNS: readonly Column<TypeCol>[] = [
   { key: "actions", label: "", sortable: false, align: "right" },
 ];
 
-function RulesCell({ row }: { row: TypeRow }) {
+function RulesCell({ row, showDiscount }: { row: TypeRow; showDiscount: boolean }) {
   const badges: React.ReactNode[] = [];
   if (row.minSubtotal > 0) badges.push(<Badge key="min" variant="outline">${row.minSubtotal} min</Badge>);
-  if (row.discountPct > 0) badges.push(<Badge key="disc" variant="outline">{row.discountPct}% off</Badge>);
+  if (showDiscount && row.discountPct > 0) badges.push(<Badge key="disc" variant="outline">{row.discountPct}% off</Badge>);
   if (row.requiresSchedule) badges.push(<Badge key="sched" variant="outline">Scheduled</Badge>);
   if (row.requiresAddress) badges.push(<Badge key="addr" variant="outline">Address</Badge>);
   if (badges.length === 0) return <span className="text-muted-foreground">—</span>;
@@ -38,7 +38,9 @@ function RulesCell({ row }: { row: TypeRow }) {
 // "new" is a sentinel distinct from `null` (a possible-but-unused row value) and from "closed".
 type DialogMode = "closed" | "new" | TypeRow;
 
-export function DeliveryTypesManager({ types }: { types: TypeRow[] }) {
+// showDiscount=false: the app keeps its discounts elsewhere (a central discounts table),
+// so the per-type field would be a second, ignored source of truth.
+export function DeliveryTypesManager({ types, showDiscount = true }: { types: TypeRow[]; showDiscount?: boolean }) {
   const [dialogMode, setDialogMode] = useState<DialogMode>("closed");
 
   return (
@@ -62,7 +64,7 @@ export function DeliveryTypesManager({ types }: { types: TypeRow[] }) {
             <TableCell className="font-medium">{r.label}</TableCell>
             <TableCell className="text-muted-foreground font-mono text-xs">{r.key}</TableCell>
             <TableCell>
-              <RulesCell row={r} />
+              <RulesCell row={r} showDiscount={showDiscount} />
             </TableCell>
             <TableCell>{r.sortOrder}</TableCell>
             <TableCell>
@@ -90,6 +92,7 @@ export function DeliveryTypesManager({ types }: { types: TypeRow[] }) {
         <TypeEditDialog
           key={dialogMode === "new" ? "new" : dialogMode.publicId}
           type={dialogMode === "new" ? null : dialogMode}
+          showDiscount={showDiscount}
           onOpenChange={(open) => !open && setDialogMode("closed")}
         />
       ) : null}

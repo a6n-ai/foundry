@@ -47,9 +47,11 @@ function rowToForm(row: TypeRow): TypeFormValues {
 
 export function TypeEditDialog({
   type,
+  showDiscount = true,
   onOpenChange,
 }: {
   type: TypeRow | null;
+  showDiscount?: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
@@ -200,7 +202,7 @@ export function TypeEditDialog({
           />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className={`grid gap-4 ${showDiscount ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
           <div className="space-y-1.5">
             <Label htmlFor="type-min">Minimum subtotal ($)</Label>
             <Input
@@ -214,20 +216,22 @@ export function TypeEditDialog({
               onBlur={commitMinSubtotal}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="type-disc">Discount (%)</Label>
-            <Input
-              id="type-disc"
-              type="number"
-              inputMode="decimal"
-              min={0}
-              max={100}
-              step={1}
-              value={discountPctText}
-              onChange={(e) => setDiscountPctText(e.target.value)}
-              onBlur={commitDiscountPct}
-            />
-          </div>
+          {showDiscount ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="type-disc">Discount (%)</Label>
+              <Input
+                id="type-disc"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={100}
+                step={1}
+                value={discountPctText}
+                onChange={(e) => setDiscountPctText(e.target.value)}
+                onBlur={commitDiscountPct}
+              />
+            </div>
+          ) : null}
           <div className="space-y-1.5">
             <Label htmlFor="type-sort">Sort order</Label>
             <Input
