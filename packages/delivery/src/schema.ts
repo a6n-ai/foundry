@@ -108,9 +108,9 @@ export function makeDeliveryTables(deps: {
   });
 
   /**
-   * A tag ("Drop-off spot", "Contact…"): what customers see first. Its strategies are
-   * delivery_strategies rows; the customer picks at most one per tag. The table keeps its
-   * "groups" name because renaming needs a migration in every app.
+   * A tag: the kind of place ("Home", "Apartment", "Office"). The customer picks at most one
+   * per address, then any of its strategies. The table keeps its "groups" name because
+   * renaming needs a migration in every app.
    */
   const deliveryStrategyGroups = pgTable(
     "delivery_strategy_groups",
@@ -118,8 +118,6 @@ export function makeDeliveryTables(deps: {
       ...updatableColumns("dsg"),
       name: text("name").notNull(),
       description: text("description"),
-      /** Required = no "No preference"; checkout refuses until one option is picked. */
-      required: boolean("required").notNull().default(false),
       active: boolean("active").notNull().default(true),
       sortOrder: integer("sort_order").notNull().default(0),
       organizationId: orgId(),
@@ -127,6 +125,25 @@ export function makeDeliveryTables(deps: {
     (t) => [
       index("delivery_strategy_groups_active_idx").on(t.active),
       index("delivery_strategy_groups_org_idx").on(t.organizationId),
+    ],
+  );
+
+  /**
+   * A connected set inside one tag ("Drop-off": Lobby, Door, Concierge): the customer picks
+   * at most one of its strategies. Strategies outside any set combine freely.
+   */
+  const deliveryStrategyConnections = pgTable(
+    "delivery_strategy_connections",
+    {
+      ...updatableColumns("dcn"),
+      name: text("name").notNull(),
+      groupId: bigint("group_id", { mode: "bigint" }).notNull().references(() => deliveryStrategyGroups.id),
+      sortOrder: integer("sort_order").notNull().default(0),
+      organizationId: orgId(),
+    },
+    (t) => [
+      index("delivery_strategy_connections_group_idx").on(t.groupId),
+      index("delivery_strategy_connections_org_idx").on(t.organizationId),
     ],
   );
 
@@ -138,11 +155,14 @@ export function makeDeliveryTables(deps: {
       ...ruleColumns(),
       // The strategy's tag. Required by the service; nullable only for rows from before tags.
       groupId: bigint("group_id", { mode: "bigint" }).references(() => deliveryStrategyGroups.id),
+      /** Its connected set (same tag); null = combines freely. Deleting the set frees it. */
+      connectionId: bigint("connection_id", { mode: "bigint" }).references(() => deliveryStrategyConnections.id, { onDelete: "set null" }),
     },
     (t) => [
       // Two tags may each have a strategy called "None".
       uniqueIndex("delivery_strategies_group_name_unique").on(t.groupId, t.name),
       index("delivery_strategies_group_idx").on(t.groupId),
+      index("delivery_strategies_connection_idx").on(t.connectionId),
       index("delivery_strategies_active_idx").on(t.active),
       index("delivery_strategies_org_idx").on(t.organizationId),
     ],
@@ -165,6 +185,7 @@ export function makeDeliveryTables(deps: {
     deliveryChargeType,
     deliveryChargeConfigs,
     deliveryStrategyGroups,
+    deliveryStrategyConnections,
     deliveryStrategies,
     addressTags,
   };
