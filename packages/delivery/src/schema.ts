@@ -157,6 +157,8 @@ export function makeDeliveryTables(deps: {
       groupId: bigint("group_id", { mode: "bigint" }).references(() => deliveryStrategyGroups.id),
       /** Its connected set (same tag); null = combines freely. Deleting the set frees it. */
       connectionId: bigint("connection_id", { mode: "bigint" }).references(() => deliveryStrategyConnections.id, { onDelete: "set null" }),
+      /** "once" per order, or "per_delivery" (fixed charges only). Checkout only: later changes are free. */
+      chargeBasis: text("charge_basis").$type<"once" | "per_delivery">().notNull().default("once"),
     },
     (t) => [
       // Two tags may each have a strategy called "None".

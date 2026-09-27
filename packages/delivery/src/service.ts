@@ -2,7 +2,7 @@ import { and, asc, eq, inArray, isNotNull, isNull, ne, notInArray, or, sql, type
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { ValidationError } from "@foundry/commons";
 import type { Database } from "@foundry/database";
-import type { DeliveryChargeType } from "./charges";
+import { DELIVERY_CHARGE_BASES, type DeliveryChargeBasis, type DeliveryChargeType } from "./charges";
 import type { DeliveryTables } from "./schema";
 import { clampRadiusKm, normalizePostal, type DeliveryType, type ZoneWithTypes } from "./zones";
 
@@ -17,6 +17,8 @@ export type DeliveryChargeRuleDto = {
   sortOrder: number;
   /** Strategies only: public id of the strategy's tag (delivery_strategy_groups). */
   groupId?: string | null;
+  /** Strategies only: once per order or per delivery. */
+  chargeBasis?: DeliveryChargeBasis;
   /**
    * Strategies only: public id of its connected set; null = combines freely. Strategies with
    * the same id are alternatives. Sets are managed through connectDeliveryStrategy.
@@ -33,6 +35,8 @@ export type DeliveryChargeRuleInput = {
   active?: boolean;
   /** Strategies only (required there): the tag's public id. Ignored for address tags. */
   groupId?: string | null;
+  /** Strategies only; per delivery applies to fixed charges, anything else is stored as once. */
+  chargeBasis?: DeliveryChargeBasis;
 };
 
 export type DeliveryStrategyGroupDto = {
@@ -158,7 +162,7 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
       chargeValue: Number(r.chargeValue),
       active: r.active,
       sortOrder: r.sortOrder,
-      ...(grouped ? { groupId: groupPublicId, connectionId: connectionPublicId } : {}),
+      ...(grouped ? { groupId: groupPublicId, connectionId: connectionPublicId, chargeBasis: r.chargeBasis } : {}),
     });
     const owned = (publicId: string, orgId?: string | null) => and(eq(table.publicId, publicId), orgScope(table.organizationId, orgId));
 
@@ -198,6 +202,7 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
         if (input.chargeType === "percent" && chargeValue > 100) {
           throw new ValidationError("Percentage charge cannot exceed 100%");
         }
+        if (input.chargeBasis && !DELIVERY_CHARGE_BASES.includes(input.chargeBasis)) throw new ValidationError("Invalid charge basis");
 
         const groupId = await groupIdFor(input.groupId, orgId);
         // A strategy moved to another tag leaves its set: sets never span tags.
@@ -220,7 +225,9 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
           chargeType: input.chargeType,
           chargeValue: chargeValue.toFixed(2),
           active: input.active ?? true,
-          ...(grouped ? { groupId } : {}),
+          ...(grouped
+            ? { groupId, chargeBasis: input.chargeType === "fixed" && input.chargeBasis === "per_delivery" ? ("per_delivery" as const) : ("once" as const) }
+            : {}),
           ...(leavesSet ? { connectionId: null } : {}),
         };
         const groupPublicId = groupId == null ? null : input.groupId!;

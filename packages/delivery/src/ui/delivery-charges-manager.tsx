@@ -32,7 +32,7 @@ import {
   TableRow,
 } from "@foundry/ui/table";
 import { ResponsiveDialog, SectionCard } from "@foundry/design-system";
-import type { DeliveryChargeType } from "../charges";
+import type { DeliveryChargeBasis, DeliveryChargeType } from "../charges";
 import type {
   DeleteRuleResult,
   DeliveryChargeRuleDto,
@@ -198,7 +198,8 @@ export function DeliveryChargesManager({
     })();
   };
 
-  const formatChargeDisplay = (chargeType: DeliveryChargeType, chargeValue: number) => {
+  const formatChargeDisplay = (chargeType: DeliveryChargeType, chargeValue: number, basis?: DeliveryChargeBasis) => {
+    if (chargeType === "fixed" && chargeValue > 0 && basis === "per_delivery") return `$${chargeValue.toFixed(2)} / delivery`;
     if (chargeType === "none" || chargeValue === 0) return "Free ($0.00)";
     if (chargeType === "fixed") return `$${chargeValue.toFixed(2)}`;
     if (chargeType === "percent") return `${chargeValue}% of plan`;
@@ -342,7 +343,7 @@ export function DeliveryChargesManager({
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{connectedNames(deliveryStrategies, o) || "—"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{o.description || "—"}</TableCell>
-                      <TableCell className="font-medium">{formatChargeDisplay(o.chargeType, o.chargeValue)}</TableCell>
+                      <TableCell className="font-medium">{formatChargeDisplay(o.chargeType, o.chargeValue, o.chargeBasis)}</TableCell>
                       <TableCell><StatusBadge active={o.active} /></TableCell>
                       <TableCell className="text-right">
                         <RowActions label={o.name} onEdit={() => handleOpenEditDeliveryStrategy(o)} onDelete={() => handleDeleteDeliveryStrategy(o.id, o.name)} />
@@ -567,6 +568,7 @@ interface ItemChargeDialogProps {
     chargeValue: number;
     active: boolean;
     groupId?: string | null;
+    chargeBasis?: DeliveryChargeBasis;
     connectionId?: string | null;
   } | null;
   title: string;
@@ -624,6 +626,7 @@ function ItemChargeDialogBody({
     item?.chargeValue != null ? String(item.chargeValue) : "0.00",
   );
   const [active, setActive] = useState(item?.active ?? true);
+  const [chargeBasis, setChargeBasis] = useState<DeliveryChargeBasis>(item?.chargeBasis ?? "once");
   const [saving, startSaving] = useTransition();
 
   const handleSave = () => {
@@ -657,7 +660,7 @@ function ItemChargeDialogBody({
             chargeType,
             chargeValue: val,
             active,
-            ...(groups ? { groupId: groupId || null } : {}),
+            ...(groups ? { groupId: groupId || null, chargeBasis } : {}),
           },
           groups ? connectedTo : undefined,
         );
@@ -816,6 +819,19 @@ function ItemChargeDialogBody({
                 Calculated against the customer&apos;s selected plan price (e.g. 5% on a $100 plan = $5.00).
               </p>
             )}
+          </div>
+        )}
+
+        {groups && chargeType === "fixed" && (
+          <div className="space-y-2 sm:col-span-2">
+            <Label id="charge-item-basis">Charged</Label>
+            <div role="radiogroup" aria-labelledby="charge-item-basis" className="flex flex-wrap gap-2">
+              <PillButton role="radio" on={chargeBasis === "once"} onClick={() => setChargeBasis("once")}>Once per order</PillButton>
+              <PillButton role="radio" on={chargeBasis === "per_delivery"} onClick={() => setChargeBasis("per_delivery")}>Per delivery</PillButton>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Per delivery multiplies by the plan&apos;s deliveries at checkout. Moving a delivery or changing its address later is free.
+            </p>
           </div>
         )}
 

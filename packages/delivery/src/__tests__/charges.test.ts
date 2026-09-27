@@ -66,4 +66,24 @@ describe("calculateDeliveryCharge", () => {
     });
     expect(r.totalDeliveryCharge).toBe(3.33);
   });
+
+  it("repeats a per-delivery fixed charge for every delivery, and never a percent", () => {
+    const r = calculateDeliveryCharge({
+      baseCharge: 0,
+      deliveryStrategies: [
+        { name: "Leave at door", group: "Apartment", chargeType: "fixed", chargeValue: 1.5, basis: "per_delivery" },
+        { name: "Buzzer", group: "Apartment", chargeType: "fixed", chargeValue: 2 },
+        { name: "Concierge", group: "Apartment", chargeType: "percent", chargeValue: 10, basis: "per_delivery" },
+      ],
+      planPrice: 100,
+      deliveryCount: 20,
+    });
+    expect(r.deliveryStrategies.map((s) => [s.basis, s.quantity, s.amount])).toEqual([
+      ["per_delivery", 20, 30],
+      ["once", 1, 2],
+      ["once", 1, 10],
+    ]);
+    expect(r.lines.map((l) => l.label)).toEqual(["Apartment: Leave at door (20 × $1.50)", "Apartment: Buzzer", "Apartment: Concierge (10%)"]);
+    expect(r.totalDeliveryCharge).toBe(42);
+  });
 });

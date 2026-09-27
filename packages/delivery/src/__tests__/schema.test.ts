@@ -29,7 +29,7 @@ describe("makeDeliveryTables", () => {
       "delivery_strategies_group_name_unique",
       "delivery_strategies_org_idx",
     ]);
-    expect(getTableConfig(t.deliveryStrategies).columns.map((c) => c.name)).toEqual(expect.arrayContaining(["group_id", "connection_id"]));
+    expect(getTableConfig(t.deliveryStrategies).columns.map((c) => c.name)).toEqual(expect.arrayContaining(["group_id", "connection_id", "charge_basis"]));
     expect(getTableConfig(t.addressTags).indexes.map((i) => i.config.name).sort()).toEqual(
       ["address_tags_active_idx", "address_tags_name_unique", "address_tags_org_idx"],
     );
