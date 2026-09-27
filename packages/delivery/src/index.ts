@@ -9,8 +9,6 @@ export type {
   DeliveryService,
   DeliveryStrategyGroupDto,
   DeliveryStrategyGroupInput,
-  DeliveryStrategyConnectionDto,
-  DeliveryStrategyConnectionInput,
   DeliveryTypeInput,
   ZoneInput,
 } from "./service";

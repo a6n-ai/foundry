@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull, ne, or, type SQL } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, ne, notInArray, or, sql, type SQL } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { ValidationError } from "@foundry/commons";
 import type { Database } from "@foundry/database";
@@ -17,7 +17,10 @@ export type DeliveryChargeRuleDto = {
   sortOrder: number;
   /** Strategies only: public id of the strategy's tag (delivery_strategy_groups). */
   groupId?: string | null;
-  /** Strategies only: public id of its connected set; null = combines freely. */
+  /**
+   * Strategies only: public id of its connected set; null = combines freely. Strategies with
+   * the same id are alternatives. Sets are managed through connectDeliveryStrategy.
+   */
   connectionId?: string | null;
 };
 
@@ -30,24 +33,6 @@ export type DeliveryChargeRuleInput = {
   active?: boolean;
   /** Strategies only (required there): the tag's public id. Ignored for address tags. */
   groupId?: string | null;
-  /** Strategies only: a connected set of the same tag, or null. */
-  connectionId?: string | null;
-};
-
-export type DeliveryStrategyConnectionDto = {
-  id: string; // publicId
-  name: string;
-  /** Tag public id. */
-  groupId: string;
-  sortOrder: number;
-};
-
-export type DeliveryStrategyConnectionInput = {
-  id?: string; // publicId when updating
-  name: string;
-  /** Tag public id. */
-  groupId: string;
-  sortOrder?: number;
 };
 
 export type DeliveryStrategyGroupDto = {
@@ -141,6 +126,26 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
   const configFor = (orgId?: string | null) => (orgId ? eq(configs.organizationId, orgId) : isNull(configs.organizationId));
 
   type RuleTable = DeliveryTables["deliveryStrategies"];
+  const strategyTable = tables.deliveryStrategies;
+
+  async function connectionPublicIdOf(id: bigint | null): Promise<string | null> {
+    if (id == null) return null;
+    const [c] = await db.select({ publicId: connections.publicId }).from(connections).where(eq(connections.id, id)).limit(1);
+    return c?.publicId ?? null;
+  }
+
+  /** A set with fewer than two strategies connects nothing: free its last member and drop it. */
+  async function pruneSets(tx: Pick<typeof db, "select" | "update" | "delete"> = db) {
+    const counts = await tx
+      .select({ id: strategyTable.connectionId, n: sql<number>`count(*)::int` })
+      .from(strategyTable)
+      .where(isNotNull(strategyTable.connectionId))
+      .groupBy(strategyTable.connectionId);
+    const lonely = counts.filter((c) => c.n < 2).map((c) => c.id!);
+    if (lonely.length) await tx.update(strategyTable).set({ connectionId: null }).where(inArray(strategyTable.connectionId, lonely));
+    const live = counts.filter((c) => c.n >= 2).map((c) => c.id!);
+    await tx.delete(connections).where(live.length ? notInArray(connections.id, live) : undefined);
+  }
 
   /** `grouped`: the table is delivery_strategies, whose rows carry group_id (their tag). */
   function ruleService(table: RuleTable, entity: string, label: string, isInUse: (id: bigint) => Promise<boolean>, grouped: boolean) {
@@ -169,19 +174,6 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
       return g.id;
     }
 
-    /** A connected set must sit in the strategy's own tag. */
-    async function connectionIdFor(connectionPublicId: string | null | undefined, groupId: bigint | null, orgId?: string | null): Promise<bigint | null> {
-      if (!grouped || !connectionPublicId) return null;
-      const [c] = await db
-        .select({ id: connections.id, groupId: connections.groupId })
-        .from(connections)
-        .where(and(eq(connections.publicId, connectionPublicId), orgScope(connections.organizationId, orgId)))
-        .limit(1);
-      if (!c) throw new ValidationError("Connected set not found");
-      if (c.groupId !== groupId) throw new ValidationError("A strategy can only connect within its own tag");
-      return c.id;
-    }
-
     return {
       async list(options?: ListOptions): Promise<DeliveryChargeRuleDto[]> {
         const where = and(options?.includeInactive ? undefined : eq(table.active, true), orgScope(table.organizationId, options?.orgId));
@@ -208,7 +200,11 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
         }
 
         const groupId = await groupIdFor(input.groupId, orgId);
-        const connectionId = await connectionIdFor(input.connectionId, groupId, orgId);
+        // A strategy moved to another tag leaves its set: sets never span tags.
+        const [current] = grouped && input.id
+          ? await db.select({ groupId: table.groupId, connectionId: table.connectionId }).from(table).where(owned(input.id, orgId)).limit(1)
+          : [];
+        const leavesSet = current != null && current.groupId !== groupId;
         // Names are unique within a group (two groups may each offer "None").
         const sameGroup = grouped ? (groupId == null ? isNull(table.groupId) : eq(table.groupId, groupId)) : undefined;
         const [duplicate] = await db
@@ -224,10 +220,10 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
           chargeType: input.chargeType,
           chargeValue: chargeValue.toFixed(2),
           active: input.active ?? true,
-          ...(grouped ? { groupId, connectionId } : {}),
+          ...(grouped ? { groupId } : {}),
+          ...(leavesSet ? { connectionId: null } : {}),
         };
         const groupPublicId = groupId == null ? null : input.groupId!;
-        const connectionPublicId = connectionId == null ? null : input.connectionId!;
         const by = await actor();
 
         if (input.id) {
@@ -238,14 +234,15 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
             .returning();
           if (!updated) throw new ValidationError(`${label} not found`);
           await audit({ entity, entityPublicId: updated.publicId, operation: "update", changes: values });
-          return toDto(updated, groupPublicId, connectionPublicId);
+          if (leavesSet) await pruneSets();
+          return toDto(updated, groupPublicId, leavesSet ? null : await connectionPublicIdOf(updated.connectionId));
         }
         const [created] = await db
           .insert(table)
           .values({ ...values, organizationId: orgId ?? null, createdBy: by, updatedBy: by })
           .returning();
         await audit({ entity, entityPublicId: created!.publicId, operation: "create", changes: values });
-        return toDto(created!, groupPublicId, connectionPublicId);
+        return toDto(created!, groupPublicId, null);
       },
 
       async remove(publicId: string, orgId?: string | null): Promise<DeleteRuleResult> {
@@ -369,55 +366,60 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
       return toGroupDto(row);
     },
 
-    async listDeliveryStrategyConnections(options?: { orgId?: string | null }): Promise<DeliveryStrategyConnectionDto[]> {
-      const rows = await db
-        .select({ c: connections, group: groups.publicId })
-        .from(connections)
-        .innerJoin(groups, eq(groups.id, connections.groupId))
-        .where(orgScope(connections.organizationId, options?.orgId))
-        .orderBy(asc(connections.sortOrder), asc(connections.name));
-      return rows.map(({ c, group }) => ({ id: c.publicId, name: c.name, groupId: group, sortOrder: c.sortOrder }));
-    },
-
-    async saveDeliveryStrategyConnection(input: DeliveryStrategyConnectionInput, orgId?: string | null): Promise<DeliveryStrategyConnectionDto> {
-      const name = input.name.trim();
-      if (!name) throw new ValidationError("Connected set name is required");
-      const [g] = await db.select({ id: groups.id }).from(groups).where(ownedGroup(input.groupId, orgId)).limit(1);
-      if (!g) throw new ValidationError("Tag not found");
-      const values = { name, groupId: g.id, sortOrder: Math.trunc(input.sortOrder ?? 0) };
-      const by = await actor();
-      if (input.id) {
-        const [current] = await db
-          .select({ id: connections.id, groupId: connections.groupId })
-          .from(connections)
-          .where(and(eq(connections.publicId, input.id), orgScope(connections.organizationId, orgId)))
+    /**
+     * Makes `connectedTo` (strategies of the same tag) exactly the strategies this one is an
+     * alternative to. Connections are shared: all of them end up in one set, anything else
+     * leaves it, and a set left with one strategy is dropped. Returns every strategy, since
+     * others' sets change too.
+     */
+    async connectDeliveryStrategy(publicId: string, connectedTo: string[], orgId?: string | null): Promise<DeliveryChargeRuleDto[]> {
+      const others = [...new Set(connectedTo)].filter((id) => id !== publicId);
+      await db.transaction(async (tx) => {
+        const [self] = await tx
+          .select({ id: strategyTable.id, groupId: strategyTable.groupId, connectionId: strategyTable.connectionId, organizationId: strategyTable.organizationId })
+          .from(strategyTable)
+          .where(and(eq(strategyTable.publicId, publicId), orgScope(strategyTable.organizationId, orgId)))
           .limit(1);
-        if (!current) throw new ValidationError("Connected set not found");
-        // Its strategies live in the old tag; moving the set would connect across tags.
-        if (current.groupId !== g.id) throw new ValidationError("A connected set can't move to another tag");
-      }
-      const [row] = input.id
-        ? await db.update(connections).set({ ...values, updatedAt: Date.now(), updatedBy: by }).where(eq(connections.publicId, input.id)).returning()
-        : await db.insert(connections).values({ ...values, organizationId: orgId ?? null, createdBy: by, updatedBy: by }).returning();
-      await audit({ entity: "delivery_strategy_connections", entityPublicId: row!.publicId, operation: input.id ? "update" : "create", changes: values });
-      return { id: row!.publicId, name: row!.name, groupId: input.groupId, sortOrder: row!.sortOrder };
-    },
+        if (!self) throw new ValidationError("Delivery strategy not found");
+        const targets = others.length
+          ? await tx
+              .select({ id: strategyTable.id, groupId: strategyTable.groupId, connectionId: strategyTable.connectionId })
+              .from(strategyTable)
+              .where(and(inArray(strategyTable.publicId, others), orgScope(strategyTable.organizationId, orgId)))
+          : [];
+        if (targets.length !== others.length) throw new ValidationError("Delivery strategy not found");
+        if (targets.some((t) => t.groupId !== self.groupId)) throw new ValidationError("Strategies can only connect within their own tag");
 
-    /** Deleting a set frees its strategies (FK on delete set null); past picks are unaffected. */
-    async deleteDeliveryStrategyConnection(publicId: string, orgId?: string | null): Promise<void> {
-      const [row] = await db
-        .delete(connections)
-        .where(and(eq(connections.publicId, publicId), orgScope(connections.organizationId, orgId)))
-        .returning({ id: connections.id });
-      if (!row) throw new ValidationError("Connected set not found");
-      await audit({ entity: "delivery_strategy_connections", entityPublicId: publicId, operation: "delete", changes: {} });
+        // Reuse this strategy's set, else one a target is already in, else start one.
+        let setId = self.connectionId ?? targets.find((t) => t.connectionId != null)?.connectionId ?? null;
+        if (setId != null) {
+          // Whoever was connected to this strategy but is no longer picked leaves the set.
+          const keep = [self.id, ...targets.map((t) => t.id)];
+          await tx.update(strategyTable).set({ connectionId: null }).where(and(eq(strategyTable.connectionId, setId), notInArray(strategyTable.id, keep)));
+        }
+        if (targets.length) {
+          if (setId == null) {
+            const by = await actor();
+            const [created] = await tx
+              .insert(connections)
+              .values({ name: "", groupId: self.groupId!, organizationId: self.organizationId, createdBy: by, updatedBy: by })
+              .returning({ id: connections.id });
+            setId = created!.id;
+          }
+          await tx.update(strategyTable).set({ connectionId: setId }).where(inArray(strategyTable.id, [self.id, ...targets.map((t) => t.id)]));
+        } else {
+          await tx.update(strategyTable).set({ connectionId: null }).where(eq(strategyTable.id, self.id));
+        }
+        await pruneSets(tx);
+      });
+      await audit({ entity: "delivery_strategies", entityPublicId: publicId, operation: "update", changes: { connectedTo: others } });
+      return strategies.list({ includeInactive: true, orgId });
     },
 
     /** A tag still in use (strategies, sets, or app rows) is retired, not deleted, so it stays resolvable. */
     async deleteDeliveryStrategyGroup(publicId: string, orgId?: string | null): Promise<DeleteRuleResult> {
       const [row] = await db.select({ id: groups.id }).from(groups).where(ownedGroup(publicId, orgId)).limit(1);
       if (!row) throw new ValidationError("Tag not found");
-      const strategyTable = tables.deliveryStrategies;
       const [option] = await db.select({ id: strategyTable.id }).from(strategyTable).where(eq(strategyTable.groupId, row.id)).limit(1);
       const [set] = await db.select({ id: connections.id }).from(connections).where(eq(connections.groupId, row.id)).limit(1);
       if (option || set || (await deps.isTagInUse?.(row.id))) {

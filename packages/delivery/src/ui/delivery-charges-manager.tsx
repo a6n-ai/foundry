@@ -37,8 +37,6 @@ import type {
   DeleteRuleResult,
   DeliveryChargeRuleDto,
   DeliveryChargeRuleInput,
-  DeliveryStrategyConnectionDto,
-  DeliveryStrategyConnectionInput,
   DeliveryStrategyGroupDto,
   DeliveryStrategyGroupInput,
 } from "../service";
@@ -53,8 +51,8 @@ export interface DeliveryChargesActions {
   deleteDeliveryStrategy: (id: string) => Promise<DeleteRuleResult>;
   saveDeliveryStrategyGroup: (input: DeliveryStrategyGroupInput) => Promise<DeliveryStrategyGroupDto>;
   deleteDeliveryStrategyGroup: (id: string) => Promise<DeleteRuleResult>;
-  saveDeliveryStrategyConnection: (input: DeliveryStrategyConnectionInput) => Promise<DeliveryStrategyConnectionDto>;
-  deleteDeliveryStrategyConnection: (id: string) => Promise<void>;
+  /** Sets exactly which strategies `id` is connected to; returns every strategy (others' sets change too). */
+  connectDeliveryStrategy: (id: string, connectedTo: string[]) => Promise<DeliveryChargeRuleDto[]>;
   saveAddressTag: (input: DeliveryChargeRuleInput) => Promise<DeliveryChargeRuleDto>;
   deleteAddressTag: (id: string) => Promise<DeleteRuleResult>;
 }
@@ -64,7 +62,6 @@ export interface DeliveryChargesManagerProps {
   /** Every strategy, each pointing at its tag by `groupId`. */
   initialDeliveryStrategies: DeliveryStrategyDto[];
   initialStrategyGroups: DeliveryStrategyGroupDto[];
-  initialStrategyConnections: DeliveryStrategyConnectionDto[];
   /** Omit to hide address tags entirely — for an app that charges by delivery strategy only. */
   initialAddressTags?: AddressTagDto[];
   actions: DeliveryChargesActions;
@@ -74,7 +71,6 @@ export function DeliveryChargesManager({
   initialBaseCharge,
   initialDeliveryStrategies,
   initialStrategyGroups,
-  initialStrategyConnections,
   initialAddressTags,
   actions,
 }: DeliveryChargesManagerProps) {
@@ -84,8 +80,7 @@ export function DeliveryChargesManager({
     deleteDeliveryStrategy: deleteDeliveryStrategyAction,
     saveDeliveryStrategyGroup: saveGroupAction,
     deleteDeliveryStrategyGroup: deleteGroupAction,
-    saveDeliveryStrategyConnection: saveConnectionAction,
-    deleteDeliveryStrategyConnection: deleteConnectionAction,
+    connectDeliveryStrategy: connectAction,
     saveAddressTag: saveAddressTagAction,
     deleteAddressTag: deleteAddressTagAction,
   } = actions;
@@ -93,8 +88,6 @@ export function DeliveryChargesManager({
   const [deliveryStrategies, setDeliveryStrategies] = useState(initialDeliveryStrategies);
   const [groups, setGroups] = useState(initialStrategyGroups);
   const [editingGroup, setEditingGroup] = useState<DeliveryStrategyGroupDto | "new" | null>(null);
-  const [connections, setConnections] = useState(initialStrategyConnections);
-  const [editingConnection, setEditingConnection] = useState<DeliveryStrategyConnectionDto | "new" | null>(null);
   const [newOptionGroupId, setNewOptionGroupId] = useState<string | null>(null);
   const showAddressTags = initialAddressTags !== undefined;
   const [addressTags, setAddressTags] = useState(initialAddressTags ?? []);
@@ -154,20 +147,6 @@ export function DeliveryChargesManager({
         }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to remove tag.");
-      }
-    })();
-  };
-
-  const handleDeleteConnection = (id: string, name: string) => {
-    if (!window.confirm(`Remove connected set "${name}"? Its strategies stay and can then be picked together.`)) return;
-    void (async () => {
-      try {
-        await deleteConnectionAction(id);
-        setConnections((prev) => prev.filter((c) => c.id !== id));
-        setDeliveryStrategies((prev) => prev.map((o) => (o.connectionId === id ? { ...o, connectionId: null } : o)));
-        toast.success(`"${name}" removed.`);
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to remove connected set.");
       }
     })();
   };
@@ -301,58 +280,10 @@ export function DeliveryChargesManager({
         </div>
       </SectionCard>
 
-      {/* 3. Connected sets: strategies of one tag the customer picks at most one of */}
-      <SectionCard
-        title="Connected sets"
-        subtitle="Strategies in the same set can't be picked together (e.g. Lobby, Door, Concierge). Strategies in no set combine freely."
-        action={
-          <Button size="sm" variant="outline" disabled={groups.length === 0} onClick={() => setEditingConnection("new")}>
-            <PlusIcon className="mr-1.5 size-3.5" />
-            Add connected set
-          </Button>
-        }
-      >
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[25%]">Name</TableHead>
-                <TableHead className="w-[20%]">Tag</TableHead>
-                <TableHead>Only one of</TableHead>
-                <TableHead className="w-[80px] text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {connections.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-16 text-center text-muted-foreground">
-                    No connected sets. Every strategy can be picked together.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                connections.map((c) => {
-                  const members = deliveryStrategies.filter((o) => o.connectionId === c.id).map((o) => o.name);
-                  return (
-                    <TableRow key={c.id}>
-                      <TableCell className="font-medium">{c.name}</TableCell>
-                      <TableCell><Badge variant="secondary">{groups.find((g) => g.id === c.groupId)?.name ?? "—"}</Badge></TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{members.length ? members.join(", ") : "No strategies yet: edit a strategy to add it"}</TableCell>
-                      <TableCell className="text-right">
-                        <RowActions label={c.name} onEdit={() => setEditingConnection(c)} onDelete={() => handleDeleteConnection(c.id, c.name)} />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </SectionCard>
-
-      {/* 4. Delivery strategies, each under one tag */}
+      {/* 3. Delivery strategies, each under one tag */}
       <SectionCard
         title="Delivery strategies"
-        subtitle="How the order is handed over (e.g. Lobby, Call on arrival), each with its own charge. Each has one tag and at most one connected set; edit a strategy to change them."
+        subtitle="How the order is handed over (e.g. Lobby, Call on arrival), each with its own charge. Connected strategies are alternatives: customers pick only one of them. Edit a strategy to change its tag or connections."
         action={
           <Button
             size="sm"
@@ -376,7 +307,7 @@ export function DeliveryChargesManager({
               <TableRow>
                 <TableHead className="w-[22%]">Name</TableHead>
                 <TableHead className="w-[16%]">Tag</TableHead>
-                <TableHead className="w-[16%]">Connected set</TableHead>
+                <TableHead className="w-[16%]">Connected to</TableHead>
                 <TableHead className="w-[18%]">Description</TableHead>
                 <TableHead className="w-[12%]">Charge</TableHead>
                 <TableHead className="w-[10%]">Status</TableHead>
@@ -409,7 +340,7 @@ export function DeliveryChargesManager({
                           <Badge variant="outline" className="border-destructive/40 text-destructive">No tag</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{connections.find((c) => c.id === o.connectionId)?.name ?? "—"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{connectedNames(deliveryStrategies, o) || "—"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{o.description || "—"}</TableCell>
                       <TableCell className="font-medium">{formatChargeDisplay(o.chargeType, o.chargeValue)}</TableCell>
                       <TableCell><StatusBadge active={o.active} /></TableCell>
@@ -578,24 +509,13 @@ export function DeliveryChargesManager({
         title={editingDeliveryStrategy ? "Edit delivery strategy" : "Add delivery strategy"}
         namePlaceholder="e.g. Front Door, Lobby, Garage"
         groups={groups}
-        connections={connections}
-        onSave={async (values) => {
+        strategies={deliveryStrategies}
+        onSave={async (values, connectedTo) => {
           const saved = await saveDeliveryStrategyAction(values);
           setDeliveryStrategies((prev) => upsert(prev, saved));
+          if (connectedTo) setDeliveryStrategies(await connectAction(saved.id, connectedTo));
         }}
       />
-
-      {editingConnection && (
-        <ConnectionDialog
-          connection={editingConnection === "new" ? null : editingConnection}
-          groups={groups}
-          onClose={() => setEditingConnection(null)}
-          onSave={async (values) => {
-            const saved = await saveConnectionAction(values);
-            setConnections((prev) => upsert(prev, saved));
-          }}
-        />
-      )}
 
       {editingGroup && (
         <StrategyGroupDialog
@@ -651,10 +571,11 @@ interface ItemChargeDialogProps {
   } | null;
   title: string;
   namePlaceholder: string;
-  /** Delivery strategies: shows the (required) Tag select and the Connected set select. */
+  /** Delivery strategies: shows the Tag pills (required) and the Connected to pills. */
   groups?: DeliveryStrategyGroupDto[];
-  connections?: DeliveryStrategyConnectionDto[];
-  onSave: (values: DeliveryChargeRuleInput) => Promise<void>;
+  strategies?: DeliveryStrategyDto[];
+  /** `connectedTo` is set for delivery strategies only. */
+  onSave: (values: DeliveryChargeRuleInput, connectedTo?: string[]) => Promise<void>;
 }
 
 function ItemChargeDialog({
@@ -664,7 +585,7 @@ function ItemChargeDialog({
   title,
   namePlaceholder,
   groups,
-  connections,
+  strategies,
   onSave,
 }: ItemChargeDialogProps) {
   return open ? (
@@ -676,7 +597,7 @@ function ItemChargeDialog({
       title={title}
       namePlaceholder={namePlaceholder}
       groups={groups}
-      connections={connections}
+      strategies={strategies}
       onSave={onSave}
     />
   ) : null;
@@ -688,10 +609,13 @@ function ItemChargeDialogBody({
   title,
   namePlaceholder,
   groups,
-  connections = [],
+  strategies = [],
   onSave,
 }: ItemChargeDialogProps) {
-  const [connectionId, setConnectionId] = useState(item?.connectionId ?? "");
+  // Strategies this one is an alternative to: everyone else in its set.
+  const [connectedTo, setConnectedTo] = useState<string[]>(() =>
+    item?.connectionId ? strategies.filter((o) => o.connectionId === item.connectionId && o.id !== item.id).map((o) => o.id) : [],
+  );
   const [name, setName] = useState(item?.name ?? "");
   const [groupId, setGroupId] = useState(item?.groupId ?? "");
   const [description, setDescription] = useState(item?.description ?? "");
@@ -725,15 +649,18 @@ function ItemChargeDialogBody({
 
     startSaving(async () => {
       try {
-        await onSave({
-          id: item?.id,
-          name: trimmedName,
-          description: description.trim() || null,
-          chargeType,
-          chargeValue: val,
-          active,
-          ...(groups ? { groupId: groupId || null, connectionId: connectionId || null } : {}),
-        });
+        await onSave(
+          {
+            id: item?.id,
+            name: trimmedName,
+            description: description.trim() || null,
+            chargeType,
+            chargeValue: val,
+            active,
+            ...(groups ? { groupId: groupId || null } : {}),
+          },
+          groups ? connectedTo : undefined,
+        );
         toast.success(`${title} saved successfully.`);
         onOpenChange(false);
       } catch (err) {
@@ -782,43 +709,50 @@ function ItemChargeDialogBody({
 
         {groups && (
           <div className="space-y-2">
-            <Label htmlFor="charge-item-group">Tag</Label>
-            <Select
-              value={groupId}
-              onValueChange={(v) => {
-                setGroupId(v);
-                // A set belongs to one tag; a new tag drops the old set.
-                setConnectionId("");
-              }}
-            >
-              <SelectTrigger id="charge-item-group" className="w-full">
-                <SelectValue placeholder="Pick a tag" />
-              </SelectTrigger>
-              <SelectContent>
-                {groups.map((g) => (
-                  <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label id="charge-item-tag">Tag</Label>
+            <div role="radiogroup" aria-labelledby="charge-item-tag" className="flex flex-wrap gap-2">
+              {groups.map((g) => (
+                <PillButton
+                  key={g.id}
+                  role="radio"
+                  on={g.id === groupId}
+                  onClick={() => {
+                    if (g.id === groupId) return;
+                    setGroupId(g.id);
+                    // Connections never span tags.
+                    setConnectedTo([]);
+                  }}
+                >
+                  {g.name}
+                </PillButton>
+              ))}
+            </div>
           </div>
         )}
 
-        {groups && groupId && connections.some((c) => c.groupId === groupId) && (
+        {groups && groupId && (
           <div className="space-y-2">
-            <Label htmlFor="charge-item-connection">
-              Connected set <span className="font-normal text-muted-foreground">(optional)</span>
+            <Label id="charge-item-connected">
+              Connected to <span className="font-normal text-muted-foreground">(optional)</span>
             </Label>
-            <Select value={connectionId || NO_CONNECTION} onValueChange={(v) => setConnectionId(v === NO_CONNECTION ? "" : v)}>
-              <SelectTrigger id="charge-item-connection" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_CONNECTION}>None: can be picked with anything</SelectItem>
-                {connections.filter((c) => c.groupId === groupId).map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {(() => {
+              const peers = strategies.filter((o) => o.groupId === groupId && o.id !== item?.id);
+              if (peers.length === 0) return <p className="text-xs text-muted-foreground">No other strategies in this tag yet.</p>;
+              return (
+                <>
+                  <div role="group" aria-labelledby="charge-item-connected" className="flex flex-wrap gap-2">
+                    {peers.map((o) => (
+                      <PillButton key={o.id} on={connectedTo.includes(o.id)} onClick={() => setConnectedTo((c) => toggleConnection(strategies, c, o))}>
+                        {o.name}
+                      </PillButton>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Customers can pick only one of connected strategies. Connecting to one already connected to others connects all of them.
+                  </p>
+                </>
+              );
+            })()}
           </div>
         )}
 
@@ -1024,75 +958,30 @@ function StrategyGroupDialog({
   );
 }
 
-const NO_CONNECTION = "__none__";
-
-function ConnectionDialog({
-  connection,
-  groups,
-  onClose,
-  onSave,
-}: {
-  connection: DeliveryStrategyConnectionDto | null;
-  groups: DeliveryStrategyGroupDto[];
-  onClose: () => void;
-  onSave: (values: DeliveryStrategyConnectionInput) => Promise<void>;
-}) {
-  const [name, setName] = useState(connection?.name ?? "");
-  const [groupId, setGroupId] = useState(connection?.groupId ?? (groups.length === 1 ? groups[0]!.id : ""));
-  const [saving, startSaving] = useTransition();
-
-  const handleSave = () => {
-    if (!name.trim()) return void toast.error("Please enter a name.");
-    if (!groupId) return void toast.error("Pick a tag.");
-    startSaving(async () => {
-      try {
-        await onSave({ id: connection?.id, name: name.trim(), groupId, sortOrder: connection?.sortOrder });
-        toast.success("Connected set saved.");
-        onClose();
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to save.");
-      }
-    });
-  };
-
+function PillButton({ on, children, ...rest }: { on: boolean; children: React.ReactNode; onClick: () => void; role?: string }) {
   return (
-    <ResponsiveDialog
-      open
-      onOpenChange={(open) => !open && onClose()}
-      title={connection ? "Edit connected set" : "Add connected set"}
-      description="Customers can pick only one strategy from a set. Add strategies to it from each strategy's edit dialog."
-      footer={
-        <>
-          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
-            Cancel
-          </Button>
-          <Button type="button" onClick={handleSave} disabled={saving}>
-            {saving && <Loader2Icon className="mr-1.5 size-4 animate-spin" />}
-            Save
-          </Button>
-        </>
-      }
+    <Button
+      type="button"
+      size="sm"
+      variant={on ? "default" : "outline"}
+      className="h-8 rounded-full px-3"
+      {...(rest.role === "radio" ? { "aria-checked": on } : { "aria-pressed": on })}
+      {...rest}
     >
-      <div className="grid gap-5">
-        <div className="space-y-2">
-          <Label htmlFor="connection-name">Name</Label>
-          <Input id="connection-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Drop-off" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="connection-tag">Tag</Label>
-          {/* Its strategies stay in one tag, so the tag is fixed once the set exists. */}
-          <Select value={groupId} onValueChange={setGroupId} disabled={Boolean(connection)}>
-            <SelectTrigger id="connection-tag" className="w-full">
-              <SelectValue placeholder="Pick a tag" />
-            </SelectTrigger>
-            <SelectContent>
-              {groups.map((g) => (
-                <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    </ResponsiveDialog>
+      {children}
+    </Button>
   );
+}
+
+/** Other strategies in `o`'s set, by name. */
+function connectedNames(all: DeliveryStrategyDto[], o: DeliveryStrategyDto): string {
+  if (!o.connectionId) return "";
+  return all.filter((x) => x.connectionId === o.connectionId && x.id !== o.id).map((x) => x.name).join(", ");
+}
+
+/** On: `o` and everyone already connected to it (sets are shared). Off: just `o`. */
+function toggleConnection(all: DeliveryStrategyDto[], current: string[], o: DeliveryStrategyDto): string[] {
+  if (current.includes(o.id)) return current.filter((id) => id !== o.id);
+  const mates = o.connectionId ? all.filter((x) => x.connectionId === o.connectionId).map((x) => x.id) : [];
+  return [...new Set([...current, o.id, ...mates])];
 }
