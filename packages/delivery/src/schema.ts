@@ -108,8 +108,9 @@ export function makeDeliveryTables(deps: {
   });
 
   /**
-   * A question the customer answers once per address (Drop-off spot, Contact…). Its
-   * options are delivery_strategies rows; the customer picks at most one per group.
+   * A tag ("Drop-off spot", "Contact…"): what customers see first. Its strategies are
+   * delivery_strategies rows; the customer picks at most one per tag. The table keeps its
+   * "groups" name because renaming needs a migration in every app.
    */
   const deliveryStrategyGroups = pgTable(
     "delivery_strategy_groups",
@@ -117,8 +118,6 @@ export function makeDeliveryTables(deps: {
       ...updatableColumns("dsg"),
       name: text("name").notNull(),
       description: text("description"),
-      /** Short chip shown next to the name ("Contactless"). */
-      tag: text("tag"),
       /** Required = no "No preference"; checkout refuses until one option is picked. */
       required: boolean("required").notNull().default(false),
       active: boolean("active").notNull().default(true),
@@ -131,19 +130,17 @@ export function makeDeliveryTables(deps: {
     ],
   );
 
-  /** One option of a strategy group (Doorstep, Lobby…), with its own surcharge. */
+  /** A strategy (Doorstep, Lobby…) under one tag, with its own surcharge. */
   const deliveryStrategies = pgTable(
     "delivery_strategies",
     {
       ...updatableColumns("dsp"),
       ...ruleColumns(),
-      // Nullable only for rows created before groups existed; apps backfill them.
+      // The strategy's tag. Required by the service; nullable only for rows from before tags.
       groupId: bigint("group_id", { mode: "bigint" }).references(() => deliveryStrategyGroups.id),
-      /** Short chip shown on the option ("Secure"). */
-      tag: text("tag"),
     },
     (t) => [
-      // Two groups may each have an option called "None".
+      // Two tags may each have a strategy called "None".
       uniqueIndex("delivery_strategies_group_name_unique").on(t.groupId, t.name),
       index("delivery_strategies_group_idx").on(t.groupId),
       index("delivery_strategies_active_idx").on(t.active),

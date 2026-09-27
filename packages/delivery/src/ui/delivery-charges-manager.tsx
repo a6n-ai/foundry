@@ -57,7 +57,7 @@ export interface DeliveryChargesActions {
 
 export interface DeliveryChargesManagerProps {
   initialBaseCharge: number;
-  /** Every option, each pointing at its group by `groupId`. */
+  /** Every strategy, each pointing at its tag by `groupId`. */
   initialDeliveryStrategies: DeliveryStrategyDto[];
   initialStrategyGroups: DeliveryStrategyGroupDto[];
   /** Omit to hide address tags entirely — for an app that charges by delivery strategy only. */
@@ -84,7 +84,7 @@ export function DeliveryChargesManager({
   const [baseCharge, setBaseCharge] = useState(initialBaseCharge);
   const [deliveryStrategies, setDeliveryStrategies] = useState(initialDeliveryStrategies);
   const [groups, setGroups] = useState(initialStrategyGroups);
-  // Options from before groups existed (or whose group is gone) until an admin moves them.
+  // Strategies from before tags existed (or whose tag is gone) until an admin moves them.
   const ungrouped = deliveryStrategies.filter((o) => !o.groupId || !groups.some((g) => g.id === o.groupId));
   const [editingGroup, setEditingGroup] = useState<DeliveryStrategyGroupDto | "new" | null>(null);
   const [newOptionGroupId, setNewOptionGroupId] = useState<string | null>(null);
@@ -133,25 +133,25 @@ export function DeliveryChargesManager({
   };
 
   const handleDeleteGroup = (id: string, name: string) => {
-    if (!window.confirm(`Remove strategy "${name}"?`)) return;
+    if (!window.confirm(`Remove tag "${name}"?`)) return;
     void (async () => {
       try {
         const res = await deleteGroupAction(id);
         if (res.deactivatedInstead) {
-          toast.info(`"${name}" still has options, so it was deactivated instead. Customers no longer see it.`);
+          toast.info(`"${name}" still has strategies, so it was deactivated instead. Customers no longer see it.`);
           setGroups((prev) => prev.map((g) => (g.id === id ? { ...g, active: false } : g)));
         } else {
           toast.success(`"${name}" removed.`);
           setGroups((prev) => prev.filter((g) => g.id !== id));
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to remove strategy.");
+        toast.error(err instanceof Error ? err.message : "Failed to remove tag.");
       }
     })();
   };
 
   const handleDeleteDeliveryStrategy = (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to remove option "${name}"?`)) return;
+    if (!window.confirm(`Are you sure you want to remove delivery strategy "${name}"?`)) return;
     void (async () => {
       try {
         const res = await deleteDeliveryStrategyAction(id);
@@ -163,7 +163,7 @@ export function DeliveryChargesManager({
           setDeliveryStrategies((prev) => prev.filter((t) => t.id !== id));
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to delete option.");
+        toast.error(err instanceof Error ? err.message : "Failed to delete delivery strategy.");
       }
     })();
   };
@@ -232,21 +232,21 @@ export function DeliveryChargesManager({
         </div>
       </SectionCard>
 
-      {/* 2. Delivery strategies: groups, each with its options */}
+      {/* 2. Delivery strategies, under their tags */}
       <SectionCard
         title="Delivery strategies"
-        subtitle="Questions the customer answers per address (e.g. Drop-off spot, Contact). They pick one option in each."
+        subtitle="Customers see the tags under their address, then pick one strategy in each tag (e.g. Drop-off spot: Front door, Lobby)."
         action={
           <Button size="sm" onClick={() => setEditingGroup("new")}>
             <PlusIcon className="mr-1.5 size-3.5" />
-            Add strategy
+            Add tag
           </Button>
         }
       >
         <div className="space-y-4">
           {groups.length === 0 && ungrouped.length === 0 ? (
             <p className="rounded-md border py-10 text-center text-sm text-muted-foreground">
-              No delivery strategies yet. Click &quot;Add strategy&quot; to create one.
+              No tags yet. Click &quot;Add tag&quot;, then add its delivery strategies.
             </p>
           ) : null}
           {groups.map((g) => (
@@ -422,12 +422,12 @@ export function DeliveryChargesManager({
         </div>
       </ResponsiveDialog>
 
-      {/* Strategy option Add/Edit Dialog */}
+      {/* Delivery strategy Add/Edit Dialog */}
       <ItemChargeDialog
         open={deliveryStrategyDialogOpen}
         onOpenChange={setDeliveryStrategyDialogOpen}
         item={editingDeliveryStrategy ?? (newOptionGroupId ? { ...EMPTY_OPTION, groupId: newOptionGroupId } : null)}
-        title={editingDeliveryStrategy ? "Edit option" : "Add option"}
+        title={editingDeliveryStrategy ? "Edit delivery strategy" : "Add delivery strategy"}
         namePlaceholder="e.g. Front Door, Lobby, Garage"
         groups={groups}
         onSave={async (values) => {
@@ -485,12 +485,11 @@ interface ItemChargeDialogProps {
     chargeType: DeliveryChargeType;
     chargeValue: number;
     active: boolean;
-    tag?: string | null;
     groupId?: string | null;
   } | null;
   title: string;
   namePlaceholder: string;
-  /** Strategy options: shows the Strategy select and the Tag field. */
+  /** Delivery strategies: shows the (required) Tag select. */
   groups?: DeliveryStrategyGroupDto[];
   onSave: (values: DeliveryChargeRuleInput) => Promise<void>;
 }
@@ -527,7 +526,6 @@ function ItemChargeDialogBody({
   onSave,
 }: ItemChargeDialogProps) {
   const [name, setName] = useState(item?.name ?? "");
-  const [tag, setTag] = useState(item?.tag ?? "");
   const [groupId, setGroupId] = useState(item?.groupId ?? "");
   const [description, setDescription] = useState(item?.description ?? "");
   const [chargeType, setChargeType] = useState<DeliveryChargeType>(item?.chargeType ?? "none");
@@ -554,7 +552,7 @@ function ItemChargeDialogBody({
       return;
     }
     if (groups && !groupId) {
-      toast.error("Pick the strategy this option belongs to.");
+      toast.error("Pick a tag for this strategy.");
       return;
     }
 
@@ -567,7 +565,7 @@ function ItemChargeDialogBody({
           chargeType,
           chargeValue: val,
           active,
-          ...(groups ? { tag: tag.trim() || null, groupId: groupId || null } : {}),
+          ...(groups ? { groupId: groupId || null } : {}),
         });
         toast.success(`${title} saved successfully.`);
         onOpenChange(false);
@@ -616,26 +614,18 @@ function ItemChargeDialogBody({
         </div>
 
         {groups && (
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="charge-item-group">Strategy</Label>
-              <Select value={groupId} onValueChange={setGroupId}>
-                <SelectTrigger id="charge-item-group" className="w-full">
-                  <SelectValue placeholder="Pick a strategy" />
-                </SelectTrigger>
-                <SelectContent>
-                  {groups.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="charge-item-tag">
-                Tag <span className="font-normal text-muted-foreground">(optional)</span>
-              </Label>
-              <Input id="charge-item-tag" value={tag} maxLength={24} onChange={(e) => setTag(e.target.value)} placeholder="e.g. Secure" />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="charge-item-group">Tag</Label>
+            <Select value={groupId} onValueChange={setGroupId}>
+              <SelectTrigger id="charge-item-group" className="w-full">
+                <SelectValue placeholder="Pick a tag" />
+              </SelectTrigger>
+              <SelectContent>
+                {groups.map((g) => (
+                  <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
@@ -737,15 +727,6 @@ function upsert<T extends { id: string }>(prev: T[], saved: T): T[] {
   return prev.some((p) => p.id === saved.id) ? prev.map((p) => (p.id === saved.id ? saved : p)) : [...prev, saved];
 }
 
-function TagChip({ tag }: { tag: string | null | undefined }) {
-  if (!tag) return null;
-  return (
-    <Badge variant="secondary" className="rounded-full px-2 py-0 text-[11px] font-medium">
-      {tag}
-    </Badge>
-  );
-}
-
 function StatusBadge({ active }: { active: boolean }) {
   return active ? (
     <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30">
@@ -758,7 +739,7 @@ function StatusBadge({ active }: { active: boolean }) {
   );
 }
 
-/** One strategy and its options. No `group` = the options that have none yet. */
+/** One tag and its delivery strategies. No `group` = strategies that have no tag yet. */
 function StrategyGroupBlock({
   group,
   options,
@@ -782,30 +763,29 @@ function StrategyGroupBlock({
     <div className="rounded-lg border">
       <div className="flex flex-wrap items-center gap-2 border-b bg-muted/30 px-4 py-3">
         <TruckIcon className="size-4 text-muted-foreground" />
-        <span className="font-medium">{group?.name ?? "No strategy yet"}</span>
-        <TagChip tag={group?.tag} />
+        <span className="font-medium">{group?.name ?? "No tag yet"}</span>
         {group?.required ? <Badge variant="outline">Required</Badge> : null}
         {group && !group.active ? <StatusBadge active={false} /> : null}
         {!group ? (
-          <span className="text-xs text-muted-foreground">Edit each option to move it into a strategy.</span>
+          <span className="text-xs text-muted-foreground">Edit each strategy to give it a tag.</span>
         ) : null}
         <div className="ml-auto flex items-center gap-1">
           {onAddOption && (
             <Button variant="outline" size="sm" onClick={onAddOption}>
               <PlusIcon className="mr-1 size-3.5" />
-              Add option
+              Add strategy
             </Button>
           )}
           {onEditGroup && (
-            <Button variant="ghost" size="icon" className="size-8" onClick={onEditGroup} title="Edit strategy">
+            <Button variant="ghost" size="icon" className="size-8" onClick={onEditGroup} title="Edit tag">
               <PencilIcon className="size-3.5" />
-              <span className="sr-only">Edit strategy</span>
+              <span className="sr-only">Edit tag</span>
             </Button>
           )}
           {onDeleteGroup && (
-            <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={onDeleteGroup} title="Delete strategy">
+            <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={onDeleteGroup} title="Delete tag">
               <Trash2Icon className="size-3.5" />
-              <span className="sr-only">Delete strategy</span>
+              <span className="sr-only">Delete tag</span>
             </Button>
           )}
         </div>
@@ -814,7 +794,7 @@ function StrategyGroupBlock({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[35%]">Option</TableHead>
+            <TableHead className="w-[35%]">Strategy</TableHead>
             <TableHead className="w-[30%]">Description</TableHead>
             <TableHead className="w-[15%]">Charge</TableHead>
             <TableHead className="w-[10%]">Status</TableHead>
@@ -825,17 +805,14 @@ function StrategyGroupBlock({
           {options.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="h-16 text-center text-muted-foreground">
-                No options yet. Click &quot;Add option&quot;.
+                No strategies yet. Click &quot;Add strategy&quot;.
               </TableCell>
             </TableRow>
           ) : (
             options.map((o) => (
               <TableRow key={o.id}>
                 <TableCell className="font-medium">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span>{o.name}</span>
-                    <TagChip tag={o.tag} />
-                  </div>
+                  {o.name}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{o.description || "—"}</TableCell>
                 <TableCell className="font-medium">{formatCharge(o.chargeType, o.chargeValue)}</TableCell>
@@ -872,7 +849,6 @@ function StrategyGroupDialog({
 }) {
   const [name, setName] = useState(group?.name ?? "");
   const [description, setDescription] = useState(group?.description ?? "");
-  const [tag, setTag] = useState(group?.tag ?? "");
   const [required, setRequired] = useState(group?.required ?? false);
   const [active, setActive] = useState(group?.active ?? true);
   const [saving, startSaving] = useTransition();
@@ -888,12 +864,11 @@ function StrategyGroupDialog({
           id: group?.id,
           name: name.trim(),
           description: description.trim() || null,
-          tag: tag.trim() || null,
           required,
           active,
           sortOrder: group?.sortOrder,
         });
-        toast.success("Strategy saved.");
+        toast.success("Tag saved.");
         onClose();
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to save.");
@@ -905,8 +880,8 @@ function StrategyGroupDialog({
     <ResponsiveDialog
       open
       onOpenChange={(open) => !open && onClose()}
-      title={group ? "Edit strategy" : "Add strategy"}
-      description="Customers see the name as a question and pick one of its options."
+      title={group ? "Edit tag" : "Add tag"}
+      description="Customers see the tag under their address and pick one of its strategies."
       footer={
         <>
           <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
@@ -920,17 +895,9 @@ function StrategyGroupDialog({
       }
     >
       <div className="grid gap-5">
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="strategy-group-name">Name</Label>
-            <Input id="strategy-group-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Drop-off spot" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="strategy-group-tag">
-              Tag <span className="font-normal text-muted-foreground">(optional)</span>
-            </Label>
-            <Input id="strategy-group-tag" value={tag} maxLength={24} onChange={(e) => setTag(e.target.value)} placeholder="e.g. Contactless" />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="strategy-group-name">Name</Label>
+          <Input id="strategy-group-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Drop-off spot" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="strategy-group-desc">
@@ -941,14 +908,14 @@ function StrategyGroupDialog({
         <div className="flex items-center justify-between gap-4 rounded-xl border bg-muted/30 px-4 py-3.5">
           <div className="space-y-0.5">
             <Label htmlFor="strategy-group-required" className="text-sm font-medium">Required</Label>
-            <p className="text-xs text-muted-foreground">Customers must pick an option; no &quot;No preference&quot;.</p>
+            <p className="text-xs text-muted-foreground">Customers must pick a strategy; no &quot;No preference&quot;.</p>
           </div>
           <Switch id="strategy-group-required" checked={required} onCheckedChange={setRequired} />
         </div>
         <div className="flex items-center justify-between gap-4 rounded-xl border bg-muted/30 px-4 py-3.5">
           <div className="space-y-0.5">
             <Label htmlFor="strategy-group-active" className="text-sm font-medium">Active</Label>
-            <p className="text-xs text-muted-foreground">Inactive strategies are hidden from customers.</p>
+            <p className="text-xs text-muted-foreground">Inactive tags (and their strategies) are hidden from customers.</p>
           </div>
           <Switch id="strategy-group-active" checked={active} onCheckedChange={setActive} />
         </div>

@@ -15,7 +15,7 @@ describe("calculateDeliveryCharge", () => {
     expect(r.lines[1]!.label).toBe("Delivery strategy: Doorstep");
   });
 
-  it("adds one line per picked option, labelled by its group", () => {
+  it("adds one line per picked strategy, labelled by its tag", () => {
     const r = calculateDeliveryCharge({
       baseCharge: 3,
       deliveryStrategies: [

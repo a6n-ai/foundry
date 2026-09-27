@@ -5,7 +5,7 @@ export interface DeliveryChargeItemLike {
   name: string;
   chargeType: DeliveryChargeType;
   chargeValue: number;
-  /** Strategy group the option belongs to ("Drop-off spot"); labels the price line. */
+  /** Tag the strategy sits under ("Drop-off spot"); labels the price line. */
   group?: string | null;
 }
 
@@ -20,7 +20,7 @@ export interface DeliveryChargeItemResult {
 
 export interface DeliveryChargeCalculationResult {
   baseAmount: number;
-  /** One per picked strategy option, in the order given. */
+  /** One per picked strategy (one per tag), in the order given. */
   deliveryStrategies: DeliveryChargeItemResult[];
   addressTag?: DeliveryChargeItemResult | null;
   totalDeliveryCharge: number;
@@ -42,7 +42,7 @@ const percentDetail = (i: DeliveryChargeItemResult) => (i.chargeType === "percen
 
 /**
  * Pure calculation function for delivery charges.
- * Total = Base Charge + every picked strategy option + Address Tag Charge.
+ * Total = Base Charge + every picked strategy + Address Tag Charge.
  * Percentage charges are computed strictly against planPrice (customer's selected plan price / tiffinSubtotal).
  */
 export function calculateDeliveryCharge(params: {
