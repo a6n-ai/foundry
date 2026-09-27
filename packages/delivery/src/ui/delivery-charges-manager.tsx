@@ -84,8 +84,6 @@ export function DeliveryChargesManager({
   const [baseCharge, setBaseCharge] = useState(initialBaseCharge);
   const [deliveryStrategies, setDeliveryStrategies] = useState(initialDeliveryStrategies);
   const [groups, setGroups] = useState(initialStrategyGroups);
-  // Strategies from before tags existed (or whose tag is gone) until an admin moves them.
-  const ungrouped = deliveryStrategies.filter((o) => !o.groupId || !groups.some((g) => g.id === o.groupId));
   const [editingGroup, setEditingGroup] = useState<DeliveryStrategyGroupDto | "new" | null>(null);
   const [newOptionGroupId, setNewOptionGroupId] = useState<string | null>(null);
   const showAddressTags = initialAddressTags !== undefined;
@@ -232,10 +230,10 @@ export function DeliveryChargesManager({
         </div>
       </SectionCard>
 
-      {/* 2. Delivery strategies, under their tags */}
+      {/* 2. Tags: what customers see first under their address */}
       <SectionCard
-        title="Delivery strategies"
-        subtitle="Customers see the tags under their address, then pick one strategy in each tag (e.g. Drop-off spot: Front door, Lobby)."
+        title="Tags"
+        subtitle="Customers see these under their address, then pick one delivery strategy in each (e.g. Drop-off spot: Front door)."
         action={
           <Button size="sm" onClick={() => setEditingGroup("new")}>
             <PlusIcon className="mr-1.5 size-3.5" />
@@ -243,37 +241,115 @@ export function DeliveryChargesManager({
           </Button>
         }
       >
-        <div className="space-y-4">
-          {groups.length === 0 && ungrouped.length === 0 ? (
-            <p className="rounded-md border py-10 text-center text-sm text-muted-foreground">
-              No tags yet. Click &quot;Add tag&quot;, then add its delivery strategies.
-            </p>
-          ) : null}
-          {groups.map((g) => (
-            <StrategyGroupBlock
-              key={g.id}
-              group={g}
-              options={deliveryStrategies.filter((o) => o.groupId === g.id)}
-              onEditGroup={() => setEditingGroup(g)}
-              onDeleteGroup={() => handleDeleteGroup(g.id, g.name)}
-              onAddOption={() => {
-                setEditingDeliveryStrategy(null);
-                setNewOptionGroupId(g.id);
-                setDeliveryStrategyDialogOpen(true);
-              }}
-              onEditOption={handleOpenEditDeliveryStrategy}
-              onDeleteOption={(o) => handleDeleteDeliveryStrategy(o.id, o.name)}
-              formatCharge={formatChargeDisplay}
-            />
-          ))}
-          {ungrouped.length > 0 && (
-            <StrategyGroupBlock
-              options={ungrouped}
-              onEditOption={handleOpenEditDeliveryStrategy}
-              onDeleteOption={(o) => handleDeleteDeliveryStrategy(o.id, o.name)}
-              formatCharge={formatChargeDisplay}
-            />
-          )}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[30%]">Name</TableHead>
+                <TableHead className="w-[30%]">Description</TableHead>
+                <TableHead className="w-[10%]">Required</TableHead>
+                <TableHead className="w-[10%]">Strategies</TableHead>
+                <TableHead className="w-[10%]">Status</TableHead>
+                <TableHead className="w-[80px] text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {groups.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    No tags yet. Click &quot;Add tag&quot;; every delivery strategy needs one.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                groups.map((g) => (
+                  <TableRow key={g.id}>
+                    <TableCell className="font-medium">{g.name}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{g.description || "—"}</TableCell>
+                    <TableCell>{g.required ? "Yes" : "No"}</TableCell>
+                    <TableCell className="tabular-nums">{deliveryStrategies.filter((o) => o.groupId === g.id).length}</TableCell>
+                    <TableCell><StatusBadge active={g.active} /></TableCell>
+                    <TableCell className="text-right">
+                      <RowActions label={g.name} onEdit={() => setEditingGroup(g)} onDelete={() => handleDeleteGroup(g.id, g.name)} />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </SectionCard>
+
+      {/* 3. Delivery strategies, each under one tag */}
+      <SectionCard
+        title="Delivery strategies"
+        subtitle="How or where the order is dropped off (e.g. Front door, Lobby). Each has one tag; edit a strategy to change it."
+        action={
+          <Button
+            size="sm"
+            disabled={groups.length === 0}
+            title={groups.length === 0 ? "Add a tag first" : undefined}
+            onClick={() => {
+              setEditingDeliveryStrategy(null);
+              // With one tag there is nothing to choose.
+              setNewOptionGroupId(groups.length === 1 ? groups[0]!.id : null);
+              setDeliveryStrategyDialogOpen(true);
+            }}
+          >
+            <PlusIcon className="mr-1.5 size-3.5" />
+            Add delivery strategy
+          </Button>
+        }
+      >
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[25%]">Name</TableHead>
+                <TableHead className="w-[20%]">Tag</TableHead>
+                <TableHead className="w-[25%]">Description</TableHead>
+                <TableHead className="w-[12%]">Charge</TableHead>
+                <TableHead className="w-[10%]">Status</TableHead>
+                <TableHead className="w-[80px] text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {deliveryStrategies.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    No delivery strategies yet.{groups.length === 0 ? " Add a tag first." : ""}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                deliveryStrategies.map((o) => {
+                  const tag = groups.find((g) => g.id === o.groupId);
+                  return (
+                    <TableRow key={o.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <TruckIcon className="size-4 text-muted-foreground" />
+                          <span>{o.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {tag ? (
+                          <Badge variant="secondary">{tag.name}</Badge>
+                        ) : (
+                          // Hidden from customers until it has a tag.
+                          <Badge variant="outline" className="border-destructive/40 text-destructive">No tag</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{o.description || "—"}</TableCell>
+                      <TableCell className="font-medium">{formatChargeDisplay(o.chargeType, o.chargeValue)}</TableCell>
+                      <TableCell><StatusBadge active={o.active} /></TableCell>
+                      <TableCell className="text-right">
+                        <RowActions label={o.name} onEdit={() => handleOpenEditDeliveryStrategy(o)} onDelete={() => handleDeleteDeliveryStrategy(o.id, o.name)} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
         </div>
       </SectionCard>
 
@@ -739,101 +815,17 @@ function StatusBadge({ active }: { active: boolean }) {
   );
 }
 
-/** One tag and its delivery strategies. No `group` = strategies that have no tag yet. */
-function StrategyGroupBlock({
-  group,
-  options,
-  onEditGroup,
-  onDeleteGroup,
-  onAddOption,
-  onEditOption,
-  onDeleteOption,
-  formatCharge,
-}: {
-  group?: DeliveryStrategyGroupDto;
-  options: DeliveryStrategyDto[];
-  onEditGroup?: () => void;
-  onDeleteGroup?: () => void;
-  onAddOption?: () => void;
-  onEditOption: (o: DeliveryStrategyDto) => void;
-  onDeleteOption: (o: DeliveryStrategyDto) => void;
-  formatCharge: (type: DeliveryChargeType, value: number) => string;
-}) {
+function RowActions({ label, onEdit, onDelete }: { label: string; onEdit: () => void; onDelete: () => void }) {
   return (
-    <div className="rounded-lg border">
-      <div className="flex flex-wrap items-center gap-2 border-b bg-muted/30 px-4 py-3">
-        <TruckIcon className="size-4 text-muted-foreground" />
-        <span className="font-medium">{group?.name ?? "No tag yet"}</span>
-        {group?.required ? <Badge variant="outline">Required</Badge> : null}
-        {group && !group.active ? <StatusBadge active={false} /> : null}
-        {!group ? (
-          <span className="text-xs text-muted-foreground">Edit each strategy to give it a tag.</span>
-        ) : null}
-        <div className="ml-auto flex items-center gap-1">
-          {onAddOption && (
-            <Button variant="outline" size="sm" onClick={onAddOption}>
-              <PlusIcon className="mr-1 size-3.5" />
-              Add strategy
-            </Button>
-          )}
-          {onEditGroup && (
-            <Button variant="ghost" size="icon" className="size-8" onClick={onEditGroup} title="Edit tag">
-              <PencilIcon className="size-3.5" />
-              <span className="sr-only">Edit tag</span>
-            </Button>
-          )}
-          {onDeleteGroup && (
-            <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={onDeleteGroup} title="Delete tag">
-              <Trash2Icon className="size-3.5" />
-              <span className="sr-only">Delete tag</span>
-            </Button>
-          )}
-        </div>
-      </div>
-      {group?.description ? <p className="px-4 pt-2 text-xs text-muted-foreground">{group.description}</p> : null}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[35%]">Strategy</TableHead>
-            <TableHead className="w-[30%]">Description</TableHead>
-            <TableHead className="w-[15%]">Charge</TableHead>
-            <TableHead className="w-[10%]">Status</TableHead>
-            <TableHead className="w-[80px] text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {options.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} className="h-16 text-center text-muted-foreground">
-                No strategies yet. Click &quot;Add strategy&quot;.
-              </TableCell>
-            </TableRow>
-          ) : (
-            options.map((o) => (
-              <TableRow key={o.id}>
-                <TableCell className="font-medium">
-                  {o.name}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{o.description || "—"}</TableCell>
-                <TableCell className="font-medium">{formatCharge(o.chargeType, o.chargeValue)}</TableCell>
-                <TableCell><StatusBadge active={o.active} /></TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="icon" className="size-8" onClick={() => onEditOption(o)} title="Edit">
-                      <PencilIcon className="size-3.5" />
-                      <span className="sr-only">Edit</span>
-                    </Button>
-                    <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={() => onDeleteOption(o)} title="Delete">
-                      <Trash2Icon className="size-3.5" />
-                      <span className="sr-only">Delete</span>
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+    <div className="flex items-center justify-end gap-1">
+      <Button variant="ghost" size="icon" className="size-8" onClick={onEdit} title={`Edit ${label}`}>
+        <PencilIcon className="size-3.5" />
+        <span className="sr-only">Edit {label}</span>
+      </Button>
+      <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={onDelete} title={`Delete ${label}`}>
+        <Trash2Icon className="size-3.5" />
+        <span className="sr-only">Delete {label}</span>
+      </Button>
     </div>
   );
 }
