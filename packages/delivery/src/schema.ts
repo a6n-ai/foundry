@@ -107,11 +107,45 @@ export function makeDeliveryTables(deps: {
     organizationId: orgId(),
   });
 
+  /**
+   * A question the customer answers once per address (Drop-off spot, Contact…). Its
+   * options are delivery_strategies rows; the customer picks at most one per group.
+   */
+  const deliveryStrategyGroups = pgTable(
+    "delivery_strategy_groups",
+    {
+      ...updatableColumns("dsg"),
+      name: text("name").notNull(),
+      description: text("description"),
+      /** Short chip shown next to the name ("Contactless"). */
+      tag: text("tag"),
+      /** Required = no "No preference"; checkout refuses until one option is picked. */
+      required: boolean("required").notNull().default(false),
+      active: boolean("active").notNull().default(true),
+      sortOrder: integer("sort_order").notNull().default(0),
+      organizationId: orgId(),
+    },
+    (t) => [
+      index("delivery_strategy_groups_active_idx").on(t.active),
+      index("delivery_strategy_groups_org_idx").on(t.organizationId),
+    ],
+  );
+
+  /** One option of a strategy group (Doorstep, Lobby…), with its own surcharge. */
   const deliveryStrategies = pgTable(
     "delivery_strategies",
-    { ...updatableColumns("dsp"), ...ruleColumns() },
+    {
+      ...updatableColumns("dsp"),
+      ...ruleColumns(),
+      // Nullable only for rows created before groups existed; apps backfill them.
+      groupId: bigint("group_id", { mode: "bigint" }).references(() => deliveryStrategyGroups.id),
+      /** Short chip shown on the option ("Secure"). */
+      tag: text("tag"),
+    },
     (t) => [
-      uniqueIndex("delivery_strategies_name_unique").on(t.name),
+      // Two groups may each have an option called "None".
+      uniqueIndex("delivery_strategies_group_name_unique").on(t.groupId, t.name),
+      index("delivery_strategies_group_idx").on(t.groupId),
       index("delivery_strategies_active_idx").on(t.active),
       index("delivery_strategies_org_idx").on(t.organizationId),
     ],
@@ -133,6 +167,7 @@ export function makeDeliveryTables(deps: {
     deliveryZoneTypes,
     deliveryChargeType,
     deliveryChargeConfigs,
+    deliveryStrategyGroups,
     deliveryStrategies,
     addressTags,
   };

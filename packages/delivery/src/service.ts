@@ -15,6 +15,9 @@ export type DeliveryChargeRuleDto = {
   chargeValue: number;
   active: boolean;
   sortOrder: number;
+  /** Strategy options only: the option's chip and its group's public id. */
+  tag?: string | null;
+  groupId?: string | null;
 };
 
 export type DeliveryChargeRuleInput = {
@@ -24,6 +27,30 @@ export type DeliveryChargeRuleInput = {
   chargeType: DeliveryChargeType;
   chargeValue: number;
   active?: boolean;
+  /** Strategy options only; ignored for address tags. */
+  tag?: string | null;
+  groupId?: string | null;
+};
+
+export type DeliveryStrategyGroupDto = {
+  id: string; // publicId
+  internalId: bigint;
+  name: string;
+  description: string | null;
+  tag: string | null;
+  required: boolean;
+  active: boolean;
+  sortOrder: number;
+};
+
+export type DeliveryStrategyGroupInput = {
+  id?: string; // publicId when updating
+  name: string;
+  description?: string | null;
+  tag?: string | null;
+  required?: boolean;
+  active?: boolean;
+  sortOrder?: number;
 };
 
 export type DeleteRuleResult = { success: boolean; deactivatedInstead?: boolean };
@@ -83,7 +110,13 @@ export function orgScope(column: AnyPgColumn, orgId?: string | null): SQL | unde
 
 export function createDeliveryService(deps: DeliveryServiceDeps) {
   const { db, tables } = deps;
-  const { deliveryZones: zones, deliveryTypes: types, deliveryZoneTypes: zoneTypes, deliveryChargeConfigs: configs } = tables;
+  const {
+    deliveryZones: zones,
+    deliveryTypes: types,
+    deliveryZoneTypes: zoneTypes,
+    deliveryChargeConfigs: configs,
+    deliveryStrategyGroups: groups,
+  } = tables;
   const actor = async () => (deps.currentUserId ? await deps.currentUserId() : null);
   const audit = async (entry: AuditEntry) => {
     if (deps.audit) await deps.audit(entry);
@@ -92,8 +125,9 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
 
   type RuleTable = DeliveryTables["deliveryStrategies"];
 
-  function ruleService(table: RuleTable, entity: string, label: string, isInUse: (id: bigint) => Promise<boolean>) {
-    const toDto = (r: RuleTable["$inferSelect"]): DeliveryChargeRuleDto => ({
+  /** `grouped`: the table is delivery_strategies, whose rows carry tag + group_id. */
+  function ruleService(table: RuleTable, entity: string, label: string, isInUse: (id: bigint) => Promise<boolean>, grouped: boolean) {
+    const toDto = (r: RuleTable["$inferSelect"], groupPublicId: string | null = null): DeliveryChargeRuleDto => ({
       id: r.publicId,
       internalId: r.id,
       name: r.name,
@@ -102,17 +136,33 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
       chargeValue: Number(r.chargeValue),
       active: r.active,
       sortOrder: r.sortOrder,
+      ...(grouped ? { tag: r.tag, groupId: groupPublicId } : {}),
     });
     const owned = (publicId: string, orgId?: string | null) => and(eq(table.publicId, publicId), orgScope(table.organizationId, orgId));
 
+    async function groupIdFor(groupPublicId: string | null | undefined, orgId?: string | null): Promise<bigint | null> {
+      if (!grouped || !groupPublicId) return null;
+      const [g] = await db
+        .select({ id: groups.id })
+        .from(groups)
+        .where(and(eq(groups.publicId, groupPublicId), orgScope(groups.organizationId, orgId)))
+        .limit(1);
+      if (!g) throw new ValidationError("Strategy group not found");
+      return g.id;
+    }
+
     return {
       async list(options?: ListOptions): Promise<DeliveryChargeRuleDto[]> {
+        const where = and(options?.includeInactive ? undefined : eq(table.active, true), orgScope(table.organizationId, options?.orgId));
+        const order = [asc(table.sortOrder), asc(table.name)] as const;
+        if (!grouped) return (await db.select().from(table).where(where).orderBy(...order)).map((r) => toDto(r));
         const rows = await db
-          .select()
+          .select({ r: table, group: groups.publicId })
           .from(table)
-          .where(and(options?.includeInactive ? undefined : eq(table.active, true), orgScope(table.organizationId, options?.orgId)))
-          .orderBy(asc(table.sortOrder), asc(table.name));
-        return rows.map(toDto);
+          .leftJoin(groups, eq(groups.id, table.groupId))
+          .where(where)
+          .orderBy(...order);
+        return rows.map(({ r, group }) => toDto(r, group));
       },
 
       async save(input: DeliveryChargeRuleInput, orgId?: string | null): Promise<DeliveryChargeRuleDto> {
@@ -125,10 +175,13 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
           throw new ValidationError("Percentage charge cannot exceed 100%");
         }
 
+        const groupId = await groupIdFor(input.groupId, orgId);
+        // Names are unique within a group (two groups may each offer "None").
+        const sameGroup = grouped ? (groupId == null ? isNull(table.groupId) : eq(table.groupId, groupId)) : undefined;
         const [duplicate] = await db
           .select({ id: table.id })
           .from(table)
-          .where(input.id ? and(eq(table.name, name), ne(table.publicId, input.id)) : eq(table.name, name))
+          .where(and(eq(table.name, name), sameGroup, input.id ? ne(table.publicId, input.id) : undefined))
           .limit(1);
         if (duplicate) throw new ValidationError(`A ${label.toLowerCase()} with that name already exists`);
 
@@ -138,7 +191,9 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
           chargeType: input.chargeType,
           chargeValue: chargeValue.toFixed(2),
           active: input.active ?? true,
+          ...(grouped ? { tag: input.tag?.trim() || null, groupId } : {}),
         };
+        const groupPublicId = groupId == null ? null : input.groupId!;
         const by = await actor();
 
         if (input.id) {
@@ -149,14 +204,14 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
             .returning();
           if (!updated) throw new ValidationError(`${label} not found`);
           await audit({ entity, entityPublicId: updated.publicId, operation: "update", changes: values });
-          return toDto(updated);
+          return toDto(updated, groupPublicId);
         }
         const [created] = await db
           .insert(table)
           .values({ ...values, organizationId: orgId ?? null, createdBy: by, updatedBy: by })
           .returning();
         await audit({ entity, entityPublicId: created!.publicId, operation: "create", changes: values });
-        return toDto(created!);
+        return toDto(created!, groupPublicId);
       },
 
       async remove(publicId: string, orgId?: string | null): Promise<DeleteRuleResult> {
@@ -175,9 +230,22 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
     };
   }
 
-  // Strategies and tags have identical columns (ruleColumns in schema.ts); only the SQL name differs.
-  const strategies = ruleService(tables.deliveryStrategies, "delivery_strategies", "Delivery strategy", deps.isStrategyInUse);
-  const tags = ruleService(tables.addressTags as unknown as RuleTable, "address_tags", "Address tag", deps.isAddressTagInUse);
+  // Strategies and tags share ruleColumns (schema.ts); strategies add tag + group_id.
+  const strategies = ruleService(tables.deliveryStrategies, "delivery_strategies", "Strategy option", deps.isStrategyInUse, true);
+  const tags = ruleService(tables.addressTags as unknown as RuleTable, "address_tags", "Address tag", deps.isAddressTagInUse, false);
+
+  const toGroupDto = (g: typeof groups.$inferSelect): DeliveryStrategyGroupDto => ({
+    id: g.publicId,
+    internalId: g.id,
+    name: g.name,
+    description: g.description,
+    tag: g.tag,
+    required: g.required,
+    active: g.active,
+    sortOrder: g.sortOrder,
+  });
+  const ownedGroup = (publicId: string, orgId?: string | null) =>
+    and(eq(groups.publicId, publicId), orgScope(groups.organizationId, orgId));
 
   const toType = (r: typeof types.$inferSelect): DeliveryType => ({
     id: r.id,
@@ -237,9 +305,55 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
       return Number(val);
     },
 
+    /** Options of every group (each carries its `groupId`). */
     listDeliveryStrategies: strategies.list,
     saveDeliveryStrategy: strategies.save,
     deleteDeliveryStrategy: strategies.remove,
+
+    async listDeliveryStrategyGroups(options?: ListOptions): Promise<DeliveryStrategyGroupDto[]> {
+      const rows = await db
+        .select()
+        .from(groups)
+        .where(and(options?.includeInactive ? undefined : eq(groups.active, true), orgScope(groups.organizationId, options?.orgId)))
+        .orderBy(asc(groups.sortOrder), asc(groups.name));
+      return rows.map(toGroupDto);
+    },
+
+    async saveDeliveryStrategyGroup(input: DeliveryStrategyGroupInput, orgId?: string | null): Promise<DeliveryStrategyGroupDto> {
+      const name = input.name.trim();
+      if (!name) throw new ValidationError("Strategy name is required");
+      const values = {
+        name,
+        description: input.description?.trim() || null,
+        tag: input.tag?.trim() || null,
+        required: input.required ?? false,
+        active: input.active ?? true,
+        sortOrder: Math.trunc(input.sortOrder ?? 0),
+      };
+      const by = await actor();
+      const [row] = input.id
+        ? await db.update(groups).set({ ...values, updatedAt: Date.now(), updatedBy: by }).where(ownedGroup(input.id, orgId)).returning()
+        : await db.insert(groups).values({ ...values, organizationId: orgId ?? null, createdBy: by, updatedBy: by }).returning();
+      if (!row) throw new ValidationError("Strategy not found");
+      await audit({ entity: "delivery_strategy_groups", entityPublicId: row.publicId, operation: input.id ? "update" : "create", changes: values });
+      return toGroupDto(row);
+    },
+
+    /** A group that still has options is retired, not deleted — its options stay resolvable. */
+    async deleteDeliveryStrategyGroup(publicId: string, orgId?: string | null): Promise<DeleteRuleResult> {
+      const [row] = await db.select({ id: groups.id }).from(groups).where(ownedGroup(publicId, orgId)).limit(1);
+      if (!row) throw new ValidationError("Strategy not found");
+      const strategyTable = tables.deliveryStrategies;
+      const [option] = await db.select({ id: strategyTable.id }).from(strategyTable).where(eq(strategyTable.groupId, row.id)).limit(1);
+      if (option) {
+        await db.update(groups).set({ active: false, updatedAt: Date.now(), updatedBy: await actor() }).where(eq(groups.id, row.id));
+        await audit({ entity: "delivery_strategy_groups", entityPublicId: publicId, operation: "update", changes: { active: false } });
+        return { success: true, deactivatedInstead: true };
+      }
+      await db.delete(groups).where(eq(groups.id, row.id));
+      await audit({ entity: "delivery_strategy_groups", entityPublicId: publicId, operation: "delete", changes: {} });
+      return { success: true, deactivatedInstead: false };
+    },
     listAddressTags: tags.list,
     saveAddressTag: tags.save,
     deleteAddressTag: tags.remove,

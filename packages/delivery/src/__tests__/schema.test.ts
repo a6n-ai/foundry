@@ -17,15 +17,27 @@ describe("makeDeliveryTables", () => {
     expect(getTableConfig(t.deliveryTypes).name).toBe("delivery_types");
     expect(getTableConfig(t.deliveryZoneTypes).indexes.map((i) => i.config.name)).toEqual(["delivery_zone_types_zone_type_unique", "delivery_zone_types_type_idx"]);
 
+    expect(getTableConfig(t.deliveryStrategyGroups).name).toBe("delivery_strategy_groups");
+    expect(getTableConfig(t.deliveryStrategyGroups).columns.map((c) => c.name)).toEqual(
+      expect.arrayContaining(["name", "tag", "required", "active", "sort_order", "organization_id"]),
+    );
+    expect(getTableConfig(t.deliveryStrategies).indexes.map((i) => i.config.name).sort()).toEqual([
+      "delivery_strategies_active_idx",
+      "delivery_strategies_group_idx",
+      "delivery_strategies_group_name_unique",
+      "delivery_strategies_org_idx",
+    ]);
+    expect(getTableConfig(t.deliveryStrategies).columns.map((c) => c.name)).toEqual(expect.arrayContaining(["group_id", "tag"]));
+    expect(getTableConfig(t.addressTags).indexes.map((i) => i.config.name).sort()).toEqual(
+      ["address_tags_active_idx", "address_tags_name_unique", "address_tags_org_idx"],
+    );
+
     for (const [table, name] of [
       [t.deliveryStrategies, "delivery_strategies"],
       [t.addressTags, "address_tags"],
     ] as const) {
       const cfg = getTableConfig(table);
       expect(cfg.name).toBe(name);
-      expect(cfg.indexes.map((i) => i.config.name).sort()).toEqual(
-        [`${name}_active_idx`, `${name}_name_unique`, `${name}_org_idx`],
-      );
       expect(cfg.columns.map((c) => c.name)).toEqual(
         expect.arrayContaining(["name", "charge_type", "charge_value", "active", "sort_order", "organization_id"]),
       );

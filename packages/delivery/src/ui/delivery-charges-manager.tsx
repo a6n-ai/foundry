@@ -33,7 +33,13 @@ import {
 } from "@foundry/ui/table";
 import { ResponsiveDialog, SectionCard } from "@foundry/design-system";
 import type { DeliveryChargeType } from "../charges";
-import type { DeleteRuleResult, DeliveryChargeRuleDto, DeliveryChargeRuleInput } from "../service";
+import type {
+  DeleteRuleResult,
+  DeliveryChargeRuleDto,
+  DeliveryChargeRuleInput,
+  DeliveryStrategyGroupDto,
+  DeliveryStrategyGroupInput,
+} from "../service";
 
 type DeliveryStrategyDto = DeliveryChargeRuleDto;
 type AddressTagDto = DeliveryChargeRuleDto;
@@ -43,13 +49,17 @@ export interface DeliveryChargesActions {
   updateBaseCharge: (amount: number) => Promise<number>;
   saveDeliveryStrategy: (input: DeliveryChargeRuleInput) => Promise<DeliveryChargeRuleDto>;
   deleteDeliveryStrategy: (id: string) => Promise<DeleteRuleResult>;
+  saveDeliveryStrategyGroup: (input: DeliveryStrategyGroupInput) => Promise<DeliveryStrategyGroupDto>;
+  deleteDeliveryStrategyGroup: (id: string) => Promise<DeleteRuleResult>;
   saveAddressTag: (input: DeliveryChargeRuleInput) => Promise<DeliveryChargeRuleDto>;
   deleteAddressTag: (id: string) => Promise<DeleteRuleResult>;
 }
 
 export interface DeliveryChargesManagerProps {
   initialBaseCharge: number;
+  /** Every option, each pointing at its group by `groupId`. */
   initialDeliveryStrategies: DeliveryStrategyDto[];
+  initialStrategyGroups: DeliveryStrategyGroupDto[];
   /** Omit to hide address tags entirely — for an app that charges by delivery strategy only. */
   initialAddressTags?: AddressTagDto[];
   actions: DeliveryChargesActions;
@@ -58,6 +68,7 @@ export interface DeliveryChargesManagerProps {
 export function DeliveryChargesManager({
   initialBaseCharge,
   initialDeliveryStrategies,
+  initialStrategyGroups,
   initialAddressTags,
   actions,
 }: DeliveryChargesManagerProps) {
@@ -65,11 +76,18 @@ export function DeliveryChargesManager({
     updateBaseCharge: updateBaseChargeAction,
     saveDeliveryStrategy: saveDeliveryStrategyAction,
     deleteDeliveryStrategy: deleteDeliveryStrategyAction,
+    saveDeliveryStrategyGroup: saveGroupAction,
+    deleteDeliveryStrategyGroup: deleteGroupAction,
     saveAddressTag: saveAddressTagAction,
     deleteAddressTag: deleteAddressTagAction,
   } = actions;
   const [baseCharge, setBaseCharge] = useState(initialBaseCharge);
   const [deliveryStrategies, setDeliveryStrategies] = useState(initialDeliveryStrategies);
+  const [groups, setGroups] = useState(initialStrategyGroups);
+  // Options from before groups existed (or whose group is gone) until an admin moves them.
+  const ungrouped = deliveryStrategies.filter((o) => !o.groupId || !groups.some((g) => g.id === o.groupId));
+  const [editingGroup, setEditingGroup] = useState<DeliveryStrategyGroupDto | "new" | null>(null);
+  const [newOptionGroupId, setNewOptionGroupId] = useState<string | null>(null);
   const showAddressTags = initialAddressTags !== undefined;
   const [addressTags, setAddressTags] = useState(initialAddressTags ?? []);
 
@@ -108,18 +126,32 @@ export function DeliveryChargesManager({
   };
 
   // Delivery Strategies Actions
-  const handleOpenAddDeliveryStrategy = () => {
-    setEditingDeliveryStrategy(null);
+  const handleOpenEditDeliveryStrategy = (dt: DeliveryStrategyDto) => {
+    setEditingDeliveryStrategy(dt);
+    setNewOptionGroupId(null);
     setDeliveryStrategyDialogOpen(true);
   };
 
-  const handleOpenEditDeliveryStrategy = (dt: DeliveryStrategyDto) => {
-    setEditingDeliveryStrategy(dt);
-    setDeliveryStrategyDialogOpen(true);
+  const handleDeleteGroup = (id: string, name: string) => {
+    if (!window.confirm(`Remove strategy "${name}"?`)) return;
+    void (async () => {
+      try {
+        const res = await deleteGroupAction(id);
+        if (res.deactivatedInstead) {
+          toast.info(`"${name}" still has options, so it was deactivated instead. Customers no longer see it.`);
+          setGroups((prev) => prev.map((g) => (g.id === id ? { ...g, active: false } : g)));
+        } else {
+          toast.success(`"${name}" removed.`);
+          setGroups((prev) => prev.filter((g) => g.id !== id));
+        }
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to remove strategy.");
+      }
+    })();
   };
 
   const handleDeleteDeliveryStrategy = (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to remove delivery strategy "${name}"?`)) return;
+    if (!window.confirm(`Are you sure you want to remove option "${name}"?`)) return;
     void (async () => {
       try {
         const res = await deleteDeliveryStrategyAction(id);
@@ -131,7 +163,7 @@ export function DeliveryChargesManager({
           setDeliveryStrategies((prev) => prev.filter((t) => t.id !== id));
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to delete delivery strategy.");
+        toast.error(err instanceof Error ? err.message : "Failed to delete option.");
       }
     })();
   };
@@ -200,94 +232,48 @@ export function DeliveryChargesManager({
         </div>
       </SectionCard>
 
-      {/* 2. Delivery Strategies Table */}
+      {/* 2. Delivery strategies: groups, each with its options */}
       <SectionCard
-        title="Delivery Strategies"
-        subtitle="Configurable options for how or where the order is dropped off (e.g. Front Door, Lobby, Rear Door)."
+        title="Delivery strategies"
+        subtitle="Questions the customer answers per address (e.g. Drop-off spot, Contact). They pick one option in each."
         action={
-          <Button size="sm" onClick={handleOpenAddDeliveryStrategy}>
+          <Button size="sm" onClick={() => setEditingGroup("new")}>
             <PlusIcon className="mr-1.5 size-3.5" />
-            Add delivery strategy
+            Add strategy
           </Button>
         }
       >
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[30%]">Name</TableHead>
-                <TableHead className="w-[30%]">Description</TableHead>
-                <TableHead className="w-[15%]">Charge Type</TableHead>
-                <TableHead className="w-[15%]">Amount / Rate</TableHead>
-                <TableHead className="w-[10%]">Status</TableHead>
-                <TableHead className="w-[80px] text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {deliveryStrategies.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                    No delivery strategies configured yet. Click &quot;Add delivery strategy&quot; to create one.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                deliveryStrategies.map((dt) => (
-                  <TableRow key={dt.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <TruckIcon className="size-4 text-muted-foreground" />
-                        <span>{dt.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {dt.description || "—"}
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {dt.chargeType}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {formatChargeDisplay(dt.chargeType, dt.chargeValue)}
-                    </TableCell>
-                    <TableCell>
-                      {dt.active ? (
-                        <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30">
-                          Active
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="border-muted text-muted-foreground">
-                          Inactive
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8"
-                          onClick={() => handleOpenEditDeliveryStrategy(dt)}
-                          title="Edit"
-                        >
-                          <PencilIcon className="size-3.5" />
-                          <span className="sr-only">Edit</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 text-destructive hover:text-destructive"
-                          onClick={() => handleDeleteDeliveryStrategy(dt.id, dt.name)}
-                          title="Delete"
-                        >
-                          <Trash2Icon className="size-3.5" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+        <div className="space-y-4">
+          {groups.length === 0 && ungrouped.length === 0 ? (
+            <p className="rounded-md border py-10 text-center text-sm text-muted-foreground">
+              No delivery strategies yet. Click &quot;Add strategy&quot; to create one.
+            </p>
+          ) : null}
+          {groups.map((g) => (
+            <StrategyGroupBlock
+              key={g.id}
+              group={g}
+              options={deliveryStrategies.filter((o) => o.groupId === g.id)}
+              onEditGroup={() => setEditingGroup(g)}
+              onDeleteGroup={() => handleDeleteGroup(g.id, g.name)}
+              onAddOption={() => {
+                setEditingDeliveryStrategy(null);
+                setNewOptionGroupId(g.id);
+                setDeliveryStrategyDialogOpen(true);
+              }}
+              onEditOption={handleOpenEditDeliveryStrategy}
+              onDeleteOption={(o) => handleDeleteDeliveryStrategy(o.id, o.name)}
+              formatCharge={formatChargeDisplay}
+            />
+          ))}
+          {ungrouped.length > 0 && (
+            <StrategyGroupBlock
+              options={ungrouped}
+              onEditOption={handleOpenEditDeliveryStrategy}
+              onDeleteOption={(o) => handleDeleteDeliveryStrategy(o.id, o.name)}
+              formatCharge={formatChargeDisplay}
+            />
+          )}
         </div>
       </SectionCard>
 
@@ -436,26 +422,30 @@ export function DeliveryChargesManager({
         </div>
       </ResponsiveDialog>
 
-      {/* Delivery Strategy Add/Edit Dialog */}
+      {/* Strategy option Add/Edit Dialog */}
       <ItemChargeDialog
         open={deliveryStrategyDialogOpen}
         onOpenChange={setDeliveryStrategyDialogOpen}
-        item={editingDeliveryStrategy}
-        title={editingDeliveryStrategy ? "Edit delivery strategy" : "Add delivery strategy"}
+        item={editingDeliveryStrategy ?? (newOptionGroupId ? { ...EMPTY_OPTION, groupId: newOptionGroupId } : null)}
+        title={editingDeliveryStrategy ? "Edit option" : "Add option"}
         namePlaceholder="e.g. Front Door, Lobby, Garage"
+        groups={groups}
         onSave={async (values) => {
           const saved = await saveDeliveryStrategyAction(values);
-          setDeliveryStrategies((prev) => {
-            const idx = prev.findIndex((p) => p.id === saved.id);
-            if (idx >= 0) {
-              const next = [...prev];
-              next[idx] = saved;
-              return next;
-            }
-            return [...prev, saved];
-          });
+          setDeliveryStrategies((prev) => upsert(prev, saved));
         }}
       />
+
+      {editingGroup && (
+        <StrategyGroupDialog
+          group={editingGroup === "new" ? null : editingGroup}
+          onClose={() => setEditingGroup(null)}
+          onSave={async (values) => {
+            const saved = await saveGroupAction(values);
+            setGroups((prev) => upsert(prev, saved));
+          }}
+        />
+      )}
 
       {showAddressTags && (
         <>
@@ -495,17 +485,14 @@ interface ItemChargeDialogProps {
     chargeType: DeliveryChargeType;
     chargeValue: number;
     active: boolean;
+    tag?: string | null;
+    groupId?: string | null;
   } | null;
   title: string;
   namePlaceholder: string;
-  onSave: (values: {
-    id?: string;
-    name: string;
-    description?: string | null;
-    chargeType: DeliveryChargeType;
-    chargeValue: number;
-    active?: boolean;
-  }) => Promise<void>;
+  /** Strategy options: shows the Strategy select and the Tag field. */
+  groups?: DeliveryStrategyGroupDto[];
+  onSave: (values: DeliveryChargeRuleInput) => Promise<void>;
 }
 
 function ItemChargeDialog({
@@ -514,16 +501,18 @@ function ItemChargeDialog({
   item,
   title,
   namePlaceholder,
+  groups,
   onSave,
 }: ItemChargeDialogProps) {
   return open ? (
     <ItemChargeDialogBody
-      key={item?.id ?? "__new__"}
+      key={item?.id ?? `__new__${item?.groupId ?? ""}`}
       open={open}
       onOpenChange={onOpenChange}
       item={item}
       title={title}
       namePlaceholder={namePlaceholder}
+      groups={groups}
       onSave={onSave}
     />
   ) : null;
@@ -534,9 +523,12 @@ function ItemChargeDialogBody({
   item,
   title,
   namePlaceholder,
+  groups,
   onSave,
 }: ItemChargeDialogProps) {
   const [name, setName] = useState(item?.name ?? "");
+  const [tag, setTag] = useState(item?.tag ?? "");
+  const [groupId, setGroupId] = useState(item?.groupId ?? "");
   const [description, setDescription] = useState(item?.description ?? "");
   const [chargeType, setChargeType] = useState<DeliveryChargeType>(item?.chargeType ?? "none");
   const [chargeValue, setChargeValue] = useState(
@@ -561,6 +553,10 @@ function ItemChargeDialogBody({
       toast.error("Percentage charge cannot exceed 100%.");
       return;
     }
+    if (groups && !groupId) {
+      toast.error("Pick the strategy this option belongs to.");
+      return;
+    }
 
     startSaving(async () => {
       try {
@@ -571,6 +567,7 @@ function ItemChargeDialogBody({
           chargeType,
           chargeValue: val,
           active,
+          ...(groups ? { tag: tag.trim() || null, groupId: groupId || null } : {}),
         });
         toast.success(`${title} saved successfully.`);
         onOpenChange(false);
@@ -617,6 +614,30 @@ function ItemChargeDialogBody({
             placeholder={namePlaceholder}
           />
         </div>
+
+        {groups && (
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="charge-item-group">Strategy</Label>
+              <Select value={groupId} onValueChange={setGroupId}>
+                <SelectTrigger id="charge-item-group" className="w-full">
+                  <SelectValue placeholder="Pick a strategy" />
+                </SelectTrigger>
+                <SelectContent>
+                  {groups.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="charge-item-tag">
+                Tag <span className="font-normal text-muted-foreground">(optional)</span>
+              </Label>
+              <Input id="charge-item-tag" value={tag} maxLength={24} onChange={(e) => setTag(e.target.value)} placeholder="e.g. Secure" />
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="charge-item-desc">
@@ -699,6 +720,238 @@ function ItemChargeDialogBody({
           />
         </div>
 
+      </div>
+    </ResponsiveDialog>
+  );
+}
+
+const EMPTY_OPTION = {
+  name: "",
+  description: null,
+  chargeType: "none" as DeliveryChargeType,
+  chargeValue: 0,
+  active: true,
+};
+
+function upsert<T extends { id: string }>(prev: T[], saved: T): T[] {
+  return prev.some((p) => p.id === saved.id) ? prev.map((p) => (p.id === saved.id ? saved : p)) : [...prev, saved];
+}
+
+function TagChip({ tag }: { tag: string | null | undefined }) {
+  if (!tag) return null;
+  return (
+    <Badge variant="secondary" className="rounded-full px-2 py-0 text-[11px] font-medium">
+      {tag}
+    </Badge>
+  );
+}
+
+function StatusBadge({ active }: { active: boolean }) {
+  return active ? (
+    <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30">
+      Active
+    </Badge>
+  ) : (
+    <Badge variant="outline" className="border-muted text-muted-foreground">
+      Inactive
+    </Badge>
+  );
+}
+
+/** One strategy and its options. No `group` = the options that have none yet. */
+function StrategyGroupBlock({
+  group,
+  options,
+  onEditGroup,
+  onDeleteGroup,
+  onAddOption,
+  onEditOption,
+  onDeleteOption,
+  formatCharge,
+}: {
+  group?: DeliveryStrategyGroupDto;
+  options: DeliveryStrategyDto[];
+  onEditGroup?: () => void;
+  onDeleteGroup?: () => void;
+  onAddOption?: () => void;
+  onEditOption: (o: DeliveryStrategyDto) => void;
+  onDeleteOption: (o: DeliveryStrategyDto) => void;
+  formatCharge: (type: DeliveryChargeType, value: number) => string;
+}) {
+  return (
+    <div className="rounded-lg border">
+      <div className="flex flex-wrap items-center gap-2 border-b bg-muted/30 px-4 py-3">
+        <TruckIcon className="size-4 text-muted-foreground" />
+        <span className="font-medium">{group?.name ?? "No strategy yet"}</span>
+        <TagChip tag={group?.tag} />
+        {group?.required ? <Badge variant="outline">Required</Badge> : null}
+        {group && !group.active ? <StatusBadge active={false} /> : null}
+        {!group ? (
+          <span className="text-xs text-muted-foreground">Edit each option to move it into a strategy.</span>
+        ) : null}
+        <div className="ml-auto flex items-center gap-1">
+          {onAddOption && (
+            <Button variant="outline" size="sm" onClick={onAddOption}>
+              <PlusIcon className="mr-1 size-3.5" />
+              Add option
+            </Button>
+          )}
+          {onEditGroup && (
+            <Button variant="ghost" size="icon" className="size-8" onClick={onEditGroup} title="Edit strategy">
+              <PencilIcon className="size-3.5" />
+              <span className="sr-only">Edit strategy</span>
+            </Button>
+          )}
+          {onDeleteGroup && (
+            <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={onDeleteGroup} title="Delete strategy">
+              <Trash2Icon className="size-3.5" />
+              <span className="sr-only">Delete strategy</span>
+            </Button>
+          )}
+        </div>
+      </div>
+      {group?.description ? <p className="px-4 pt-2 text-xs text-muted-foreground">{group.description}</p> : null}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[35%]">Option</TableHead>
+            <TableHead className="w-[30%]">Description</TableHead>
+            <TableHead className="w-[15%]">Charge</TableHead>
+            <TableHead className="w-[10%]">Status</TableHead>
+            <TableHead className="w-[80px] text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {options.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="h-16 text-center text-muted-foreground">
+                No options yet. Click &quot;Add option&quot;.
+              </TableCell>
+            </TableRow>
+          ) : (
+            options.map((o) => (
+              <TableRow key={o.id}>
+                <TableCell className="font-medium">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span>{o.name}</span>
+                    <TagChip tag={o.tag} />
+                  </div>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">{o.description || "—"}</TableCell>
+                <TableCell className="font-medium">{formatCharge(o.chargeType, o.chargeValue)}</TableCell>
+                <TableCell><StatusBadge active={o.active} /></TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="size-8" onClick={() => onEditOption(o)} title="Edit">
+                      <PencilIcon className="size-3.5" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={() => onDeleteOption(o)} title="Delete">
+                      <Trash2Icon className="size-3.5" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function StrategyGroupDialog({
+  group,
+  onClose,
+  onSave,
+}: {
+  group: DeliveryStrategyGroupDto | null;
+  onClose: () => void;
+  onSave: (values: DeliveryStrategyGroupInput) => Promise<void>;
+}) {
+  const [name, setName] = useState(group?.name ?? "");
+  const [description, setDescription] = useState(group?.description ?? "");
+  const [tag, setTag] = useState(group?.tag ?? "");
+  const [required, setRequired] = useState(group?.required ?? false);
+  const [active, setActive] = useState(group?.active ?? true);
+  const [saving, startSaving] = useTransition();
+
+  const handleSave = () => {
+    if (!name.trim()) {
+      toast.error("Please enter a name.");
+      return;
+    }
+    startSaving(async () => {
+      try {
+        await onSave({
+          id: group?.id,
+          name: name.trim(),
+          description: description.trim() || null,
+          tag: tag.trim() || null,
+          required,
+          active,
+          sortOrder: group?.sortOrder,
+        });
+        toast.success("Strategy saved.");
+        onClose();
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to save.");
+      }
+    });
+  };
+
+  return (
+    <ResponsiveDialog
+      open
+      onOpenChange={(open) => !open && onClose()}
+      title={group ? "Edit strategy" : "Add strategy"}
+      description="Customers see the name as a question and pick one of its options."
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={handleSave} disabled={saving}>
+            {saving && <Loader2Icon className="mr-1.5 size-4 animate-spin" />}
+            Save
+          </Button>
+        </>
+      }
+    >
+      <div className="grid gap-5">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="strategy-group-name">Name</Label>
+            <Input id="strategy-group-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Drop-off spot" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="strategy-group-tag">
+              Tag <span className="font-normal text-muted-foreground">(optional)</span>
+            </Label>
+            <Input id="strategy-group-tag" value={tag} maxLength={24} onChange={(e) => setTag(e.target.value)} placeholder="e.g. Contactless" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="strategy-group-desc">
+            Description <span className="font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <Input id="strategy-group-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Helpful note for customers" />
+        </div>
+        <div className="flex items-center justify-between gap-4 rounded-xl border bg-muted/30 px-4 py-3.5">
+          <div className="space-y-0.5">
+            <Label htmlFor="strategy-group-required" className="text-sm font-medium">Required</Label>
+            <p className="text-xs text-muted-foreground">Customers must pick an option; no &quot;No preference&quot;.</p>
+          </div>
+          <Switch id="strategy-group-required" checked={required} onCheckedChange={setRequired} />
+        </div>
+        <div className="flex items-center justify-between gap-4 rounded-xl border bg-muted/30 px-4 py-3.5">
+          <div className="space-y-0.5">
+            <Label htmlFor="strategy-group-active" className="text-sm font-medium">Active</Label>
+            <p className="text-xs text-muted-foreground">Inactive strategies are hidden from customers.</p>
+          </div>
+          <Switch id="strategy-group-active" checked={active} onCheckedChange={setActive} />
+        </div>
       </div>
     </ResponsiveDialog>
   );

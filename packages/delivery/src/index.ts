@@ -7,6 +7,8 @@ export type {
   DeliveryChargeRuleDto,
   DeliveryChargeRuleInput,
   DeliveryService,
+  DeliveryStrategyGroupDto,
+  DeliveryStrategyGroupInput,
   DeliveryTypeInput,
   ZoneInput,
 } from "./service";
