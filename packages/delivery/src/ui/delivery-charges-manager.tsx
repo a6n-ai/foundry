@@ -483,7 +483,7 @@ export function DeliveryChargesManager({
           <div className="space-y-2">
             <Label htmlFor="base-charge-val">Amount</Label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">$</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
               <Input
                 id="base-charge-val"
                 type="number"
@@ -797,7 +797,7 @@ function ItemChargeDialogBody({
             </Label>
             <div className="relative">
               {chargeType === "fixed" && (
-                <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">$</span>
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
               )}
               <Input
                 id="charge-item-val"
@@ -811,7 +811,7 @@ function ItemChargeDialogBody({
                 placeholder="0.00"
               />
               {chargeType === "percent" && (
-                <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
               )}
             </div>
             {chargeType === "percent" && (
