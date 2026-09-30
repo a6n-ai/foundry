@@ -253,7 +253,12 @@ export function useAddressFields({
         value: values.addressLine ?? "",
         onChange: (v) => onChange({ addressLine: v }),
         onResolve: ({ lat, lng, ...structured }) => {
-          onChange(structured);
+          // Geocoders often know only the area (FSA "M4N") or no postal code at all;
+          // that must not wipe out a full code or any field the customer already typed.
+          const patch = Object.fromEntries(Object.entries(structured).filter(([, v]) => v?.trim())) as Partial<AddressValues>;
+          const compact = (s?: string) => (s ?? "").replace(/\s+/g, "");
+          if (patch.postalCode && compact(patch.postalCode).length < compact(values.postalCode).length) delete patch.postalCode;
+          onChange(patch);
           onResolve?.({ lat, lng });
         },
       };

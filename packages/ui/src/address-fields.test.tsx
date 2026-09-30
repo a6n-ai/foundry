@@ -93,4 +93,15 @@ describe("AddressFields ui slots and hooks", () => {
     expect(onChange).toHaveBeenCalledWith({ city: "Toronto" });
     expect(onResolve).toHaveBeenCalledWith({ lat: 1, lng: 2 });
   });
+
+  it("a resolve never replaces a longer typed postal code or blanks a field", () => {
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useAddressFields({ values: { postalCode: "M4N 3M5", city: "Toronto" }, onChange, fields: ["addressLine"], resolveUrl: "/api/places/resolve" }),
+    );
+    const row = result.current.rows[0]!;
+    if (row.kind !== "line") throw new Error("expected line row");
+    row.onResolve({ lat: 1, lng: 2, addressLine: "1 Yonge St", postalCode: "M4N", city: undefined });
+    expect(onChange).toHaveBeenCalledWith({ addressLine: "1 Yonge St" });
+  });
 });
