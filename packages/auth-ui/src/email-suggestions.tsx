@@ -19,7 +19,7 @@ export function EmailSuggestions({ value, onPick }: { value: string; onPick: (em
           // Keep focus in the input so the keyboard stays up after a tap.
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => onPick(s)}
-          className="border-border bg-card hover:bg-accent min-h-9 shrink-0 rounded-full border px-3.5 text-[13px] font-semibold transition-transform duration-100 active:scale-[0.97]"
+          className="border-border bg-card hover:bg-accent min-h-11 shrink-0 rounded-full border px-4 text-[13px] font-semibold transition-transform duration-100 active:scale-[0.97]"
         >
           <span className="text-muted-foreground">@</span>
           {s.slice(s.indexOf("@") + 1)}
