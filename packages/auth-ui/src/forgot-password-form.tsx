@@ -10,6 +10,7 @@ import { Button } from "@foundry/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@foundry/ui/form";
 import { Input } from "@foundry/ui/input";
 import { CodeOtp } from "./code-otp";
+import { ResendCode } from "./resend-code";
 import { resolveUi, type AuthUi } from "./ui";
 
 type Result = { error?: unknown };
@@ -110,6 +111,7 @@ function DefaultForgotPasswordForm(props: ForgotPasswordFormProps) {
           <Button type="submit" className="w-full" disabled={verifyForm.formState.isSubmitting}>
             {verifyForm.formState.isSubmitting ? <Loader2 className="size-4 animate-spin" aria-hidden /> : "Reset password"}
           </Button>
+          <ResendCode onResend={() => props.onSendEmailOtp(identifier)} />
         </form>
       </Form>
     );
@@ -186,6 +188,7 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
         <Field label="New password" type="password" autoComplete="new-password" error={errors.newPassword?.message} {...verifyForm.register("newPassword")} />
         {error ? <Notice tone="error">{error}</Notice> : null}
         <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>Reset password</Button>
+        <ResendCode onResend={() => props.onSendEmailOtp(identifier)} />
       </form>
     );
   }

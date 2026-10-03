@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { passwordSchema } from "@foundry/commons";
+import { ResendCode } from "./resend-code";
 import { resolveUi, type AuthUi } from "./ui";
 
 type Result = { error?: unknown };
@@ -107,10 +108,8 @@ export function ForgotCurrentPassword(props: ForgotCurrentPasswordProps) {
         <Button type="submit" variant="primary" pending={isSubmitting} pendingLabel="Saving..." className="min-w-32">
           Set new password
         </Button>
-        <Button type="button" variant="quiet" onClick={send} disabled={sending}>
-          Resend code
-        </Button>
       </div>
+      <ResendCode onResend={() => props.onSendEmailOtp(props.email)} className="items-start" />
     </form>
   );
 }

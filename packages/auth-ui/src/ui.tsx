@@ -34,7 +34,9 @@ export interface AuthCodeProps {
   value: string;
   onChange: (value: string) => void;
   error?: string;
-  onComplete?: () => void;
+  /** Receives the full code: state set in the same tick as onChange is not readable yet. */
+  onComplete?: (value: string) => void;
+  autoFocus?: boolean;
 }
 
 export interface AuthNoticeProps {
@@ -104,11 +106,12 @@ function DefaultField({ label, error, trailing, id, ref, ...input }: AuthFieldPr
   );
 }
 
-function DefaultCode({ label, length, masked, value, onChange, onComplete, error }: AuthCodeProps) {
+function DefaultCode({ label, length, masked, value, onChange, onComplete, error, autoFocus }: AuthCodeProps) {
   const itemId = `${useId()}-form-item`;
   return (
     <div data-slot="form-item" className="grid gap-2">
-      <Label data-slot="form-label" data-error={!!error} className="data-[error=true]:text-destructive" htmlFor={itemId}>
+      {/* Centered over the centered code boxes; the row itself stays full width so the boxes can flex. */}
+      <Label data-slot="form-label" data-error={!!error} className="justify-self-center data-[error=true]:text-destructive" htmlFor={itemId}>
         {label}
       </Label>
       <CodeOtp
@@ -120,8 +123,9 @@ function DefaultCode({ label, length, masked, value, onChange, onComplete, error
         aria-invalid={!!error}
         length={length}
         masked={masked}
+        autoFocus={autoFocus}
       />
-      <FieldMessage id={`${itemId}-message`}>{error}</FieldMessage>
+      <div className="text-center"><FieldMessage id={`${itemId}-message`}>{error}</FieldMessage></div>
     </div>
   );
 }
