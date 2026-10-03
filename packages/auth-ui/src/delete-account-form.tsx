@@ -53,7 +53,7 @@ export function DeleteAccountForm({ onDelete, onSuccess, ui }: DeleteAccountForm
 
   const { errors, isSubmitting } = form.formState;
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="grid max-w-md gap-3">
+    <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="grid max-w-md gap-3">
       <Notice tone="muted">This permanently deletes your account and cannot be undone.</Notice>
       <Field label="Password" type="password" autoComplete="current-password" error={errors.password?.message} {...form.register("password")} />
       <Field label="Type DELETE to confirm" autoComplete="off" placeholder="DELETE" error={errors.confirm?.message} {...form.register("confirm")} />

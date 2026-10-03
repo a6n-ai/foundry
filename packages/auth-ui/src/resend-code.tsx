@@ -28,6 +28,7 @@ export function ResendCode({ onResend, cooldowns = DEFAULT_COOLDOWNS, className 
   const [until, setUntil] = useState(() => Date.now() + cooldowns[0]! * 1000);
   const [now, setNow] = useState(() => Date.now());
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
+  const [failure, setFailure] = useState("Couldn't send a code. Try again.");
   const left = Math.max(0, Math.ceil((until - now) / 1000));
 
   useEffect(() => {
@@ -40,7 +41,9 @@ export function ResendCode({ onResend, cooldowns = DEFAULT_COOLDOWNS, className 
     setStatus("sending");
     try {
       await onResend();
-    } catch {
+    } catch (e) {
+      // A thrown Error's message is the host's own wording (e.g. the rate-limit line).
+      setFailure(e instanceof Error && e.message ? e.message : "Couldn't send a code. Try again.");
       setStatus("failed");
       return;
     }
@@ -72,7 +75,7 @@ export function ResendCode({ onResend, cooldowns = DEFAULT_COOLDOWNS, className 
         </p>
       )}
       <p role="status" aria-live="polite" className="min-h-5">
-        {status === "sent" ? "New code sent. Use the newest email." : status === "failed" ? "Couldn't send a code. Try again." : ""}
+        {status === "sent" ? "New code sent. Use the newest email." : status === "failed" ? failure : ""}
       </p>
     </div>
   );

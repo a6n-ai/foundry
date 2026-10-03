@@ -95,7 +95,7 @@ export function ForgotCurrentPassword(props: ForgotCurrentPasswordProps) {
   return (
     // key forces a remount across the step swap — a reused input's native
     // value-tracker can desync from the segmented OTP field's controlled value.
-    <form key="verify" onSubmit={form.handleSubmit(onVerify)} className="grid max-w-md gap-3">
+    <form method="post" key="verify" onSubmit={form.handleSubmit(onVerify)} className="grid max-w-md gap-3">
       <p className="text-muted-foreground text-sm">
         We sent a 6-digit code to <span className="font-medium">{props.email}</span>.
       </p>

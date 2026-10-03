@@ -70,7 +70,7 @@ export function ChangeEmailForm(props: ChangeEmailFormProps) {
     sentTo: string;
     cta: string;
   }) => (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="grid max-w-md gap-3">
+    <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="grid max-w-md gap-3">
       <Notice tone="muted">We sent a 6-digit code to {sentTo}.</Notice>
       <Controller control={form.control} name="code" render={({ field, fieldState }) => (
         <Code label="Verification code" length={6} value={field.value} onChange={field.onChange} error={fieldState.error?.message} />
@@ -84,7 +84,7 @@ export function ChangeEmailForm(props: ChangeEmailFormProps) {
   if (step === "new") return <OtpStep form={newForm} onSubmit={confirmNew} sentTo={newEmail} cta="Change email" />;
 
   return (
-    <form onSubmit={emailForm.handleSubmit(startChange)} className="grid max-w-md gap-3">
+    <form method="post" onSubmit={emailForm.handleSubmit(startChange)} className="grid max-w-md gap-3">
       <Field label="New email address" type="email" autoComplete="email" placeholder="you@example.com" error={emailForm.formState.errors.newEmail?.message} {...emailForm.register("newEmail")} />
       {error ? <Notice tone="error">{error}</Notice> : null}
       <Button type="submit" variant="primary" pending={emailForm.formState.isSubmitting} className="w-full min-w-32 sm:w-auto">Change email</Button>

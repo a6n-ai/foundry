@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@foundry/ui/input";
 import { CodeOtp } from "./code-otp";
 import { ResendCode } from "./resend-code";
+import { authErrorMessage, errorOf } from "./errors";
 import { resolveUi, type AuthUi } from "./ui";
 
 type Result = { error?: unknown };
@@ -25,9 +26,13 @@ export interface ForgotPasswordFormProps {
   onSuccess?: () => void;
   /** Restyle with the app's own primitives. Omit for the default shadcn form. */
   ui?: Partial<AuthUi>;
+  /** Body-only, for use under AuthPanel (needs `ui`): no headings, CTA pinned low on phones. */
+  compact?: boolean;
+  /** Lets a compact host retitle its header per step. */
+  onStepChange?: (step: "request" | "verify") => void;
 }
 
-const requestSchema = z.object({ identifier: z.email("Enter a valid email") });
+const requestSchema = z.object({ identifier: z.email("Enter an email address like name@example.com.") });
 const verifySchema = z.object({
   code: z.string().regex(/^\d{6}$/, "Enter the 6-digit code"),
   newPassword: passwordSchema,
@@ -77,7 +82,7 @@ function DefaultForgotPasswordForm(props: ForgotPasswordFormProps) {
         {/* key forces a remount across the step swap — otherwise React reuses the
             prior step's <form>/<input> DOM nodes, and the reused input's native
             value-tracker can desync from the segmented OTP field's controlled value. */}
-        <form key="verify" onSubmit={verifyForm.handleSubmit(onVerify)} className="grid gap-4">
+        <form method="post" key="verify" onSubmit={verifyForm.handleSubmit(onVerify)} className="grid gap-4">
           <div className="text-center">
             <h1 className="text-2xl font-bold">Enter your code</h1>
             <p className="text-muted-foreground text-sm">We sent a 6-digit code to {identifier}.</p>
@@ -119,7 +124,7 @@ function DefaultForgotPasswordForm(props: ForgotPasswordFormProps) {
 
   return (
     <Form {...requestForm}>
-      <form key="request" onSubmit={requestForm.handleSubmit(onRequest)} className="grid gap-4">
+      <form method="post" key="request" onSubmit={requestForm.handleSubmit(onRequest)} className="grid gap-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Reset your password</h1>
           <p className="text-muted-foreground text-sm">Enter your email — we'll send a code.</p>
@@ -151,26 +156,36 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
   async function onRequest(values: z.infer<typeof requestSchema>) {
     setError(null);
     const email = values.identifier.trim();
-    await props.onSendEmailOtp(email);
+    // Only a rate limit holds the user here; anything else advances, so the
+    // screen never reveals whether an account exists.
+    const err = errorOf(await props.onSendEmailOtp(email).catch(() => null));
+    if (err?.status === 429) return setError(authErrorMessage(err, "send"));
     setIdentifier(email);
     setStep("verify");
+    props.onStepChange?.("verify");
   }
 
   async function onVerify(values: z.infer<typeof verifySchema>) {
     setError(null);
     const res = await props.onResetWithEmailOtp({ email: identifier, otp: values.code, password: values.newPassword });
-    if (res.error) return setError("Invalid or expired code.");
+    if (res.error) return setError(authErrorMessage(res.error, "verify"));
     props.onSuccess?.();
   }
 
   if (step === "verify") {
     const { errors, isSubmitting } = verifyForm.formState;
     return (
-      <form key="verify" onSubmit={verifyForm.handleSubmit(onVerify)} className="grid gap-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Enter your code</h1>
-          <p className="text-muted-foreground text-sm">We sent a 6-digit code to {identifier}.</p>
-        </div>
+      <form method="post" key="verify" onSubmit={verifyForm.handleSubmit(onVerify)} className={props.compact ? "flex flex-1 flex-col gap-5" : "grid gap-4"}>
+        {props.compact ? (
+          <p className="text-[15px]">
+            If there&apos;s an account for <span className="font-medium [overflow-wrap:anywhere]">{identifier}</span>, we&apos;ve sent it a 6-digit code.
+          </p>
+        ) : (
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Enter your code</h1>
+            <p className="text-muted-foreground text-sm">If there&apos;s an account for {identifier}, we&apos;ve sent it a 6-digit code.</p>
+          </div>
+        )}
         <Controller
           control={verifyForm.control}
           name="code"
@@ -187,21 +202,28 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
         />
         <Field label="New password" type="password" autoComplete="new-password" error={errors.newPassword?.message} {...verifyForm.register("newPassword")} />
         {error ? <Notice tone="error">{error}</Notice> : null}
-        <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>Reset password</Button>
-        <ResendCode onResend={() => props.onSendEmailOtp(identifier)} />
+        <div className={props.compact ? "mt-auto flex flex-col gap-3 pt-4 sm:mt-2" : "contents"}>
+          <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>Reset password</Button>
+          <ResendCode onResend={() => props.onSendEmailOtp(identifier)} />
+        </div>
       </form>
     );
   }
 
   const { errors, isSubmitting } = requestForm.formState;
   return (
-    <form key="request" onSubmit={requestForm.handleSubmit(onRequest)} className="grid gap-4">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Reset your password</h1>
-        <p className="text-muted-foreground text-sm">Enter your email — we&apos;ll send a code.</p>
-      </div>
+    <form method="post" key="request" onSubmit={requestForm.handleSubmit(onRequest)} className={props.compact ? "flex flex-1 flex-col gap-5" : "grid gap-4"}>
+      {props.compact ? null : (
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Reset your password</h1>
+          <p className="text-muted-foreground text-sm">Enter your email — we&apos;ll send a code.</p>
+        </div>
+      )}
       <Field label="Email" type="email" autoComplete="username" placeholder="you@example.com" error={errors.identifier?.message} {...requestForm.register("identifier")} />
-      <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>Send code</Button>
+      {error ? <Notice tone="error">{error}</Notice> : null}
+      <div className={props.compact ? "mt-auto pt-4 sm:mt-2" : "contents"}>
+        <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>Send code</Button>
+      </div>
     </form>
   );
 }

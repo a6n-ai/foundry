@@ -71,7 +71,7 @@ export function ChangePasswordForm({ onChangePassword, forgotCurrent, ui }: Chan
   );
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="grid max-w-md gap-3">
+    <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="grid max-w-md gap-3">
       {field("currentPassword", "current", "Current password", "current-password")}
       {field("newPassword", "next", "New password", "new-password")}
       {field("confirm", "confirm", "Confirm new password", "new-password")}

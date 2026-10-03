@@ -61,7 +61,7 @@ export function PinForm({ hasPin, onSetPin, onRemovePin, ui }: PinFormProps) {
         <h3 className="text-sm font-medium">{hasPin ? "Update PIN" : "Set a PIN"}</h3>
         <Notice tone="muted">A 4-digit PIN re-unlocks your session without a full sign-in.</Notice>
       </div>
-      <form onSubmit={setForm.handleSubmit(onSet)} className="grid max-w-md gap-3">
+      <form method="post" onSubmit={setForm.handleSubmit(onSet)} className="grid max-w-md gap-3">
         <Field label="Current password" type={show ? "text" : "password"} trailing={reveal} error={se.errors.currentPassword?.message} {...setForm.register("currentPassword")} />
         <Controller control={setForm.control} name="newPin" render={({ field }) => (
           <Code label="New PIN" length={4} masked value={field.value} onChange={field.onChange} error={se.errors.newPin?.message} />
@@ -75,7 +75,7 @@ export function PinForm({ hasPin, onSetPin, onRemovePin, ui }: PinFormProps) {
         </Button>
       </form>
       {hasPin && (
-        <form onSubmit={removeForm.handleSubmit(onRemove)} className="grid max-w-md gap-3">
+        <form method="post" onSubmit={removeForm.handleSubmit(onRemove)} className="grid max-w-md gap-3">
           <Field label="Current password" type={show ? "text" : "password"} trailing={reveal} error={re.errors.currentPassword?.message} {...removeForm.register("currentPassword")} />
           {re.errors.root && <Notice tone="error">{re.errors.root.message}</Notice>}
           <Button type="submit" variant="danger" disabled={!re.isDirty} pending={re.isSubmitting} className="w-full min-w-32 sm:w-auto">

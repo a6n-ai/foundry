@@ -110,8 +110,7 @@ function DefaultCode({ label, length, masked, value, onChange, onComplete, error
   const itemId = `${useId()}-form-item`;
   return (
     <div data-slot="form-item" className="grid gap-2">
-      {/* Centered over the centered code boxes; the row itself stays full width so the boxes can flex. */}
-      <Label data-slot="form-label" data-error={!!error} className="justify-self-center data-[error=true]:text-destructive" htmlFor={itemId}>
+      <Label data-slot="form-label" data-error={!!error} className="data-[error=true]:text-destructive" htmlFor={itemId}>
         {label}
       </Label>
       <CodeOtp
@@ -125,7 +124,7 @@ function DefaultCode({ label, length, masked, value, onChange, onComplete, error
         masked={masked}
         autoFocus={autoFocus}
       />
-      <div className="text-center"><FieldMessage id={`${itemId}-message`}>{error}</FieldMessage></div>
+      <FieldMessage id={`${itemId}-message`}>{error}</FieldMessage>
     </div>
   );
 }

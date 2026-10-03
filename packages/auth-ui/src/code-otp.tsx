@@ -32,18 +32,19 @@ export function CodeOtp({ value, onChange, onComplete, autoFocus, disabled, leng
       onComplete={onComplete}
       autoFocus={autoFocus}
       disabled={disabled}
-      containerClassName="justify-center"
+      containerClassName="w-full"
       {...rest}
     >
-      {/* Fluid, separate boxes: centered in whatever column hosts it, and six of
-          them still fit a 320px phone instead of overflowing to one side. */}
-      <InputOTPGroup className="w-full justify-center gap-2">
+      {/* Fluid, separate boxes spanning the column: six of them still fit a
+          320px phone, and on wider columns they grow to fill it instead of
+          huddling to one side. */}
+      <InputOTPGroup className="w-full gap-2">
         {Array.from({ length }, (_, i) => (
           <InputOTPSlot
             key={i}
             index={i}
             masked={masked}
-            className={`h-12 min-w-0 max-w-12 flex-1 rounded-xl border text-xl font-medium tabular-nums first:rounded-xl last:rounded-xl ${masked ? "" : "sm:h-13 sm:max-w-13"}`}
+            className={`h-12 min-w-0 max-w-16 flex-1 rounded-xl border text-xl font-medium tabular-nums first:rounded-xl last:rounded-xl`}
           />
         ))}
       </InputOTPGroup>
