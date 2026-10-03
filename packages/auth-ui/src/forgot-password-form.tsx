@@ -202,7 +202,7 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
         />
         <Field label="New password" type="password" autoComplete="new-password" error={errors.newPassword?.message} {...verifyForm.register("newPassword")} />
         {error ? <Notice tone="error">{error}</Notice> : null}
-        <div className={props.compact ? "mt-auto flex flex-col gap-3 pt-4 sm:mt-2" : "contents"}>
+        <div className={props.compact ? "flex flex-col gap-3 pt-1" : "contents"}>
           <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>Reset password</Button>
           <ResendCode onResend={() => props.onSendEmailOtp(identifier)} />
         </div>
@@ -221,7 +221,7 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
       )}
       <Field label="Email" type="email" autoComplete="username" placeholder="you@example.com" error={errors.identifier?.message} {...requestForm.register("identifier")} />
       {error ? <Notice tone="error">{error}</Notice> : null}
-      <div className={props.compact ? "mt-auto pt-4 sm:mt-2" : "contents"}>
+      <div className={props.compact ? "pt-1" : "contents"}>
         <Button type="submit" variant="primary" className="w-full" pending={isSubmitting}>Send code</Button>
       </div>
     </form>

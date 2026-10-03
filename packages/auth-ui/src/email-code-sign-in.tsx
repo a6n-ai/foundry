@@ -171,7 +171,8 @@ export function EmailCodeSignIn({
           className={`grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${codeStep ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
           aria-hidden={!codeStep}
         >
-          <div className="flex min-h-0 flex-col gap-4 overflow-hidden">
+          {/* -m-1 p-1: room for the focused box's ring, which overflow-hidden would slice. */}
+          <div className="-m-1 flex min-h-0 flex-col gap-4 overflow-hidden p-1">
             {codeStep ? (
               <>
                 <p className="text-muted-foreground pt-1 text-sm">
@@ -192,7 +193,7 @@ export function EmailCodeSignIn({
           </div>
         </div>
         {error ? <Notice tone="error">{error}</Notice> : null}
-        <div className="mt-auto flex flex-col gap-3 pt-4 sm:mt-2">
+        <div className="flex flex-col gap-3 pt-1">
           <Button type="submit" variant="primary" className="w-full" pending={pending} pendingLabel={codeStep ? "Signing in…" : "Sending code…"}>
             {codeStep ? "Continue" : "Email me a code"}
           </Button>
@@ -258,7 +259,7 @@ export function EmailCodeSignIn({
         {compact ? resend : null}
         {/* Compact on phones: the button rides the bottom edge (thumb reach,
             just above the keyboard), Revolut-style. */}
-        <div className={compact ? "mt-auto flex flex-col gap-3 pt-4 sm:mt-2" : "contents"}>
+        <div className={compact ? "flex flex-col gap-3 pt-1" : "contents"}>
           <Button type="submit" variant="primary" className="w-full" pending={pending} pendingLabel="Signing in…">
             Continue
           </Button>
@@ -302,7 +303,7 @@ export function EmailCodeSignIn({
         error={fieldError}
       />
       {error ? <Notice tone="error">{error}</Notice> : null}
-      <div className={compact ? "mt-auto flex flex-col gap-3 pt-4 sm:mt-2" : "contents"}>
+      <div className={compact ? "flex flex-col gap-3 pt-1" : "contents"}>
         <Button type="submit" variant="primary" className="w-full" pending={pending} pendingLabel="Sending code…">
           Email me a code
         </Button>

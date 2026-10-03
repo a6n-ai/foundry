@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { resolveUi, type AuthUi } from "./ui";
 
 export interface AuthScreenProps {
@@ -46,13 +46,18 @@ export interface AuthPanelProps {
  * in place while the logo above stays put.
  */
 export function AuthPanel({ art, title, tagline, children }: AuthPanelProps) {
+  // Nothing animates on the first paint: a page that fades and slides itself
+  // in reads as loading twice. Only a later title change (a new step) animates,
+  // and only the freshly keyed title block, never the one already on screen.
+  const first = useRef(title);
+  const stepped = title !== first.current;
   return (
     <div className="flex flex-1 flex-col gap-8">
       <header className="flex flex-col items-start gap-5 pt-2 text-left">
-        <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 origin-left duration-700 ease-out">{art}</div>
+        {art}
         <div
           key={typeof title === "string" ? title : undefined}
-          className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 fill-mode-both flex flex-col gap-2 duration-500 ease-out"
+          className={`flex flex-col gap-2 ${stepped ? "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 duration-300 ease-out" : ""}`}
         >
           <h1 className="text-balance text-[30px] font-semibold leading-[1.1] tracking-[-0.025em]">{title}</h1>
           {tagline ? <p className="text-muted-foreground max-w-[34ch] text-pretty text-[17px] leading-snug">{tagline}</p> : null}
@@ -84,7 +89,7 @@ export function AuthWelcome({ primary, secondary, children, ui, ...head }: AuthW
   return (
     <AuthPanel {...head}>
       {children ?? (
-        <div className="motion-safe:animate-in motion-safe:fade-in fill-mode-both mt-auto flex flex-col gap-3 delay-200 duration-500 ease-out">
+        <div className="mt-auto flex flex-col gap-3">
           <Button variant="primary" className="w-full" onClick={primary.onClick}>
             {primary.label}
           </Button>
