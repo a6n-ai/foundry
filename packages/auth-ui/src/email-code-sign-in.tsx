@@ -7,10 +7,15 @@ import { ResendCode } from "./resend-code";
 import { resolveUi, type AuthUi } from "./ui";
 
 type Result = { error?: unknown } | null | undefined;
+type SendResult = { error?: { status?: number } | null } | null | undefined | unknown;
 
 export interface EmailCodeSignInProps {
-  /** Sends the 6-digit code. The flow advances whatever it returns, so it never reveals whether an account exists. */
-  onSendCode: (email: string) => Promise<unknown>;
+  /**
+   * Sends the 6-digit code. Only a transport failure (`{ error }`, e.g. a 429)
+   * stops the flow; an unknown address must look like success, so whether an
+   * account exists is never revealed.
+   */
+  onSendCode: (email: string) => Promise<SendResult>;
   onVerify: (email: string, code: string) => Promise<Result>;
   /** Runs after a successful verify. Navigation belongs to the app. */
   onSuccess: () => void | Promise<void>;
@@ -20,6 +25,8 @@ export interface EmailCodeSignInProps {
   subtitle?: ReactNode;
   /** Rendered under the form on both steps: "use a password instead", sign-up links, etc. */
   extra?: ReactNode;
+  /** Small print under the code-step heading, e.g. "codes only go to existing accounts". */
+  codeHint?: ReactNode;
   ui?: Partial<AuthUi>;
 }
 
@@ -34,6 +41,7 @@ export function EmailCodeSignIn({
   title = "Sign in",
   subtitle = "We'll email you a 6-digit code.",
   extra,
+  codeHint,
   ui,
 }: EmailCodeSignInProps) {
   const { Button, Field, Code, Notice } = resolveUi(ui);
@@ -51,15 +59,27 @@ export function EmailCodeSignIn({
     setFieldError(undefined);
     setError(null);
     setPending(true);
-    try {
-      await onSendCode(parsed.data);
-    } catch {
-      // Swallowed on purpose: the code step looks the same either way, and its
-      // resend link is the recovery if the send really failed.
+    const failure = await send(parsed.data);
+    if (failure) {
+      setPending(false);
+      return setError(failure);
     }
     setEmail(parsed.data);
     setPending(false);
     setStep("code");
+  }
+
+  /** null on success, else the message to show. */
+  async function send(to: string): Promise<string | null> {
+    let res: SendResult;
+    try {
+      res = await onSendCode(to);
+    } catch {
+      return "Couldn't send the code. Try again.";
+    }
+    const err = (res as { error?: { status?: number } | null } | null | undefined)?.error;
+    if (!err) return null;
+    return err.status === 429 ? "Too many codes requested. Wait a minute, then try again." : "Couldn't send the code. Try again.";
   }
 
   async function verify(value: string = code) {
@@ -100,6 +120,7 @@ export function EmailCodeSignIn({
           <p className="text-muted-foreground text-balance text-[15px]">
             Enter the 6-digit code we sent to <span className="text-foreground font-medium [overflow-wrap:anywhere]">{email}</span>
           </p>
+          {codeHint ? <p className="text-muted-foreground text-balance text-xs">{codeHint}</p> : null}
         </header>
         <Code
           label="Verification code"
@@ -114,7 +135,12 @@ export function EmailCodeSignIn({
         <Button type="submit" variant="primary" className="w-full" pending={pending} pendingLabel="Signing in…">
           Continue
         </Button>
-        <ResendCode onResend={() => onSendCode(email)} />
+        <ResendCode
+          onResend={async () => {
+            const failure = await send(email);
+            if (failure) throw new Error(failure);
+          }}
+        />
         {extra}
       </form>
     );
