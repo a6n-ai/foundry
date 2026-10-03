@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AuthWelcome, EmailCodeSignIn, ResendCode, type AuthUi } from "../index";
+import { AuthWelcome, EmailCodeSignIn, EmailSuggestions, ResendCode, type AuthUi } from "../index";
 
 const kit: Partial<AuthUi> = {
   Button: ({ children }) => <button data-kit="btn">{children}</button>,
@@ -25,5 +25,11 @@ describe("sign-in flow", () => {
       <AuthWelcome art={<i />} title="Hi" primary={{ label: "Sign in", onClick: vi.fn() }} secondary={{ label: "Get started", onClick: vi.fn() }} ui={kit} />,
     );
     expect(html.match(/data-kit="btn"/g)).toHaveLength(2);
+  });
+  it("EmailSuggestions offers providers after @ and nothing before", () => {
+    expect(renderToStaticMarkup(<EmailSuggestions value="priya" onPick={vi.fn()} />)).toBe("");
+    const html = renderToStaticMarkup(<EmailSuggestions value="priya@g" onPick={vi.fn()} />);
+    expect(html).toContain("gmail.com");
+    expect(html).not.toContain("outlook.com");
   });
 });

@@ -1,5 +1,6 @@
 export { ChangePasswordForm, type ChangePasswordFormProps } from "./change-password-form";
 export { CodeOtp } from "./code-otp";
+export { EmailSuggestions } from "./email-suggestions";
 export { ResendCode, type ResendCodeProps } from "./resend-code";
 export { AuthPanel, AuthScreen, AuthWelcome, type AuthPanelProps, type AuthScreenProps, type AuthWelcomeProps } from "./auth-screen";
 export { authErrorMessage, errorOf, type AuthClientError } from "./errors";

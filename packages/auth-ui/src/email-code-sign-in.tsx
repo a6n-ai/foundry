@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { emailSchema } from "@foundry/commons";
 import { authErrorMessage, errorOf } from "./errors";
 import { ResendCode } from "./resend-code";
+import { EmailSuggestions } from "./email-suggestions";
 import { resolveUi, type AuthUi } from "./ui";
 
 type Result = { error?: unknown } | null | undefined;
@@ -165,6 +166,7 @@ export function EmailCodeSignIn({
             className={codeStep ? "opacity-70" : undefined}
             error={codeStep ? undefined : fieldError}
           />
+          {codeStep ? null : <EmailSuggestions value={email} onPick={setEmail} />}
         </div>
         {/* grid-rows 0fr -> 1fr animates to the content's real height. */}
         <div
@@ -302,6 +304,7 @@ export function EmailCodeSignIn({
         onChange={(e) => setEmail(e.target.value)}
         error={fieldError}
       />
+      <EmailSuggestions value={email} onPick={setEmail} />
       {error ? <Notice tone="error">{error}</Notice> : null}
       <div className={compact ? "flex flex-col gap-3 pt-1" : "contents"}>
         <Button type="submit" variant="primary" className="w-full" pending={pending} pendingLabel="Sending code…">
