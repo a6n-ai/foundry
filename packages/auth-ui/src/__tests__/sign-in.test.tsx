@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AuthWelcome, EmailCodeSignIn, EmailSuggestions, ResendCode, type AuthUi } from "../index";
+import { AuthWelcome, EmailCodeSignIn, EmailSuggestions, ResendCode, emailDomainSuggestions, type AuthUi } from "../index";
 
 const kit: Partial<AuthUi> = {
   Button: ({ children }) => <button data-kit="btn">{children}</button>,
@@ -31,5 +31,13 @@ describe("sign-in flow", () => {
     const html = renderToStaticMarkup(<EmailSuggestions value="priya@g" onPick={vi.fn()} />);
     expect(html).toContain("gmail.com");
     expect(html).not.toContain("outlook.com");
+  });
+  it("emailDomainSuggestions waits for @, narrows, and stops once complete", () => {
+    expect(emailDomainSuggestions("priya")).toEqual([]);
+    expect(emailDomainSuggestions("@gm")).toEqual([]);
+    expect(emailDomainSuggestions("priya@")).toHaveLength(5);
+    expect(emailDomainSuggestions("priya@Ho")).toEqual(["priya@hotmail.com"]);
+    expect(emailDomainSuggestions("priya@gmail.com")).toEqual([]);
+    expect(emailDomainSuggestions("priya@work.ca")).toEqual([]);
   });
 });

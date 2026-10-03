@@ -1,6 +1,21 @@
 "use client";
 
-import { emailDomainSuggestions } from "@foundry/commons";
+/** The providers most customers use; shown as one-tap completions after "@". */
+export const COMMON_EMAIL_DOMAINS = ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com", "icloud.com"] as const;
+
+/**
+ * Completions for what is typed after "@": nothing before the "@" is typed, or
+ * once the domain already matches one exactly. Lives here, not in commons:
+ * apps pin commons separately, and a new commons export would not be visible
+ * to auth-ui through an app's older copy.
+ */
+export function emailDomainSuggestions(value: string): string[] {
+  const at = value.indexOf("@");
+  if (at < 1 || value.indexOf("@", at + 1) !== -1) return [];
+  const local = value.slice(0, at);
+  const partial = value.slice(at + 1).toLowerCase();
+  return COMMON_EMAIL_DOMAINS.filter((d) => d.startsWith(partial) && d !== partial).map((d) => `${local}@${d}`);
+}
 
 /**
  * One-tap completions for common providers once "@" is typed ("priya@" →
