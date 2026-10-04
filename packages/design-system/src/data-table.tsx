@@ -116,11 +116,12 @@ const HEAD_STICKY = "sticky top-0 z-10 bg-muted/40";
 const KIND_WIDTH: Record<string, string> = {};
 const kinds: [string, string[]][] = [
   // dates / times ("Oct 3, 2026, 11:45 PM" fits)
-  ["w-36", ["time", "createdAt", "created", "updatedAt", "lastTouch", "lastMessage", "lastOrder", "lastSynced", "synced", "joined", "expiresAt", "startsAt", "submitted", "eventDate"]],
+  ["w-44", ["time", "createdAt", "created", "updatedAt", "lastTouch", "lastMessage", "lastOrder", "lastSynced", "synced", "joined", "expiresAt", "startsAt", "submitted", "eventDate"]],
   // date only
   ["w-32", ["start", "occursOn", "customerSince", "planCompletion"]],
   // short states
-  ["w-28", ["status", "stage", "published", "priority", "latestStatus", "role", "type", "kind", "method", "source", "scope", "category", "stackable", "autoApply", "deployment"]],
+  ["w-28", ["status", "stage", "published", "priority", "latestStatus", "role", "type", "method", "source", "scope", "category", "stackable", "autoApply", "deployment"]],
+  ["w-36", ["kind"]],
   // money
   ["w-24", ["amount", "total", "price", "spent", "value", "coins", "basePrice", "markup", "rate", "minSpend", "channel", "channels"]],
   // counts
@@ -141,8 +142,12 @@ function showClippedText(e: React.MouseEvent) {
   if (td && !td.title && td.scrollWidth > td.clientWidth) td.title = td.textContent?.trim() ?? "";
 }
 
+// Shrink-to-content intents (w-px, w-fit…) mean nothing in a fixed layout — a
+// "w-px" column would render 1px wide — so they fall back to the kind width.
+const INTRINSIC = new Set(["w-px", "w-0", "w-auto", "w-fit", "w-min", "w-max"]);
+
 function colWidth(c: { key: string; width?: string }): string | undefined {
-  return c.width ?? KIND_WIDTH[c.key];
+  return (c.width && !INTRINSIC.has(c.width) ? c.width : undefined) ?? KIND_WIDTH[c.key];
 }
 
 const TABLE_FIXED =
