@@ -19,6 +19,7 @@ import { cn } from "@foundry/ui/cn";
 import { FilterBar } from "./filter-bar";
 import { SearchInput } from "./search-input";
 import { SortableHeader } from "./sortable-header";
+import { useListNav, useListNavPending } from "./use-list-nav";
 import { useSortNav } from "./use-sort-nav";
 import { ListPagination } from "./list-pagination";
 
@@ -73,6 +74,8 @@ export type DataTableProps<Row, K extends string> = {
   emptyAction?: ReactNode;
   /** Client-side pagination over filtered rows; page/size sync via URL (see ListPagination). */
   pagination?: { page: number; size: number };
+  /** Server-paged lists: rows skipped before this page (page * size), so "#" keeps counting. */
+  serialOffset?: number;
 };
 
 const alignClass = (align?: "right" | "center") =>
@@ -81,7 +84,7 @@ const alignClass = (align?: "right" | "center") =>
 // Inlined "q" URL state — mirrors apps/tiffin-grab/lib/list/use-url-state.ts so
 // DataTable stays inside the package (the app hook can't be imported upward).
 function useSearchQuery(): [string, (v: string) => void] {
-  const router = useRouter();
+  const nav = useListNav();
   const pathname = usePathname();
   const params = useSearchParams();
   const value = params.get("q") ?? "";
@@ -92,9 +95,9 @@ function useSearchQuery(): [string, (v: string) => void] {
       else sp.set("q", v);
       sp.delete("page"); // search change resets pagination
       const qs = sp.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      nav(qs ? `${pathname}?${qs}` : pathname);
     },
-    [params, pathname, router],
+    [params, pathname, nav],
   );
   return [value, set];
 }
@@ -116,17 +119,20 @@ const HEAD_STICKY = "sticky top-0 z-10 bg-muted/40";
 const KIND_WIDTH: Record<string, string> = {};
 const kinds: [string, string[]][] = [
   // dates / times ("Oct 3, 2026, 11:45 PM" fits)
-  ["w-44", ["time", "createdAt", "created", "updatedAt", "lastTouch", "lastMessage", "lastOrder", "lastSynced", "synced", "joined", "expiresAt", "startsAt", "submitted", "eventDate"]],
+  ["w-44", ["time", "createdAt", "created", "updatedAt", "lastTouch", "lastMessage", "lastOrder", "lastSynced", "synced", "joined", "expiresAt", "startsAt", "submitted", "eventDate", "capturedAt", "paidAt", "when"]],
   // date only
-  ["w-32", ["start", "occursOn", "customerSince", "planCompletion"]],
+  ["w-32", ["start", "occursOn", "customerSince", "planCompletion", "deliveryDate"]],
   // short states
-  ["w-28", ["status", "stage", "published", "priority", "latestStatus", "role", "type", "method", "source", "scope", "category", "stackable", "autoApply", "deployment"]],
+  ["w-28", ["status", "stage", "published", "priority", "latestStatus", "role", "type", "method", "source", "scope", "category", "stackable", "autoApply", "deployment", "direction", "fulfillment", "payment", "consent", "operation", "entity", "proof", "reporting", "color"]],
   ["w-36", ["kind"]],
   // money
   ["w-24", ["amount", "total", "price", "spent", "value", "coins", "basePrice", "markup", "rate", "minSpend", "channel", "channels"]],
   // counts
-  ["w-20", ["orders", "count", "memberCount", "members", "tiffins", "guests", "capacity", "remaining", "items", "modifiers"]],
+  ["w-20", ["orders", "count", "memberCount", "members", "tiffins", "guests", "capacity", "remaining", "items", "modifiers", "stops", "serial", "duration", "maximum"]],
   ["w-32", ["phone"]],
+  // short codes / external ids
+  ["w-36", ["code", "coupon", "clientCode", "clover", "cloverId", "orderId", "reference"]],
+  ["w-10", ["select"]],
   // row actions (three icon buttons)
   ["w-32", ["actions", "invite", "edit", "action"]],
 ];
@@ -338,10 +344,11 @@ export function DataTable<Row, K extends string>({
   sort, serial = true, idAccessor, idHref, onRowClick, idLabel = "ID",
   search, filters, actions,
   emptyIcon: EmptyIcon, emptyMessage, emptySearchMessage, emptyAction,
-  pagination,
+  pagination, serialOffset: serverOffset = 0,
 }: DataTableProps<Row, K>) {
   const [searchValue, setSearchValue] = useSearchQuery();
   const router = useRouter();
+  const loading = useListNavPending();
   const hasId = !!idAccessor;
   const leadCount = (serial ? 1 : 0) + (hasId ? 1 : 0);
 
@@ -362,7 +369,7 @@ export function DataTable<Row, K extends string>({
   const displayRows = pagination
     ? filtered.slice(safePage * pagination.size, (safePage + 1) * pagination.size)
     : filtered;
-  const serialOffset = pagination ? safePage * pagination.size : 0;
+  const serialOffset = pagination ? safePage * pagination.size : serverOffset;
 
   return (
     <div className="space-y-4">
@@ -382,7 +389,10 @@ export function DataTable<Row, K extends string>({
         sort={sort ? <MobileSort columns={columns} sort={sort} /> : undefined}
         actions={actions}
       />
-      <div className="hidden overflow-hidden rounded-lg border md:block">
+      <div
+        aria-busy={loading}
+        className={cn("hidden overflow-hidden rounded-lg border transition-opacity md:block", loading && "opacity-60")}
+      >
         <Table className={TABLE_FIXED}>
           <TableHeader className={HEAD_STICKY}>
             <HeaderRow columns={columns} sort={sort} serial={serial} hasId={hasId} idLabel={idLabel} />
@@ -452,7 +462,7 @@ export function DataTable<Row, K extends string>({
           </TableBody>
         </Table>
       </div>
-      <div className="space-y-3 md:hidden">
+      <div aria-busy={loading} className={cn("space-y-3 transition-opacity md:hidden", loading && "opacity-60")}>
         {displayRows.length ? (
           displayRows.map((r) => (
             <MobileCard

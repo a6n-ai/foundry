@@ -1,9 +1,10 @@
 import type { Condition, Page, PageRequest } from "@foundry/commons";
 import { DEFAULT_PAGE } from "@foundry/commons";
-import { asc, desc, eq, getTableName, sql } from "drizzle-orm";
+import { eq, getTableName, sql } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import { resolveColumn, toDrizzleWhere } from "./condition";
 import { stripCreateOnly } from "./managed-fields";
+import { pageOrder } from "./order";
 import type { Database } from "./types";
 
 export class BaseRepository<TTable extends PgTable> {
@@ -38,20 +39,20 @@ export class BaseRepository<TTable extends PgTable> {
   async findMany(condition?: Condition, page: PageRequest = DEFAULT_PAGE): Promise<Page<TTable["$inferSelect"]>> {
     const where = toDrizzleWhere(this.table, condition);
     const orderColumn = page.sort ? resolveColumn(this.table, page.sort.field) : this.internalIdColumn;
-    const orderBy = page.sort?.dir === "desc" ? desc(orderColumn) : asc(orderColumn);
 
-    const rows = await this.db
-      .select()
-      .from(this.table as PgTable)
-      .where(where)
-      .orderBy(orderBy)
-      .limit(page.size)
-      .offset(page.page * page.size);
-
-    const [{ count }] = await this.db
-      .select({ count: sql<number>`cast(count(*) as int)` })
-      .from(this.table as PgTable)
-      .where(where);
+    const [rows, [{ count }]] = await Promise.all([
+      this.db
+        .select()
+        .from(this.table as PgTable)
+        .where(where)
+        .orderBy(...pageOrder(page.sort?.dir === "desc" ? "desc" : "asc", orderColumn, this.internalIdColumn))
+        .limit(page.size)
+        .offset(page.page * page.size),
+      this.db
+        .select({ count: sql<number>`cast(count(*) as int)` })
+        .from(this.table as PgTable)
+        .where(where),
+    ]);
 
     return { items: rows as TTable["$inferSelect"][], page: page.page, size: page.size, total: count };
   }

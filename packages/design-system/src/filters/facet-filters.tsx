@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
+import { useListNav } from "../use-list-nav";
 import { Check, ChevronDown, X } from "lucide-react";
 import type { FacetDef, Option } from "./facet";
 import { Button } from "@foundry/ui/button";
@@ -14,7 +15,7 @@ import { DateRangePicker } from "@foundry/ui/date-range-picker";
 import { cn } from "@foundry/ui/cn";
 
 function useParams() {
-  const router = useRouter();
+  const nav = useListNav();
   const pathname = usePathname();
   const params = useSearchParams();
   const set = (patch: Record<string, string | null>) => {
@@ -24,7 +25,7 @@ function useParams() {
       else sp.set(k, v);
     }
     sp.delete("page"); // any filter change resets to page 0
-    router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
+    nav(`${pathname}?${sp.toString()}`);
   };
   return { params, set };
 }

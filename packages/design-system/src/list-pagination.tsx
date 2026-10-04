@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
+import { useListNav } from "./use-list-nav";
 import { Pagination } from "./pagination";
 import { PAGE_SIZES } from "./filters/parse-filter-state";
 import {
@@ -15,7 +16,7 @@ export function ListPagination({
   total: number;
   sizes?: readonly number[];
 }) {
-  const router = useRouter();
+  const nav = useListNav();
   const pathname = usePathname();
   const params = useSearchParams();
   const pageCount = Math.max(1, Math.ceil(total / size));
@@ -26,7 +27,7 @@ export function ListPagination({
   const push = (next: Record<string, string>) => {
     const sp = new URLSearchParams(params.toString());
     for (const [k, v] of Object.entries(next)) sp.set(k, v);
-    router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
+    nav(`${pathname}?${sp.toString()}`);
   };
 
   const start = total === 0 ? 0 : safePage * size + 1;
