@@ -102,6 +102,52 @@ function useSearchQuery(): [string, (v: string) => void] {
 // Sticky header seated with a subtle muted wash so rows scroll under it cleanly.
 const HEAD_STICKY = "sticky top-0 z-10 bg-muted/40";
 
+// Fixed layout: column widths come from `Column.width` (else an even share of
+// what is left), never from the rows on screen — so paging, filtering or a
+// long value can't make the columns jump. Overlong text ellipsizes instead of
+// pushing a horizontal scrollbar. min-w keeps a many-column table from being
+// crushed on a tablet; below it the container scrolls as before.
+/**
+ * One width per kind of column, shared by every table in every app, so a
+ * "Status" or "Created" column is the same width wherever it appears. Keyed on
+ * the column key; `Column.width` overrides. Unlisted (text) columns split the
+ * remaining space evenly.
+ */
+const KIND_WIDTH: Record<string, string> = {};
+const kinds: [string, string[]][] = [
+  // dates / times ("Oct 3, 2026, 11:45 PM" fits)
+  ["w-36", ["time", "createdAt", "created", "updatedAt", "lastTouch", "lastMessage", "lastOrder", "lastSynced", "synced", "joined", "expiresAt", "startsAt", "submitted", "eventDate"]],
+  // date only
+  ["w-32", ["start", "occursOn", "customerSince", "planCompletion"]],
+  // short states
+  ["w-28", ["status", "stage", "published", "priority", "latestStatus", "role", "type", "kind", "method", "source", "scope", "category", "stackable", "autoApply", "deployment"]],
+  // money
+  ["w-24", ["amount", "total", "price", "spent", "value", "coins", "basePrice", "markup", "rate", "minSpend", "channel", "channels"]],
+  // counts
+  ["w-20", ["orders", "count", "memberCount", "members", "tiffins", "guests", "capacity", "remaining", "items", "modifiers"]],
+  ["w-32", ["phone"]],
+  // row actions (three icon buttons)
+  ["w-32", ["actions", "invite", "edit", "action"]],
+];
+for (const [w, keys] of kinds) for (const k of keys) KIND_WIDTH[k] = w;
+
+/**
+ * Fixed layout ellipsizes long values; on hover, a cell that is actually
+ * clipped gets its full text as a native tooltip. Set lazily, only when
+ * clipped, so cells that fit (and ones that set their own title) are untouched.
+ */
+function showClippedText(e: React.MouseEvent) {
+  const td = (e.target as HTMLElement).closest("td");
+  if (td && !td.title && td.scrollWidth > td.clientWidth) td.title = td.textContent?.trim() ?? "";
+}
+
+function colWidth(c: { key: string; width?: string }): string | undefined {
+  return c.width ?? KIND_WIDTH[c.key];
+}
+
+const TABLE_FIXED =
+  "min-w-[56rem] table-fixed [&_td]:overflow-hidden [&_td]:text-ellipsis [&_th]:overflow-hidden [&_th]:text-ellipsis";
+
 // The two fixed leading columns: serial "#" and the human ID. Rendered by the
 // live header and the skeleton twin so both stay in lockstep.
 const SERIAL_WIDTH = "w-12";
@@ -137,10 +183,10 @@ function HeaderRow<K extends string>({
             currentSort={sort.column}
             currentDir={sort.dir}
             align={c.align}
-            className={c.width}
+            className={colWidth(c)}
           />
         ) : (
-          <TableHead key={c.key} className={cn(alignClass(c.align), c.width)}>
+          <TableHead key={c.key} className={cn(alignClass(c.align), colWidth(c))}>
             {c.label}
           </TableHead>
         ),
@@ -332,7 +378,7 @@ export function DataTable<Row, K extends string>({
         actions={actions}
       />
       <div className="hidden overflow-hidden rounded-lg border md:block">
-        <Table>
+        <Table className={TABLE_FIXED}>
           <TableHeader className={HEAD_STICKY}>
             <HeaderRow columns={columns} sort={sort} serial={serial} hasId={hasId} idLabel={idLabel} />
           </TableHeader>
@@ -342,6 +388,7 @@ export function DataTable<Row, K extends string>({
                 <TableRow
                   key={rowKey(r)}
                   className={cn((idHref || onRowClick) && "cursor-pointer", rowClassName?.(r))}
+                  onMouseOver={showClippedText}
                   onClick={
                     idHref || onRowClick
                       ? (e) => {
@@ -482,12 +529,12 @@ export function DataTableSkeleton<K extends string>({
   return (
     <div className="space-y-4">
       <div className="hidden overflow-hidden rounded-lg border md:block">
-        <Table>
+        <Table className={TABLE_FIXED}>
           <TableHeader className={HEAD_STICKY}>
             <TableRow>
               <LeadHeads serial={serial} hasId={hasId} idLabel={idLabel} />
               {columns.map((c) => (
-                <TableHead key={c.key} className={cn(alignClass(c.align), c.width)}>
+                <TableHead key={c.key} className={cn(alignClass(c.align), colWidth(c))}>
                   {c.label}
                 </TableHead>
               ))}
