@@ -27,6 +27,8 @@ export interface EmailCodeSignInProps {
   subtitle?: ReactNode;
   /** Rendered under the form on both steps: "use a password instead", sign-up links, etc. */
   extra?: ReactNode;
+  /** Email step only, above the email field with an "or" divider: e.g. `<GoogleSignInButton />`. */
+  alternatives?: ReactNode;
   /** Small print under the code-step text. */
   codeHint?: ReactNode;
   /**
@@ -53,6 +55,7 @@ export function EmailCodeSignIn({
   title = "Sign in",
   subtitle = "We'll email you a 6-digit code.",
   extra,
+  alternatives,
   codeHint,
   compact = false,
   onStepChange,
@@ -291,6 +294,16 @@ export function EmailCodeSignIn({
           </header>
         </>
       )}
+      {alternatives ? (
+        <>
+          {alternatives}
+          <div className="text-muted-foreground flex items-center gap-3 text-xs" aria-hidden>
+            <span className="bg-border h-px flex-1" />
+            or
+            <span className="bg-border h-px flex-1" />
+          </div>
+        </>
+      ) : null}
       <Field
         label="Email"
         type="email"
