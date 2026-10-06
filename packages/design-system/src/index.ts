@@ -30,6 +30,7 @@ export * from "./filters/facet";
 export * from "./filters/facet-filters";
 export { ReuiFacetFilters } from "./filters/reui-facet-filters";
 export { ListSearchFilters } from "./filters/list-search-filters";
+export { FriendsPanel, relationAction, type FriendsPanelProps, type FriendPerson, type FriendRelation } from "./friends-panel";
 export * from "./filters/parse-filter-state";
 export * from "./list-pagination";
 export * from "./presence-dot";
