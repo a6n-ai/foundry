@@ -684,10 +684,18 @@ export function createWalletService<E extends string>(deps: WalletDeps<E>) {
         .where(eq(eventPayout.eventType, eventType))
         .limit(1);
       if (!cfg?.enabled || cfg.coins <= 0) return false;
-      if ((await filterUnderCap([userId], cfg.coins)).ok.length === 0) return false;
-      if (canAward && !(await canAward(userId, cfg.coins))) return false;
-      const res = await db
-        .insert(walletLedger)
+      const cap = maxBalance ? await maxBalance() : null;
+      // The cap check and the write share one transaction under the user lock,
+      // so two concurrent awards cannot both read "room left" and overshoot.
+      return db.transaction(async (raw) => {
+        const tx = raw as Tx;
+        if (cap !== null) {
+          await lockUser(tx, users, userId);
+          if ((await readBalance(tx, walletLedger, userId)) + cfg.coins > cap) return false;
+        }
+        if (canAward && !(await canAward(userId, cfg.coins))) return false;
+        const res = await tx
+          .insert(walletLedger)
         .values({
           userId,
           direction: "credit",
@@ -697,9 +705,10 @@ export function createWalletService<E extends string>(deps: WalletDeps<E>) {
           coins: cfg.coins,
           memo,
         })
-        .onConflictDoNothing({ target: [walletLedger.sourceType, walletLedger.sourceId, walletLedger.eventType] })
-        .returning({ id: walletLedger.id });
-      return res.length > 0;
+          .onConflictDoNothing({ target: [walletLedger.sourceType, walletLedger.sourceId, walletLedger.eventType] })
+          .returning({ id: walletLedger.id });
+        return res.length > 0;
+      });
     },
 
     async recentTransactions(userId: bigint, limit = 10): Promise<WalletTx<E>[]> {
