@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import type { AnyPgColumn, AnyPgTable } from "drizzle-orm/pg-core";
 import { NotFoundError, ValidationError } from "@foundry/commons";
 import type { Database } from "@foundry/database";
@@ -42,12 +42,10 @@ function isUniqueViolation(e: unknown): boolean {
   return err?.code === "23505" || err?.cause?.code === "23505";
 }
 
-const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 
-// Username prefix only, 3+ characters: matching names by substring would let
-// anyone page through every customer's name and photo.
+// Exact username only: any partial match (name substring, username prefix)
+// lets someone page through customers' names and photos a few letters at a time.
 const SEARCH_MIN = 3;
-const SEARCH_LIMIT = 10;
 const ENSURE_TRIES = 5;
 
 /**
@@ -95,7 +93,6 @@ export function createFriendsService(deps: {
     const term = q.trim().replace(/^@/, "").toLowerCase();
     if (term.length < SEARCH_MIN) return [];
     const me = await customer(viewerPublicId);
-    const pattern = escapeLike(term);
     const rows = (await db
       .select(person)
       .from(users)
@@ -103,11 +100,10 @@ export function createFriendsService(deps: {
         and(
           isCustomer,
           ne(users.id, me.id),
-          sql`${users.username} like ${`${pattern}%`}`,
+          eq(users.username, term),
         ),
       )
-      .orderBy(asc(users.username))
-      .limit(SEARCH_LIMIT)) as ({ id: bigint } & FriendPerson)[];
+      .limit(1)) as ({ id: bigint } & FriendPerson)[];
     if (rows.length === 0) return [];
     const ids = rows.map((r) => r.id);
     const pairs = (await db

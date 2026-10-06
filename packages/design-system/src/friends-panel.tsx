@@ -170,7 +170,7 @@ export function FriendsPanel({
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search by username"
+          placeholder="Exact username, e.g. priya.s"
           aria-label="Search friends"
           className="border-border bg-background h-10 w-full rounded-[var(--radius)] border px-3 text-base"
         />
@@ -199,7 +199,7 @@ export function FriendsPanel({
               })}
             </ul>
           ) : (
-            <p className="text-muted-foreground mt-2 text-sm">No one found.</p>
+            <p className="text-muted-foreground mt-2 text-sm">No one with that username. Ask them for it, or share your invite link.</p>
           )
         ) : null}
       </Section>
