@@ -56,10 +56,16 @@ export function createFriendsService(deps: {
   db: Database;
   users: FriendUsersTable;
   friendships: FriendshipsTable;
-  /** Server secret that signs invite links (the app's auth secret). */
-  inviteSecret: string;
+  /** Server secret that signs invite links (the app's auth secret). Read lazily, so importing never needs env. */
+  inviteSecret: () => string | undefined;
 }) {
-  const { db, users, friendships: f, inviteSecret } = deps;
+  const { db, users, friendships: f } = deps;
+  const inviteSecret = (): string => {
+    const s = deps.inviteSecret();
+    // An empty key would make every invite ref guessable.
+    if (!s) throw new Error("friends: invite secret is not set");
+    return s;
+  };
 
   const person = {
     id: users.id,
@@ -203,7 +209,7 @@ export function createFriendsService(deps: {
       .from(users)
       .where(eq(users.publicId, viewerPublicId))
       .limit(1)) as { id: bigint; username: string | null }[];
-    return u?.username ? makeInviteRef(inviteSecret, u.id, u.username) : null;
+    return u?.username ? makeInviteRef(inviteSecret(), u.id, u.username) : null;
   }
 
   /**
@@ -220,7 +226,7 @@ export function createFriendsService(deps: {
       .from(users)
       .where(and(eq(users.username, parsed.username), isCustomer))
       .limit(1)) as { id: bigint }[];
-    if (!inviter || inviter.id === me.id || !parsed.verify(inviteSecret, inviter.id)) return false;
+    if (!inviter || inviter.id === me.id || !parsed.verify(inviteSecret(), inviter.id)) return false;
     await db
       .insert(f)
       .values({ requesterId: inviter.id, addresseeId: me.id, status: "accepted", acceptedAt: Date.now(), createdBy: me.id })
