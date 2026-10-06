@@ -100,7 +100,7 @@ export function FriendsPanel({
 
   useEffect(() => {
     const term = q.trim();
-    if (term.length < 2) {
+    if (term.length < 3) {
       setResults([]);
       return;
     }
@@ -170,7 +170,7 @@ export function FriendsPanel({
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search by username or name"
+          placeholder="Search by username"
           aria-label="Search friends"
           className="border-border bg-background h-10 w-full rounded-[var(--radius)] border px-3 text-base"
         />
@@ -179,7 +179,7 @@ export function FriendsPanel({
             {error}
           </p>
         ) : null}
-        {q.trim().length >= 2 ? (
+        {q.trim().length >= 3 ? (
           results.length > 0 ? (
             <ul className="divide-border mt-2 divide-y">
               {results.map((r) => {

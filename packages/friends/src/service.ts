@@ -44,7 +44,10 @@ function isUniqueViolation(e: unknown): boolean {
 
 const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 
-const SEARCH_LIMIT = 20;
+// Username prefix only, 3+ characters: matching names by substring would let
+// anyone page through every customer's name and photo.
+const SEARCH_MIN = 3;
+const SEARCH_LIMIT = 10;
 const ENSURE_TRIES = 5;
 
 /**
@@ -89,8 +92,8 @@ export function createFriendsService(deps: {
   const strip = ({ id: _id, ...p }: { id: bigint } & FriendPerson): FriendPerson => p;
 
   async function search(viewerPublicId: string, q: string): Promise<FriendSearchRow[]> {
-    const term = q.trim().replace(/^@/, "");
-    if (term.length < 2) return [];
+    const term = q.trim().replace(/^@/, "").toLowerCase();
+    if (term.length < SEARCH_MIN) return [];
     const me = await customer(viewerPublicId);
     const pattern = escapeLike(term);
     const rows = (await db
@@ -100,10 +103,10 @@ export function createFriendsService(deps: {
         and(
           isCustomer,
           ne(users.id, me.id),
-          or(sql`${users.username} like ${`${pattern.toLowerCase()}%`}`, sql`${users.name} ilike ${`%${pattern}%`}`),
+          sql`${users.username} like ${`${pattern}%`}`,
         ),
       )
-      .orderBy(sql`${users.username} asc nulls last`, asc(users.id))
+      .orderBy(asc(users.username))
       .limit(SEARCH_LIMIT)) as ({ id: bigint } & FriendPerson)[];
     if (rows.length === 0) return [];
     const ids = rows.map((r) => r.id);
@@ -212,6 +215,19 @@ export function createFriendsService(deps: {
     return u?.username ? makeInviteRef(inviteSecret(), u.id, u.username) : null;
   }
 
+  /** Who sent this invite, if the ref is genuine and not the viewer's own. Writes nothing. */
+  async function previewInvite(viewerPublicId: string, ref: string): Promise<FriendPerson | null> {
+    const parsed = parseInviteRef(ref);
+    if (!parsed) return null;
+    const [inviter] = (await db
+      .select(person)
+      .from(users)
+      .where(and(eq(users.username, parsed.username), isCustomer))
+      .limit(1)) as ({ id: bigint } & FriendPerson)[];
+    if (!inviter || inviter.publicId === viewerPublicId || !parsed.verify(inviteSecret(), inviter.id)) return null;
+    return strip(inviter);
+  }
+
   /**
    * Invite link: the viewer becomes friends with whoever shared it. The ref
    * must carry the inviter's signature, so a bare username from search does
@@ -281,7 +297,7 @@ export function createFriendsService(deps: {
     }
   }
 
-  return { search, request, accept, decline, remove, list, inviteRef, acceptInvite, ensureUsername, setUsername };
+  return { search, request, accept, decline, remove, list, inviteRef, previewInvite, acceptInvite, ensureUsername, setUsername };
 }
 
 export type FriendsService = ReturnType<typeof createFriendsService>;
