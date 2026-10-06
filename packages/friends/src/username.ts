@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { ValidationError } from "@foundry/commons";
 
 // Same shape the better-auth username plugin enforces; usernames are stored
@@ -22,4 +23,17 @@ export function suggestUsername(
     .replace(/[^a-z0-9]/g, "")
     .slice(0, 20);
   return `${base.length >= 3 ? base : "user"}${rand()}`;
+}
+
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+/**
+ * A username nobody can guess (36^8 ≈ 2.8e12). Used when a customer has not
+ * picked one: a name-based default would let anyone who knows a name find them
+ * by trying the few thousand suffixes.
+ */
+export function randomUsername(): string {
+  let out = "user_";
+  for (let i = 0; i < 8; i++) out += ALPHABET[randomInt(ALPHABET.length)];
+  return out;
 }

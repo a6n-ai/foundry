@@ -4,7 +4,7 @@ import { NotFoundError, ValidationError } from "@foundry/commons";
 import type { Database } from "@foundry/database";
 import type { makeFriendTables } from "./schema";
 import { makeInviteRef, parseInviteRef } from "./invite-ref";
-import { normalizeUsername, suggestUsername } from "./username";
+import { normalizeUsername, randomUsername } from "./username";
 
 export type Relation = "none" | "outgoing" | "incoming" | "friends";
 export type FriendPerson = {
@@ -254,14 +254,14 @@ export function createFriendsService(deps: {
   /** Give a customer a username if they have none. Returns the username, or null after repeated clashes. */
   async function ensureUsername(userPublicId: string): Promise<string | null> {
     const [u] = (await db
-      .select({ id: users.id, name: users.name, username: users.username })
+      .select({ id: users.id, username: users.username })
       .from(users)
       .where(eq(users.publicId, userPublicId))
-      .limit(1)) as { id: bigint; name: string | null; username: string | null }[];
+      .limit(1)) as { id: bigint; username: string | null }[];
     if (!u) return null;
     if (u.username) return u.username;
     for (let i = 0; i < ENSURE_TRIES; i++) {
-      const candidate = suggestUsername(u.name);
+      const candidate = randomUsername();
       try {
         const done = await db
           .update(users)

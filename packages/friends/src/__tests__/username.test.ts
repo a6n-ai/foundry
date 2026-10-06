@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeUsername, suggestUsername } from "../username";
+import { normalizeUsername, randomUsername, suggestUsername } from "../username";
 
 describe("normalizeUsername", () => {
   it("lowercases the key and keeps display casing", () => {
@@ -24,5 +24,14 @@ describe("suggestUsername", () => {
   it("always passes the rule", () => {
     expect(() => normalizeUsername(suggestUsername("Émile-Zoë Dubois-Montgomery-Smith"))).not.toThrow();
     expect(() => normalizeUsername(suggestUsername("李小龙"))).not.toThrow();
+  });
+});
+
+describe("randomUsername", () => {
+  it("is unguessable, passes the rule and differs each time", () => {
+    const a = randomUsername();
+    expect(a).toMatch(/^user_[a-z0-9]{8}$/);
+    expect(() => normalizeUsername(a)).not.toThrow();
+    expect(new Set(Array.from({ length: 50 }, randomUsername)).size).toBe(50);
   });
 });
