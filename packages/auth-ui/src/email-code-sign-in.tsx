@@ -27,6 +27,8 @@ export interface EmailCodeSignInProps {
   subtitle?: ReactNode;
   /** Rendered under the form on both steps: "use a password instead", sign-up links, etc. */
   extra?: ReactNode;
+  /** Prefills the email field, e.g. from a "Continue as …" shortcut. */
+  defaultEmail?: string;
   /** Email step only, above the email field with an "or" divider: e.g. `<GoogleSignInButton />`. */
   alternatives?: ReactNode;
   /** Small print under the code-step text. */
@@ -55,6 +57,7 @@ export function EmailCodeSignIn({
   title = "Sign in",
   subtitle = "We'll email you a 6-digit code.",
   extra,
+  defaultEmail = "",
   alternatives,
   codeHint,
   compact = false,
@@ -63,7 +66,7 @@ export function EmailCodeSignIn({
 }: EmailCodeSignInProps) {
   const { Button, Field, Code, Notice } = resolveUi(ui);
   const [step, setStep] = useState<"email" | "code">("email");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(defaultEmail);
   const [code, setCode] = useState("");
   const [fieldError, setFieldError] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);

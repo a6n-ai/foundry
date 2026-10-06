@@ -21,3 +21,5 @@ export type { OrganizationPluginConfig } from "./organization-plugin";
 export { createStaffInvite, StaffInviteError } from "./staff-invite";
 export type { StaffInviteDeps } from "./staff-invite";
 export { googleSocialProviders, googleSignInEnabled, googleOneTapPlugins } from "./social";
+export { LAST_USER_COOKIE, LAST_USER_MAX_AGE_S, encodeLastUser, parseLastUser, maskEmail, lastUserMethod } from "./last-user";
+export type { LastUser, LastUserMethod } from "./last-user";
