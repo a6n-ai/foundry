@@ -49,7 +49,7 @@ export function GoogleSignInButton({ onSignIn, label = "Continue with Google", u
 
 /** Better Auth's OAuth `?error=` codes, in the same voice as `authErrorMessage`. Never says whether an account exists beyond what Google already told the user. */
 export function oauthErrorMessage(code: string): string {
-  if (code === "signup_disabled") return "We couldn't find an account for that Google email. Sign in with an email code instead.";
+  if (code === "signup_disabled") return "There's no account for that Google email yet. Continue with Google here to create one.";
   if (code === "account_not_linked") return "That Google account can't be linked here. Sign in with an email code instead.";
   if (code === "access_denied") return "Google sign-in was cancelled.";
   return "Google sign-in didn't work. Try again, or sign in with an email code.";

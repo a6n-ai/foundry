@@ -131,6 +131,17 @@ export function EmailCodeSignIn({
     setFieldError(undefined);
   }
 
+  const others = alternatives ? (
+    <>
+      {alternatives}
+      <div className="text-muted-foreground flex items-center gap-3 text-xs" aria-hidden>
+        <span className="bg-border h-px flex-1" />
+        or
+        <span className="bg-border h-px flex-1" />
+      </div>
+    </>
+  ) : null;
+
   const resend = (
     <ResendCode
       onResend={async () => {
@@ -152,6 +163,7 @@ export function EmailCodeSignIn({
         onSubmit={(e) => { if (codeStep) { e.preventDefault(); void verify(); } else void sendCode(e); }}
         className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 flex flex-1 flex-col gap-5 duration-300 ease-out"
       >
+        {codeStep ? null : others}
         <div className="flex flex-col gap-2">
           <Field
             label="Email"
@@ -294,16 +306,7 @@ export function EmailCodeSignIn({
           </header>
         </>
       )}
-      {alternatives ? (
-        <>
-          {alternatives}
-          <div className="text-muted-foreground flex items-center gap-3 text-xs" aria-hidden>
-            <span className="bg-border h-px flex-1" />
-            or
-            <span className="bg-border h-px flex-1" />
-          </div>
-        </>
-      ) : null}
+      {others}
       <Field
         label="Email"
         type="email"

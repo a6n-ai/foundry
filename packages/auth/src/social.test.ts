@@ -8,9 +8,9 @@ describe("googleSocialProviders", () => {
     expect(googleSignInEnabled({ GOOGLE_CLIENT_SECRET: "s" })).toBe(false);
   });
 
-  it("is sign-in only", () => {
+  it("only signs up when asked", () => {
     const env = { GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "s" };
-    expect(googleSocialProviders(env).google).toMatchObject({ clientId: "id", clientSecret: "s", disableSignUp: true });
+    expect(googleSocialProviders(env).google).toMatchObject({ clientId: "id", clientSecret: "s", disableImplicitSignUp: true });
     expect(googleSignInEnabled(env)).toBe(true);
   });
 });

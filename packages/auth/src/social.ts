@@ -2,11 +2,12 @@
  * Google sign-in for Better Auth's `socialProviders`. Spread the result in:
  * `socialProviders: { ...googleSocialProviders() }`.
  *
- * Sign-in only: Realm accounts are provisioned by checkout or an admin invite,
- * so a Google address with no account is refused (`signup_disabled`) rather
- * than creating a bare user. An existing account with the same email links on
- * first use — Google marks its emails verified, which is Better Auth's default
- * linking condition.
+ * No implicit sign-up: a Google address with no account is refused
+ * (`?error=signup_disabled`) unless the caller asks for an account with
+ * `signIn.social({ provider: "google", requestSignUp: true })`. So the login
+ * screen only signs in, and only the app's sign-up page (e.g. /subscribe)
+ * creates accounts. An existing account with the same email links on first
+ * use: Google marks its emails verified, Better Auth's default linking rule.
  *
  * Returns `{}` until both keys are set, so an app without them mounts no
  * Google route at all.
@@ -16,7 +17,7 @@ export function googleSocialProviders(env: Record<string, string | undefined> = 
   const clientSecret = env.GOOGLE_CLIENT_SECRET;
   if (!clientId || !clientSecret) return {};
   return {
-    google: { clientId, clientSecret, disableSignUp: true, prompt: "select_account" as const },
+    google: { clientId, clientSecret, disableImplicitSignUp: true, prompt: "select_account" as const },
   };
 }
 
