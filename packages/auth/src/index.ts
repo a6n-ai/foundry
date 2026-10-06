@@ -20,4 +20,4 @@ export { createOrganizationPlugin } from "./organization-plugin";
 export type { OrganizationPluginConfig } from "./organization-plugin";
 export { createStaffInvite, StaffInviteError } from "./staff-invite";
 export type { StaffInviteDeps } from "./staff-invite";
-export { googleSocialProviders, googleSignInEnabled } from "./social";
+export { googleSocialProviders, googleSignInEnabled, googleOneTapPlugins } from "./social";

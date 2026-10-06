@@ -1,3 +1,5 @@
+import { oneTap } from "better-auth/plugins";
+
 /**
  * Google sign-in for Better Auth's `socialProviders`. Spread the result in:
  * `socialProviders: { ...googleSocialProviders() }`.
@@ -36,4 +38,15 @@ export function googleSocialProviders(
 /** For the client: show the Google button only when the server mounted the provider. */
 export function googleSignInEnabled(env: Record<string, string | undefined> = process.env): boolean {
   return Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
+}
+
+/**
+ * Google One Tap (Chrome draws it with FedCM: a corner card on desktop, a
+ * bottom sheet on Android). Sign-in only whatever `allowSignUp` says: the
+ * prompt carries no sign-up intent, and it shows on the login screen, so an
+ * unknown address gets the Google button's sign-up path instead.
+ * `[]` until both keys are set; spread into `plugins`.
+ */
+export function googleOneTapPlugins(env: Record<string, string | undefined> = process.env): ReturnType<typeof oneTap>[] {
+  return googleSignInEnabled(env) ? [oneTap({ disableSignup: true })] : [];
 }
