@@ -14,7 +14,8 @@ export type FriendsPanelProps = {
   /** Null when the viewer has no username yet, so there is no link to share. */
   inviteUrl: string | null;
   search: (q: string) => Promise<{ rows: (FriendPerson & { relation: FriendRelation })[]; error?: string }>;
-  act: (kind: FriendAct, publicId: string) => Promise<{ error?: string }>;
+  /** `relation` is what a request turned into ("friends" when they had already asked). */
+  act: (kind: FriendAct, publicId: string) => Promise<{ error?: string; relation?: FriendRelation }>;
   /** Each app passes its own button look (HIG, brutal, CRM); defaults to theme tokens. */
   buttonClassName?: string;
   /** Where the viewer sets a username, shown when `inviteUrl` is null. */
@@ -120,8 +121,9 @@ export function FriendsPanel({
       setError(res.error ?? null);
       if (res.error) return;
       setConfirmRemove(null);
-      if (kind === "request") {
-        setResults((rows) => rows.map((r) => (r.publicId === publicId ? { ...r, relation: "outgoing" } : r)));
+      if (kind === "request" || kind === "accept") {
+        const relation: FriendRelation = res.relation ?? (kind === "accept" ? "friends" : "outgoing");
+        setResults((rows) => rows.map((r) => (r.publicId === publicId ? { ...r, relation } : r)));
       }
       router.refresh();
     });

@@ -281,10 +281,14 @@ export function createFriendsService(deps: {
     return null;
   }
 
-  /** Set or clear the viewer's username. Taken (in any casing) is a ValidationError. */
+  /**
+   * Set the viewer's username. It cannot be cleared: ensureUsername would just
+   * refill an empty one on the next /me load. Taken (any casing) is a ValidationError.
+   */
   async function setUsername(userPublicId: string, raw: string | null): Promise<void> {
     const value = (raw ?? "").trim();
-    const patch = value ? normalizeUsername(value) : { username: null, displayUsername: null };
+    if (!value) throw new ValidationError("Username is required");
+    const patch = normalizeUsername(value);
     try {
       await db.update(users).set(patch as never).where(eq(users.publicId, userPublicId));
     } catch (e) {
