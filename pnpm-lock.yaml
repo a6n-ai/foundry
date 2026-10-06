@@ -445,6 +445,28 @@ importers:
         specifier: ^4.1.9
         version: 4.1.11(@types/node@22.20.1)(jsdom@29.1.1(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@22.20.1))
 
+  packages/friends:
+    dependencies:
+      '@foundry/commons':
+        specifier: workspace:*
+        version: link:../commons
+      '@foundry/database':
+        specifier: workspace:*
+        version: link:../database
+    devDependencies:
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(kysely@0.29.5)(postgres@3.4.9)
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.11(@types/node@22.20.1)(jsdom@29.1.1(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@22.20.1))
+
   packages/google-reviews:
     dependencies:
       '@foundry/commons':
