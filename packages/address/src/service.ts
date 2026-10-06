@@ -3,6 +3,7 @@ import type { PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import { ValidationError } from "@foundry/commons";
 import type { Database } from "@foundry/database";
 import {
+  addressKey,
   defaultLabel,
   locationChanged,
   normalizeAddressInput,
@@ -29,6 +30,15 @@ export type AddressHooks = {
   /** Before an address is archived, inside the same tx: move editable users to the default. */
   onArchived?(
     a: { addressId: bigint; defaultAddressId: bigint | null; defaultSnapshot: AddressSnapshot | null },
+    tx: AddressTx,
+  ): Promise<void>;
+  /**
+   * The customer's default (account) address changed, inside the same tx: a different address
+   * became the default (`fromAddressId` is the old one, null for a first address), or the default
+   * itself was edited (`fromAddressId === toAddressId`). Apps move live plans and the profile with it.
+   */
+  onDefaultChanged?(
+    a: { userId: bigint; fromAddressId: bigint | null; toAddressId: bigint; to: AddressSnapshot },
     tx: AddressTx,
   ): Promise<void>;
   /** Anything still editable points at it — blocks archiving the only address. */
@@ -105,6 +115,13 @@ export function createAddressService(deps: AddressServiceDeps) {
     await tx.execute(sql`select pg_advisory_xact_lock(${scope.userId})`);
   }
 
+  /** A live address in this book at the same place (see addressKey), other than `exceptId`. */
+  async function findSame(scope: AddressScope, v: { addressLine: string; addressUnit: string | null; postalCode: string }, tx: AddressTx | Database, exceptId?: bigint) {
+    const key = addressKey(v);
+    const rows = await tx.select().from(t).where(and(owned(scope), exceptId ? ne(t.id, exceptId) : undefined));
+    return rows.find((r) => addressKey(r) === key) ?? null;
+  }
+
   async function assertLabelFree(scope: AddressScope, label: string, tx: AddressTx, exceptId?: bigint) {
     const taken = (await liveLabels(scope, tx, exceptId)).some((l) => l.toLowerCase() === label.toLowerCase());
     if (taken) throw new ValidationError(`You already have an address called "${label}"`);
@@ -118,9 +135,18 @@ export function createAddressService(deps: AddressServiceDeps) {
       tx?: AddressTx;
       /** Known point; `null` means "skip geocoding". Omit to geocode. */
       coords?: { lat: number; lng: number } | null;
+      /**
+       * The same place is already in the book. Default: refuse (someone adding an address by hand).
+       * "reuse": return the saved one unchanged (checkout, a typed per-delivery address, imports).
+       */
+      ifExists?: "reuse";
     } = {},
   ): Promise<SavedAddress & { id: bigint }> {
     const v = normalizeAddressInput(input);
+    if (opts.ifExists === "reuse") {
+      const same = await findSame(scope, v, opts.tx ?? db);
+      if (same) return { ...toSavedAddress(same), id: same.id };
+    }
     // coords given → use them (checkout already geocoded); coords: null → store none, don't look up;
     // omitted → geocode here.
     const point = opts.coords !== undefined ? opts.coords : await geocode(v);
@@ -129,11 +155,19 @@ export function createAddressService(deps: AddressServiceDeps) {
       // Serialize per customer: two concurrent first addresses would otherwise both read an empty
       // book, both claim the default, and the second would hit customer_addresses_one_default.
       await lockBook(tx, scope);
+      const same = await findSame(scope, v, tx);
+      if (same) {
+        if (opts.ifExists === "reuse") return { row: same, created: false };
+        throw new ValidationError(`This address is already saved as "${same.label}"`);
+      }
       const labels = await liveLabels(scope, tx);
       const isFirst = labels.length === 0;
       const label = v.label ?? defaultLabel(v, labels, isFirst);
       if (v.label) await assertLabelFree(scope, label, tx);
       const makeDefault = isFirst || opts.makeDefault === true;
+      const [prevDefault] = makeDefault
+        ? await tx.select({ id: t.id }).from(t).where(and(owned(scope), eq(t.isDefault, true))).limit(1)
+        : [];
       if (makeDefault) {
         await tx
           .update(t)
@@ -153,10 +187,13 @@ export function createAddressService(deps: AddressServiceDeps) {
           updatedBy: by,
         })
         .returning();
-      return row!;
+      if (makeDefault) {
+        await hooks.onDefaultChanged?.({ userId: scope.userId, fromAddressId: prevDefault?.id ?? null, toAddressId: row!.id, to: toSnapshot(row!) }, tx);
+      }
+      return { row: row!, created: true };
     };
-    const row = opts.tx ? await run(opts.tx) : await db.transaction(run);
-    await audit({ entity: "customer_addresses", entityPublicId: row.publicId, operation: "create", changes: { ...v, label: row.label } });
+    const { row, created } = opts.tx ? await run(opts.tx) : await db.transaction(run);
+    if (created) await audit({ entity: "customer_addresses", entityPublicId: row.publicId, operation: "create", changes: { ...v, label: row.label } });
     return { ...toSavedAddress(row), id: row.id };
   }
 
@@ -173,7 +210,10 @@ export function createAddressService(deps: AddressServiceDeps) {
       const v = normalizeAddressInput(input);
       const by = await actor();
       const row = await db.transaction(async (tx) => {
+        await lockBook(tx, scope);
         const before = await getRow(scope, publicId, tx);
+        const same = await findSame(scope, v, tx, before.id);
+        if (same) throw new ValidationError(`This address is already saved as "${same.label}"`);
         const label = v.label ?? before.label;
         if (label.toLowerCase() !== before.label.toLowerCase()) await assertLabelFree(scope, label, tx, before.id);
         const beforeSnap = toSnapshot(before);
@@ -186,6 +226,9 @@ export function createAddressService(deps: AddressServiceDeps) {
           .where(eq(t.id, before.id))
           .returning();
         await hooks.onUpdated?.({ addressId: before.id, before: beforeSnap, after: afterSnap }, tx);
+        if (updated!.isDefault) {
+          await hooks.onDefaultChanged?.({ userId: scope.userId, fromAddressId: before.id, toAddressId: before.id, to: afterSnap }, tx);
+        }
         return updated!;
       });
       await audit({ entity: "customer_addresses", entityPublicId: publicId, operation: "update", changes: { ...v } });
@@ -198,11 +241,13 @@ export function createAddressService(deps: AddressServiceDeps) {
         await lockBook(tx, scope);
         const row = await getRow(scope, publicId, tx);
         if (row.isDefault) return;
+        const [prev] = await tx.select({ id: t.id }).from(t).where(and(owned(scope), eq(t.isDefault, true))).limit(1);
         await tx
           .update(t)
           .set({ isDefault: false, updatedAt: Date.now(), updatedBy: by })
           .where(and(owned(scope), eq(t.isDefault, true)));
         await tx.update(t).set({ isDefault: true, updatedAt: Date.now(), updatedBy: by }).where(eq(t.id, row.id));
+        await hooks.onDefaultChanged?.({ userId: scope.userId, fromAddressId: prev?.id ?? null, toAddressId: row.id, to: toSnapshot(row) }, tx);
       });
       await audit({ entity: "customer_addresses", entityPublicId: publicId, operation: "update", changes: { isDefault: true } });
     },

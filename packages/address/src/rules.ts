@@ -54,6 +54,12 @@ export function normalizeAddressInput(input: AddressInput) {
   };
 }
 
+/** Same place for duplicate detection: street line, unit and postal code, ignoring case, spaces and punctuation. */
+export function addressKey(a: { addressLine: string; addressUnit?: string | null; postalCode: string }): string {
+  const k = (v: string | null | undefined) => (v ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  return `${k(a.addressLine)}|${k(a.addressUnit)}|${k(a.postalCode)}`;
+}
+
 /** "Home" for a first address, else the street line; " (n)" on a case-insensitive clash. */
 export function defaultLabel(input: { addressLine: string }, existingLabels: string[], isFirst: boolean): string {
   const taken = new Set(existingLabels.map((l) => l.toLowerCase()));
