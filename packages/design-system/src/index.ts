@@ -28,6 +28,8 @@ export { LocationPicker, type PickableLocation } from "./location-picker";
 export { readFranchiseCookie, writeFranchiseCookie } from "./franchise-cookie";
 export * from "./filters/facet";
 export * from "./filters/facet-filters";
+export { ReuiFacetFilters } from "./filters/reui-facet-filters";
+export { ListSearchFilters } from "./filters/list-search-filters";
 export * from "./filters/parse-filter-state";
 export * from "./list-pagination";
 export * from "./presence-dot";
