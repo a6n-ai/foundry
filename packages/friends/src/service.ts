@@ -3,6 +3,7 @@ import type { AnyPgColumn, AnyPgTable } from "drizzle-orm/pg-core";
 import { NotFoundError, ValidationError } from "@foundry/commons";
 import type { Database } from "@foundry/database";
 import type { makeFriendTables } from "./schema";
+import { makeInviteRef, parseInviteRef } from "./invite-ref";
 import { normalizeUsername, suggestUsername } from "./username";
 
 export type Relation = "none" | "outgoing" | "incoming" | "friends";
@@ -51,8 +52,14 @@ const ENSURE_TRIES = 5;
  * (what the session carries) and resolves internal ids itself. Only active
  * customers can be found, asked or invited; staff are "not found".
  */
-export function createFriendsService(deps: { db: Database; users: FriendUsersTable; friendships: FriendshipsTable }) {
-  const { db, users, friendships: f } = deps;
+export function createFriendsService(deps: {
+  db: Database;
+  users: FriendUsersTable;
+  friendships: FriendshipsTable;
+  /** Server secret that signs invite links (the app's auth secret). */
+  inviteSecret: string;
+}) {
+  const { db, users, friendships: f, inviteSecret } = deps;
 
   const person = {
     id: users.id,
@@ -189,24 +196,31 @@ export function createFriendsService(deps: { db: Database; users: FriendUsersTab
     return out;
   }
 
+  /** The viewer's invite ref for `/join?ref=`, or null until they have a username. */
+  async function inviteRef(viewerPublicId: string): Promise<string | null> {
+    const [u] = (await db
+      .select({ id: users.id, username: users.username })
+      .from(users)
+      .where(eq(users.publicId, viewerPublicId))
+      .limit(1)) as { id: bigint; username: string | null }[];
+    return u?.username ? makeInviteRef(inviteSecret, u.id, u.username) : null;
+  }
+
   /**
-   * Invite link: the viewer becomes friends with whoever shared it. Unknown,
-   * malformed, staff and own usernames are ignored (returns false).
+   * Invite link: the viewer becomes friends with whoever shared it. The ref
+   * must carry the inviter's signature, so a bare username from search does
+   * not work. Unknown, forged, staff and own refs are ignored (false).
    */
-  async function acceptInvite(viewerPublicId: string, refUsername: string): Promise<boolean> {
-    let ref: string;
-    try {
-      ref = normalizeUsername(refUsername).username;
-    } catch {
-      return false;
-    }
+  async function acceptInvite(viewerPublicId: string, ref: string): Promise<boolean> {
+    const parsed = parseInviteRef(ref);
+    if (!parsed) return false;
     const me = await customer(viewerPublicId);
     const [inviter] = (await db
       .select({ id: users.id })
       .from(users)
-      .where(and(eq(users.username, ref), isCustomer))
+      .where(and(eq(users.username, parsed.username), isCustomer))
       .limit(1)) as { id: bigint }[];
-    if (!inviter || inviter.id === me.id) return false;
+    if (!inviter || inviter.id === me.id || !parsed.verify(inviteSecret, inviter.id)) return false;
     await db
       .insert(f)
       .values({ requesterId: inviter.id, addresseeId: me.id, status: "accepted", acceptedAt: Date.now(), createdBy: me.id })
@@ -261,7 +275,7 @@ export function createFriendsService(deps: { db: Database; users: FriendUsersTab
     }
   }
 
-  return { search, request, accept, decline, remove, list, acceptInvite, ensureUsername, setUsername };
+  return { search, request, accept, decline, remove, list, inviteRef, acceptInvite, ensureUsername, setUsername };
 }
 
 export type FriendsService = ReturnType<typeof createFriendsService>;
