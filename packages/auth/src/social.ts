@@ -2,22 +2,34 @@
  * Google sign-in for Better Auth's `socialProviders`. Spread the result in:
  * `socialProviders: { ...googleSocialProviders() }`.
  *
- * No implicit sign-up: a Google address with no account is refused
- * (`?error=signup_disabled`) unless the caller asks for an account with
- * `signIn.social({ provider: "google", requestSignUp: true })`. So the login
- * screen only signs in, and only the app's sign-up page (e.g. /subscribe)
- * creates accounts. An existing account with the same email links on first
- * use: Google marks its emails verified, Better Auth's default linking rule.
+ * Sign-in only by default: a Google address with no account is refused
+ * (`?error=signup_disabled`). `allowSignUp` is for apps that already have a
+ * public sign-up page: an unknown address then gets an account only when the
+ * page asks with `signIn.social({ provider: "google", requestSignUp: true })`.
+ * That flag comes from the browser, so it is not a gate, only a way to keep
+ * the login screen from creating accounts by accident; never set
+ * `allowSignUp` in an app whose accounts are invite-only.
+ *
+ * An existing account with the same email links on first use: Google marks
+ * its emails verified, Better Auth's default linking rule.
  *
  * Returns `{}` until both keys are set, so an app without them mounts no
  * Google route at all.
  */
-export function googleSocialProviders(env: Record<string, string | undefined> = process.env) {
+export function googleSocialProviders(
+  { allowSignUp = false }: { allowSignUp?: boolean } = {},
+  env: Record<string, string | undefined> = process.env,
+) {
   const clientId = env.GOOGLE_CLIENT_ID;
   const clientSecret = env.GOOGLE_CLIENT_SECRET;
   if (!clientId || !clientSecret) return {};
   return {
-    google: { clientId, clientSecret, disableImplicitSignUp: true, prompt: "select_account" as const },
+    google: {
+      clientId,
+      clientSecret,
+      prompt: "select_account" as const,
+      ...(allowSignUp ? { disableImplicitSignUp: true } : { disableSignUp: true }),
+    },
   };
 }
 
