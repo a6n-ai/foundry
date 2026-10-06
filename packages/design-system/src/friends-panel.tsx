@@ -61,7 +61,7 @@ function PersonRow({ p, children }: { p: FriendPerson; children?: React.ReactNod
     <li className="flex items-center gap-3 py-2">
       <Avatar p={p} />
       <div className="min-w-0 flex-1">
-        <div className="truncate font-medium">{p.name ?? p.displayUsername ?? "Family"}</div>
+        <div className="truncate font-medium">{p.name ?? p.displayUsername ?? "Customer"}</div>
         {p.displayUsername ? <div className="text-muted-foreground truncate text-sm">@{p.displayUsername}</div> : null}
       </div>
       <div className="flex shrink-0 gap-2">{children}</div>

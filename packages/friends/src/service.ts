@@ -82,7 +82,7 @@ export function createFriendsService(deps: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async function customer(publicId: string, q: any = db): Promise<{ id: bigint } & FriendPerson> {
     const [row] = await q.select(person).from(users).where(and(eq(users.publicId, publicId), isCustomer)).limit(1);
-    if (!row) throw new NotFoundError("We couldn't find that family");
+    if (!row) throw new NotFoundError("We couldn't find that customer");
     return row as { id: bigint } & FriendPerson;
   }
 
