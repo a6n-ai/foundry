@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import type { AnyPgTable } from "drizzle-orm/pg-core";
 import { ValidationError } from "@foundry/commons";
@@ -54,6 +54,12 @@ export type WalletDeps<E extends string> = {
    * (the default — award() behaves exactly as before this was added).
    */
   canAward?: (userId: bigint, coins: number) => Promise<boolean>;
+  /**
+   * Optional hard cap on how many coins one wallet may hold (null = no cap).
+   * award() skips an award that would cross it, adjust() refuses a grant that
+   * would, and filterUnderCap() splits a batch. Checked before canAward.
+   */
+  maxBalance?: () => Promise<number | null>;
 };
 
 /**
@@ -150,6 +156,49 @@ export async function lockAndQuoteRedemption(
   if (coins > balance) throw new ValidationError("insufficient coins");
 
   return capRedemption(coins, rate, cap);
+}
+
+/**
+ * Staff give (+) or take (−) coins for one user. Takes the same per-user lock
+ * as redemption so a take cannot race a spend into a negative balance; live
+ * holds count against the balance exactly as in readBalance.
+ */
+export async function adjustCoins(
+  tx: Tx,
+  args: {
+    userId: bigint;
+    coins: number;
+    memo: string;
+    actorId: bigint | null;
+    eventType: string;
+    maxBalance: number | null;
+    walletLedger: WalletTables<string>["walletLedger"];
+    users: AnyPgTable & { id: unknown };
+  },
+): Promise<{ balance: number }> {
+  const { userId, coins, actorId, eventType, maxBalance, walletLedger, users } = args;
+  const memo = args.memo.trim();
+  if (!Number.isInteger(coins) || coins === 0) throw new ValidationError("Coins must be a whole number other than 0.");
+  if (!memo) throw new ValidationError("Add a reason.");
+
+  await lockUser(tx, users, userId);
+  const balance = await readBalance(tx, walletLedger, userId);
+  const next = balance + coins;
+  if (next < 0) throw new ValidationError("That would take the balance below zero.");
+  if (coins > 0 && maxBalance !== null && next > maxBalance) throw new ValidationError("That would go over the wallet cap.");
+
+  await tx.insert(walletLedger).values({
+    userId,
+    direction: coins > 0 ? "credit" : "debit",
+    eventType,
+    // A fresh source id per grant, so the earn-idempotency index never blocks a second one.
+    sourceType: "adjustment",
+    sourceId: `${userId}:${Date.now()}:${Math.random().toString(36).slice(2, 10)}`,
+    coins: Math.abs(coins),
+    memo,
+    createdBy: actorId,
+  });
+  return { balance: next };
 }
 
 /**
@@ -540,8 +589,26 @@ export async function reverseAward(
 }
 
 export function createWalletService<E extends string>(deps: WalletDeps<E>) {
-  const { db, tables, orders, users, recordRedemptionDiscount, canAward } = deps;
+  const { db, tables, orders, users, recordRedemptionDiscount, canAward, maxBalance } = deps;
   const { walletLedger, eventPayout, coinRate } = tables;
+
+  const balanceSum = sql<number>`coalesce(sum(case when ${walletLedger.direction} = 'credit' then ${walletLedger.coins} else -${walletLedger.coins} end), 0)::int`;
+
+  async function filterUnderCap(userIds: bigint[], coins: number): Promise<{ ok: bigint[]; capped: bigint[] }> {
+    if (userIds.length === 0) return { ok: [], capped: [] };
+    const cap = maxBalance ? await maxBalance() : null;
+    if (cap === null) return { ok: userIds, capped: [] };
+    const rows = await db
+      .select({ userId: walletLedger.userId, bal: balanceSum })
+      .from(walletLedger)
+      .where(and(inArray(walletLedger.userId, userIds), unexpired(walletLedger, Date.now())))
+      .groupBy(walletLedger.userId);
+    const byUser = new Map(rows.map((r) => [r.userId as bigint, r.bal]));
+    const ok: bigint[] = [];
+    const capped: bigint[] = [];
+    for (const id of userIds) ((byUser.get(id) ?? 0) + coins <= cap ? ok : capped).push(id);
+    return { ok, capped };
+  }
 
   async function activeRate(currency: string): Promise<number> {
     const [row] = await db
@@ -617,6 +684,7 @@ export function createWalletService<E extends string>(deps: WalletDeps<E>) {
         .where(eq(eventPayout.eventType, eventType))
         .limit(1);
       if (!cfg?.enabled || cfg.coins <= 0) return false;
+      if ((await filterUnderCap([userId], cfg.coins)).ok.length === 0) return false;
       if (canAward && !(await canAward(userId, cfg.coins))) return false;
       const res = await db
         .insert(walletLedger)
@@ -676,6 +744,15 @@ export function createWalletService<E extends string>(deps: WalletDeps<E>) {
     },
 
     activeRate,
+
+    filterUnderCap,
+
+    async adjust(input: { userId: bigint; coins: number; memo: string; actorId: bigint | null }): Promise<{ balance: number }> {
+      const cap = maxBalance ? await maxBalance() : null;
+      return db.transaction((tx) =>
+        adjustCoins(tx as Tx, { ...input, eventType: "manual_adjustment", maxBalance: cap, walletLedger, users }),
+      );
+    },
 
     async redeem(
       userId: bigint,
