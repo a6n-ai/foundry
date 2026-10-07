@@ -2,7 +2,8 @@ import { APIError } from "better-auth/api";
 import { revokeUnprovenAccountAccess } from "better-auth/db";
 
 type RevokeCtx = Parameters<typeof revokeUnprovenAccountAccess>[0];
-type AccountRow = Record<string, unknown> & { providerId?: unknown; userId?: unknown; idToken?: unknown };
+type GoogleAccountFields = { providerId: string; userId: string; idToken?: string | null };
+type TokenFields = { accessToken?: string | null; refreshToken?: string | null; idToken?: string | null };
 
 /** The OAuth callback is one route, "/callback/:id"; name the provider ("/callback/google") so sign-in checks can match it. */
 export function signInPath(path: string, params?: unknown): string {
@@ -51,9 +52,9 @@ export function googleAccountHooks(deps: {
 }) {
   return {
     create: {
-      before: async (acc: AccountRow, ctx: RevokeCtx | null | undefined) => {
+      before: async <A extends GoogleAccountFields>(acc: A, ctx: RevokeCtx | null | undefined): Promise<{ data: A } | undefined> => {
         if (acc.providerId !== "google") return;
-        const userId = BigInt(acc.userId as string);
+        const userId = BigInt(acc.userId);
         if (ctx) await revokeUnprovenAccountAccess(ctx, String(acc.userId));
         else if (!(await deps.isEmailVerified(userId))) {
           throw new APIError("FORBIDDEN", { message: "Verify your email before connecting Google." });
@@ -71,7 +72,7 @@ export function googleAccountHooks(deps: {
     },
     update: {
       // Each Google sign-in refreshes the tokens on the linked row; drop them again.
-      before: async (acc: Record<string, unknown>) => {
+      before: async <A extends TokenFields>(acc: A): Promise<{ data: A } | undefined> => {
         if (!("accessToken" in acc || "refreshToken" in acc || "idToken" in acc)) return;
         return { data: { ...acc, ...NO_TOKENS } };
       },

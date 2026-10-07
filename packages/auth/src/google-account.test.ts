@@ -46,6 +46,6 @@ describe("googleAccountHooks", () => {
   it("drops refreshed tokens on update", async () => {
     const out = await googleAccountHooks(deps()).update.before({ accessToken: "new" });
     expect(out?.data).toMatchObject({ accessToken: null, refreshToken: null, idToken: null });
-    expect(await googleAccountHooks(deps()).update.before({ scope: "x" })).toBeUndefined();
+    expect(await googleAccountHooks(deps()).update.before({ scope: "x" } as never)).toBeUndefined();
   });
 });
