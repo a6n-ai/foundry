@@ -67,3 +67,8 @@ function safeImage(url: unknown): string | null {
   if (typeof url !== "string" || url.length > 500) return null;
   return url.startsWith("https://") || (url.startsWith("/") && !url.startsWith("//")) ? url : null;
 }
+
+/** Cookie options for LAST_USER_COOKIE. Readable by the page (not httpOnly): it holds no token. */
+export function lastUserCookieOptions(production = process.env.NODE_ENV === "production") {
+  return { path: "/", maxAge: LAST_USER_MAX_AGE_S, sameSite: "lax" as const, httpOnly: false, secure: production };
+}

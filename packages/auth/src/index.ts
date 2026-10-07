@@ -21,5 +21,6 @@ export type { OrganizationPluginConfig } from "./organization-plugin";
 export { createStaffInvite, StaffInviteError } from "./staff-invite";
 export type { StaffInviteDeps } from "./staff-invite";
 export { googleSocialProviders, googleSignInEnabled, googleOneTapPlugins } from "./social";
-export { LAST_USER_COOKIE, LAST_USER_MAX_AGE_S, encodeLastUser, parseLastUser, maskEmail, lastUserMethod } from "./last-user";
+export { googleAccountHooks, googlePicture, SIGN_IN_METHOD, signInPath } from "./google-account";
+export { LAST_USER_COOKIE, LAST_USER_MAX_AGE_S, lastUserCookieOptions, encodeLastUser, parseLastUser, maskEmail, lastUserMethod } from "./last-user";
 export type { LastUser, LastUserMethod } from "./last-user";
