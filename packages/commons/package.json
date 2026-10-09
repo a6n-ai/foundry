@@ -8,7 +8,8 @@
     "./logger": "./src/logger.ts",
     "./model/condition": "./src/model/condition.ts",
     "./util/pagination": "./src/util/pagination.ts",
-    "./plugin": "./src/plugin.ts"
+    "./plugin": "./src/plugin.ts",
+    "./secret-box": "./src/secret-box.ts"
   },
   "types": "./src/index.ts",
   "scripts": {
