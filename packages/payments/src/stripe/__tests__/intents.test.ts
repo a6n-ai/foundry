@@ -46,10 +46,31 @@ describe("intents", () => {
 
   it("charges saved cards off-session", async () => {
     const s = fake();
-    await chargeSavedCard(s, { amountCents: 500, customerId: "cus_1", paymentMethodId: "pm_1", paymentRef: "p1" });
+    await chargeSavedCard(s, { amountCents: 500, customerId: "cus_1", paymentMethodId: "pm_1", paymentRef: "p1", attempt: "29000000" });
     const [params, opts] = (s.paymentIntents.create as ReturnType<typeof vi.fn>).mock.calls[0]!;
     expect(params).toMatchObject({ off_session: true, confirm: true, payment_method: "pm_1" });
-    expect(opts.idempotencyKey).toBe("charge:p1:500:none");
+    expect(opts.idempotencyKey).toBe("charge:p1:500:none:pm_1:29000000");
+  });
+
+  it("maps off-session 3DS to requires_action", async () => {
+    const err = Object.assign(new Error("Authentication required"), { type: "StripeCardError", code: "authentication_required", payment_intent: { id: "pi_a", status: "requires_payment_method", client_secret: "cs_a" } });
+    const s = fake({ paymentIntents: { create: vi.fn(async () => { throw err; }) } });
+    await expect(chargeSavedCard(s, { amountCents: 1, customerId: "c", paymentMethodId: "pm", paymentRef: "p", attempt: "1" }))
+      .resolves.toEqual({ status: "requires_action", piId: "pi_a", clientSecret: "cs_a", reason: "Authentication required" });
+  });
+
+  it("maps idempotency errors to failed in both charge paths", async () => {
+    const err = Object.assign(new Error("idem"), { type: "StripeIdempotencyError" });
+    const s = fake({ paymentIntents: { create: vi.fn(async () => { throw err; }) } });
+    const want = { status: "failed", piId: null, clientSecret: null, reason: "A charge for this payment was just attempted. Wait a minute and try again." };
+    await expect(chargeSavedCard(s, { amountCents: 1, customerId: "c", paymentMethodId: "pm", paymentRef: "p", attempt: "1" })).resolves.toEqual(want);
+    await expect(createAndConfirmIntent(s, { amountCents: 1, customerId: "c", confirmationTokenId: "t", paymentRef: "p", returnUrl: "u" })).resolves.toEqual(want);
+  });
+
+  it("includes a reason when a created intent is not successful", async () => {
+    const s = fake({ paymentIntents: { create: vi.fn(async () => ({ id: "pi_f", status: "requires_payment_method", client_secret: "x", last_payment_error: { message: "nope" } })) } });
+    await expect(createAndConfirmIntent(s, { amountCents: 1, customerId: "c", confirmationTokenId: "t", paymentRef: "p", returnUrl: "u" }))
+      .resolves.toMatchObject({ status: "failed", reason: "nope" });
   });
 
   it("normalizes status", async () => {

@@ -5,12 +5,22 @@ import type { CardPreview, IntentResult, IntentStatus } from "./types";
 const FUNDING = new Set(["credit", "debit", "prepaid", "unknown"]);
 const funding = (f: string | null | undefined): CardFunding => (f && FUNDING.has(f) ? (f as CardFunding) : "unknown");
 
-function toResult(pi: Pick<Stripe.PaymentIntent, "id" | "status" | "client_secret">): IntentResult {
+function toResult(pi: Pick<Stripe.PaymentIntent, "id" | "status" | "client_secret" | "last_payment_error">): IntentResult {
   const status = pi.status === "succeeded" ? "succeeded"
     : pi.status === "processing" ? "processing"
     : pi.status === "requires_action" ? "requires_action"
     : "failed";
-  return { status, piId: pi.id, clientSecret: pi.client_secret ?? null };
+  return {
+    status, piId: pi.id, clientSecret: pi.client_secret ?? null,
+    ...(status === "failed" ? { reason: pi.last_payment_error?.message ?? "Payment failed" } : {}),
+  };
+}
+
+const IDEMPOTENCY_REASON = "A charge for this payment was just attempted. Wait a minute and try again.";
+
+function idempotencyFailure(e: unknown): IntentResult | null {
+  if ((e as { type?: string })?.type !== "StripeIdempotencyError") return null;
+  return { status: "failed", piId: null, clientSecret: null, reason: IDEMPOTENCY_REASON };
 }
 
 function cardFailure(e: unknown): IntentResult | null {
@@ -47,7 +57,7 @@ export async function createAndConfirmIntent(stripe: Stripe, i: {
     );
     return toResult(pi);
   } catch (e) {
-    const failed = cardFailure(e);
+    const failed = cardFailure(e) ?? idempotencyFailure(e);
     if (failed) return failed;
     throw e;
   }
@@ -62,7 +72,7 @@ export async function defaultCard(stripe: Stripe, customerId: string) {
 
 export async function chargeSavedCard(stripe: Stripe, i: {
   amountCents: number; customerId: string; paymentMethodId: string; paymentRef: string;
-  orgRef?: string | null; taxCalculationId?: string | null;
+  orgRef?: string | null; taxCalculationId?: string | null; attempt: string;
 }): Promise<IntentResult> {
   try {
     const pi = await stripe.paymentIntents.create(
@@ -76,16 +86,18 @@ export async function chargeSavedCard(stripe: Stripe, i: {
         metadata: { paymentRef: i.paymentRef, ...(i.orgRef ? { orgRef: i.orgRef } : {}) },
         ...(i.taxCalculationId ? { hooks: { inputs: { tax: { calculation: i.taxCalculationId } } } } : {}),
       },
-      { idempotencyKey: `charge:${i.paymentRef}:${i.amountCents}:${i.taxCalculationId ?? "none"}` },
+      { idempotencyKey: `charge:${i.paymentRef}:${i.amountCents}:${i.taxCalculationId ?? "none"}:${i.paymentMethodId}:${i.attempt}` },
     );
     return toResult(pi);
   } catch (e) {
+    const err = e as { code?: string; payment_intent?: { id: string; client_secret?: string | null } };
     const failed = cardFailure(e);
-    if (failed) {
-      // authentication_required surfaces as a card error carrying a requires_action PI
-      const pi = (e as { payment_intent?: { status?: string } }).payment_intent;
-      return pi?.status === "requires_action" ? { ...failed, status: "requires_action" } : failed;
+    if (failed && err.code === "authentication_required") {
+      const pi = err.payment_intent;
+      return { status: "requires_action", piId: pi?.id ?? null, clientSecret: pi?.client_secret ?? null, reason: failed.reason };
     }
+    const out = failed ?? idempotencyFailure(e);
+    if (out) return out;
     throw e;
   }
 }
