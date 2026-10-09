@@ -46,10 +46,10 @@ describe("intents", () => {
 
   it("charges saved cards off-session", async () => {
     const s = fake();
-    await chargeSavedCard(s, { amountCents: 500, customerId: "cus_1", paymentMethodId: "pm_1", paymentRef: "p1", attempt: "29000000" });
+    await chargeSavedCard(s, { amountCents: 500, customerId: "cus_1", paymentMethodId: "pm_1", paymentRef: "p1", attempt: "0" });
     const [params, opts] = (s.paymentIntents.create as ReturnType<typeof vi.fn>).mock.calls[0]!;
     expect(params).toMatchObject({ off_session: true, confirm: true, payment_method: "pm_1" });
-    expect(opts.idempotencyKey).toBe("charge:p1:500:none:pm_1:29000000");
+    expect(opts.idempotencyKey).toBe("charge:p1:500:none:pm_1:0");
   });
 
   it("maps off-session 3DS to requires_action", async () => {
@@ -59,10 +59,10 @@ describe("intents", () => {
       .resolves.toEqual({ status: "requires_action", piId: "pi_a", clientSecret: "cs_a", reason: "Authentication required" });
   });
 
-  it("maps idempotency errors to failed in both charge paths", async () => {
+  it("maps idempotency errors to processing in both charge paths", async () => {
     const err = Object.assign(new Error("idem"), { type: "StripeIdempotencyError" });
     const s = fake({ paymentIntents: { create: vi.fn(async () => { throw err; }) } });
-    const want = { status: "failed", piId: null, clientSecret: null, reason: "A charge for this payment was just attempted. Wait a minute and try again." };
+    const want = { status: "processing", piId: null, clientSecret: null, reason: "A charge for this payment is already in progress." };
     await expect(chargeSavedCard(s, { amountCents: 1, customerId: "c", paymentMethodId: "pm", paymentRef: "p", attempt: "1" })).resolves.toEqual(want);
     await expect(createAndConfirmIntent(s, { amountCents: 1, customerId: "c", confirmationTokenId: "t", paymentRef: "p", returnUrl: "u" })).resolves.toEqual(want);
   });

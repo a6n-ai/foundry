@@ -16,11 +16,11 @@ function toResult(pi: Pick<Stripe.PaymentIntent, "id" | "status" | "client_secre
   };
 }
 
-const IDEMPOTENCY_REASON = "A charge for this payment was just attempted. Wait a minute and try again.";
+const IDEMPOTENCY_REASON = "A charge for this payment is already in progress.";
 
 function idempotencyFailure(e: unknown): IntentResult | null {
   if ((e as { type?: string })?.type !== "StripeIdempotencyError") return null;
-  return { status: "failed", piId: null, clientSecret: null, reason: IDEMPOTENCY_REASON };
+  return { status: "processing", piId: null, clientSecret: null, reason: IDEMPOTENCY_REASON };
 }
 
 function cardFailure(e: unknown): IntentResult | null {
@@ -72,7 +72,9 @@ export async function defaultCard(stripe: Stripe, customerId: string) {
 
 export async function chargeSavedCard(stripe: Stripe, i: {
   amountCents: number; customerId: string; paymentMethodId: string; paymentRef: string;
-  orgRef?: string | null; taxCalculationId?: string | null; attempt: string;
+  orgRef?: string | null; taxCalculationId?: string | null;
+  /** Caller-owned retry counter: the number of prior definitively failed charges for this payment. Same value = same Stripe idempotency key, so concurrent clicks collapse into one charge. */
+  attempt: string;
 }): Promise<IntentResult> {
   try {
     const pi = await stripe.paymentIntents.create(
