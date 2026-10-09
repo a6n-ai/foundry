@@ -1,6 +1,6 @@
 import type { PluginServer } from "@foundry/commons/plugin";
 import { parseStripeConfig } from "./config";
-import { disconnectStripe, type ConnectDeps } from "./connect";
+import { disconnectStripe, readStripeConfigStrict, type ConnectDeps } from "./connect";
 
 export function stripePlugin(deps: ConnectDeps): PluginServer {
   return {
@@ -16,8 +16,9 @@ export function stripePlugin(deps: ConnectDeps): PluginServer {
     },
     // Install only reveals the settings tab; connecting happens there with the keys.
     async install() {
+      const prev = await readStripeConfigStrict(deps);
       const blob = await deps.store.get();
-      await deps.store.set({ ...blob, stripe: { ...parseStripeConfig(blob["stripe"]), installed: true } });
+      await deps.store.set({ ...blob, stripe: { ...prev, installed: true } });
     },
     uninstall: () => disconnectStripe(deps),
   };

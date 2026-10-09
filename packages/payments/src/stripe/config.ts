@@ -25,7 +25,7 @@ export const stripePluginConfigSchema = z.object({
   }).default({ enabled: false, surchargeTaxable: false }),
   surcharge: z.object({
     enabled: z.boolean().default(false),
-    ratePct: z.number().min(0).default(0),
+    ratePct: z.number().finite().min(0).default(0),
     excludeProvinces: z.array(z.string()).default(["QC"]),
     networksNotifiedOn: z.string().optional(),
   }).default({ enabled: false, ratePct: 0, excludeProvinces: ["QC"] }),
