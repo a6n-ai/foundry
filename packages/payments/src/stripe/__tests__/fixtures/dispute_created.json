@@ -1,0 +1,1 @@
+{"id":"evt_dp","object":"event","api_version":"2026-09-30.endive","type":"charge.dispute.created","data":{"object":{"id":"dp_1","object":"dispute","payment_intent":"pi_1","amount":20480,"reason":"fraudulent"}}}
