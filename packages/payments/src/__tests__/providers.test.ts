@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { PAYMENT_PROVIDERS, findPaymentProvider, mergePaymentCatalog } from "../providers";
 
 describe("PAYMENT_PROVIDERS", () => {
-  it("ships cash (default on) then e-Transfer — no card/Stripe rail", () => {
-    expect(PAYMENT_PROVIDERS.map((p) => p.id)).toEqual(["cash", "etransfer"]);
-    expect(findPaymentProvider("stripe")).toBeUndefined();
+  it("ships cash (default on), e-Transfer, then Stripe gated on its plugin", () => {
+    expect(PAYMENT_PROVIDERS.map((p) => p.id)).toEqual(["cash", "etransfer", "stripe"]);
+    expect(findPaymentProvider("stripe")?.requiresPlugin).toBe("stripe");
     expect(findPaymentProvider("manual")).toBeUndefined();
   });
 
@@ -30,6 +30,14 @@ describe("PAYMENT_PROVIDERS", () => {
 });
 
 describe("mergePaymentCatalog", () => {
+  it("seeds stripe only when its plugin is installed", () => {
+    const without = mergePaymentCatalog({ methods: [] });
+    expect(without.methods.map((m) => m.id)).toEqual(["cash", "etransfer"]);
+    const withStripe = mergePaymentCatalog({ methods: [] }, ["stripe"]);
+    expect(withStripe.methods.map((m) => m.id)).toEqual(["cash", "etransfer", "stripe"]);
+    expect(withStripe.methods[2]).toMatchObject({ kind: "online", enabled: false });
+  });
+
   it("inserts enabled cash into an empty config", () => {
     const next = mergePaymentCatalog({ methods: [] });
     expect(next.methods.map((m) => [m.id, m.enabled])).toEqual([
