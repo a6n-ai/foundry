@@ -6,3 +6,5 @@ export * from "./webhook";
 export * from "./intents";
 export * from "./customer";
 export * from "./tax";
+export * from "./connect";
+export * from "./plugin.server";
