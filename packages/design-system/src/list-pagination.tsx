@@ -9,12 +9,14 @@ import {
 } from "@foundry/ui/select";
 
 export function ListPagination({
-  page, size, total, sizes = PAGE_SIZES,
+  page, size, total, sizes = PAGE_SIZES, onChange,
 }: {
   page: number;
   size: number;
   total: number;
   sizes?: readonly number[];
+  /** When set, page changes stay in memory instead of the URL. */
+  onChange?: (next: { page: number; size: number }) => void;
 }) {
   const nav = useListNav();
   const pathname = usePathname();
@@ -25,6 +27,13 @@ export function ListPagination({
   const safePage = Math.min(Math.max(0, page), pageCount - 1);
 
   const push = (next: Record<string, string>) => {
+    if (onChange) {
+      onChange({
+        page: next.page != null ? Number(next.page) : safePage,
+        size: next.size != null ? Number(next.size) : size,
+      });
+      return;
+    }
     const sp = new URLSearchParams(params.toString());
     for (const [k, v] of Object.entries(next)) sp.set(k, v);
     nav(`${pathname}?${sp.toString()}`);

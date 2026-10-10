@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  Children, Fragment, isValidElement, useCallback,
-  type ReactElement, type ReactNode,
+  Children, Fragment, isValidElement, useCallback, useEffect, useState,
+  type CSSProperties, type ReactElement, type ReactNode,
 } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -22,6 +22,8 @@ import { SortableHeader } from "./sortable-header";
 import { useListNav, useListNavPending } from "./use-list-nav";
 import { useSortNav } from "./use-sort-nav";
 import { ListPagination } from "./list-pagination";
+import { DEFAULT_SIZE } from "./filters/parse-filter-state";
+import { defaultColumnPx, headStyle, ID_KEY, useColumnLayout } from "./column-layout";
 
 export type SortDir = "asc" | "desc";
 export type SortState<K extends string = string> = { column: K; dir: SortDir };
@@ -72,8 +74,13 @@ export type DataTableProps<Row, K extends string> = {
   emptyMessage: string;
   emptySearchMessage?: string;
   emptyAction?: ReactNode;
-  /** Client-side pagination over filtered rows; page/size sync via URL (see ListPagination). */
-  pagination?: { page: number; size: number };
+  /**
+   * Page the rows. `{ page, size }` is URL-driven (the parent reads the query).
+   * `"client"` pages an in-memory list locally — for tables that already hold
+   * every row and must not share `?page` with another table on the page.
+   * Server-paged lists omit this and render ListPagination themselves.
+   */
+  pagination?: { page: number; size: number } | "client";
   /** Server-paged lists: rows skipped before this page (page * size), so "#" keeps counting. */
   serialOffset?: number;
 };
@@ -105,11 +112,10 @@ function useSearchQuery(): [string, (v: string) => void] {
 // Sticky header seated with a subtle muted wash so rows scroll under it cleanly.
 const HEAD_STICKY = "sticky top-0 z-10 bg-muted/40";
 
-// Fixed layout: column widths come from `Column.width` (else an even share of
-// what is left), never from the rows on screen — so paging, filtering or a
-// long value can't make the columns jump. Overlong text ellipsizes instead of
-// pushing a horizontal scrollbar. min-w keeps a many-column table from being
-// crushed on a tablet; below it the container scrolls as before.
+// Fixed layout so a long value can't shove its neighbours around. Each column
+// has a starting width; the row stretches to fill the card, and a drag on the
+// header edge resizes that column. Past the card's width the table scrolls
+// sideways. Chosen widths are remembered for that page.
 /**
  * One width per kind of column, shared by every table in every app, so a
  * "Status" or "Created" column is the same width wherever it appears. Keyed on
@@ -157,36 +163,62 @@ function colWidth(c: { key: string; width?: string }): string | undefined {
 }
 
 const TABLE_FIXED =
-  "min-w-[56rem] table-fixed [&_td]:overflow-hidden [&_td]:text-ellipsis [&_th]:overflow-hidden [&_th]:text-ellipsis";
+  "table-fixed [&_td]:overflow-hidden [&_td]:text-ellipsis [&_th]:overflow-hidden [&_th]:text-ellipsis";
 
 // The two fixed leading columns: serial "#" and the human ID. Rendered by the
 // live header and the skeleton twin so both stay in lockstep.
 const SERIAL_WIDTH = "w-12";
 const ID_WIDTH = "w-36";
 
-function LeadHeads({ serial, hasId, idLabel }: { serial: boolean; hasId: boolean; idLabel: string }) {
+function LeadHeads({
+  serial, hasId, idLabel, idStyle, idResize,
+}: {
+  serial: boolean;
+  hasId: boolean;
+  idLabel: string;
+  idStyle?: CSSProperties;
+  idResize?: ReactNode;
+}) {
   return (
     <>
-      {serial && <TableHead className={cn(SERIAL_WIDTH, "text-right")}>#</TableHead>}
-      {hasId && <TableHead className={ID_WIDTH}>{idLabel}</TableHead>}
+      {serial && (
+        <TableHead className="text-right" style={{ width: 48, minWidth: 48, maxWidth: 48 }}>#</TableHead>
+      )}
+      {hasId && (
+        <TableHead className="relative" style={idStyle}>
+          <span className="block truncate">{idLabel}</span>
+          {idResize}
+        </TableHead>
+      )}
     </>
   );
 }
 
 function HeaderRow<K extends string>({
-  columns, sort, serial, hasId, idLabel,
+  columns, sort, serial, hasId, idLabel, widthOf, locked, resizer,
 }: {
   columns: readonly Column<K>[];
   sort?: SortState<K>;
   serial: boolean;
   hasId: boolean;
   idLabel: string;
+  widthOf: (key: string) => number;
+  locked: boolean;
+  resizer: (key: string, label: string) => ReactNode;
 }) {
   return (
     <TableRow>
-      <LeadHeads serial={serial} hasId={hasId} idLabel={idLabel} />
-      {columns.map((c) =>
-        c.sortable && sort ? (
+      <LeadHeads
+        serial={serial}
+        hasId={hasId}
+        idLabel={idLabel}
+        idStyle={hasId ? headStyle(widthOf(ID_KEY), locked) : undefined}
+        idResize={hasId ? resizer(ID_KEY, idLabel) : undefined}
+      />
+      {columns.map((c) => {
+        const style = headStyle(widthOf(c.key), locked);
+        const grip = resizer(c.key, c.label);
+        return c.sortable && sort ? (
           <SortableHeader
             key={c.key}
             column={c.key}
@@ -194,14 +226,16 @@ function HeaderRow<K extends string>({
             currentSort={sort.column}
             currentDir={sort.dir}
             align={c.align}
-            className={colWidth(c)}
+            style={style}
+            resize={grip}
           />
         ) : (
-          <TableHead key={c.key} className={cn(alignClass(c.align), colWidth(c))}>
-            {c.label}
+          <TableHead key={c.key} className={cn("relative", alignClass(c.align))} style={style}>
+            <span className="block truncate">{c.label}</span>
+            {grip}
           </TableHead>
-        ),
-      )}
+        );
+      })}
     </TableRow>
   );
 }
@@ -351,6 +385,13 @@ export function DataTable<Row, K extends string>({
   const loading = useListNavPending();
   const hasId = !!idAccessor;
   const leadCount = (serial ? 1 : 0) + (hasId ? 1 : 0);
+  const layout = useColumnLayout(columns, KIND_WIDTH, hasId, serial);
+  const clientPaging = pagination === "client";
+  const [clientPage, setClientPage] = useState(0);
+  const [clientSize, setClientSize] = useState(DEFAULT_SIZE);
+  useEffect(() => {
+    setClientPage(0);
+  }, [searchValue]);
 
   // The ID column is always searchable client-side, even when the page didn't
   // list it in search.keys — sales look rows up by their public ID.
@@ -363,13 +404,14 @@ export function DataTable<Row, K extends string>({
       })
     : rows;
 
+  const paging = clientPaging ? { page: clientPage, size: clientSize } : pagination;
   const total = filtered.length;
-  const pageCount = pagination ? Math.max(1, Math.ceil(total / pagination.size)) : 1;
-  const safePage = pagination ? Math.min(Math.max(0, pagination.page), pageCount - 1) : 0;
-  const displayRows = pagination
-    ? filtered.slice(safePage * pagination.size, (safePage + 1) * pagination.size)
+  const pageCount = paging ? Math.max(1, Math.ceil(total / paging.size)) : 1;
+  const safePage = paging ? Math.min(Math.max(0, paging.page), pageCount - 1) : 0;
+  const displayRows = paging
+    ? filtered.slice(safePage * paging.size, (safePage + 1) * paging.size)
     : filtered;
-  const serialOffset = pagination ? safePage * pagination.size : serverOffset;
+  const serialOffset = paging ? safePage * paging.size : serverOffset;
 
   return (
     <div className="space-y-4">
@@ -393,9 +435,18 @@ export function DataTable<Row, K extends string>({
         aria-busy={loading}
         className={cn("hidden overflow-hidden rounded-lg border transition-opacity md:block", loading && "opacity-60")}
       >
-        <Table className={TABLE_FIXED}>
+        <Table className={TABLE_FIXED} style={layout.tableStyle}>
           <TableHeader className={HEAD_STICKY}>
-            <HeaderRow columns={columns} sort={sort} serial={serial} hasId={hasId} idLabel={idLabel} />
+            <HeaderRow
+              columns={columns}
+              sort={sort}
+              serial={serial}
+              hasId={hasId}
+              idLabel={idLabel}
+              widthOf={layout.widthOf}
+              locked={layout.locked}
+              resizer={layout.resizer}
+            />
           </TableHeader>
           <TableBody>
             {displayRows.length ? (
@@ -492,8 +543,13 @@ export function DataTable<Row, K extends string>({
           </div>
         )}
       </div>
-      {pagination && total > 0 && (
-        <ListPagination page={safePage} size={pagination.size} total={total} />
+      {paging && total > 0 && (
+        <ListPagination
+          page={safePage}
+          size={paging.size}
+          total={total}
+          onChange={clientPaging ? (next) => { setClientPage(next.page); setClientSize(next.size); } : undefined}
+        />
       )}
     </div>
   );
@@ -541,10 +597,11 @@ export function DataTableSkeleton<K extends string>({
   hasId?: boolean;
   idLabel?: string;
 }) {
+  const skelMin = (serial ? 48 : 0) + (hasId ? 144 : 0) + columns.reduce((n, c) => n + defaultColumnPx(c, KIND_WIDTH), 0);
   return (
     <div className="space-y-4">
       <div className="hidden overflow-hidden rounded-lg border md:block">
-        <Table className={TABLE_FIXED}>
+        <Table className={TABLE_FIXED} style={{ width: "100%", minWidth: skelMin }}>
           <TableHeader className={HEAD_STICKY}>
             <TableRow>
               <LeadHeads serial={serial} hasId={hasId} idLabel={idLabel} />
