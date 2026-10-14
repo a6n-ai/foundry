@@ -7,6 +7,7 @@
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
     "./service": "./src/service.ts",
+    "./fsa": "./src/fsa.ts",
     "./ui": "./src/ui/index.ts"
   },
   "types": "./src/index.ts",

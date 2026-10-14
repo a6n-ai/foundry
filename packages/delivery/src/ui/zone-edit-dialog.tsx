@@ -15,6 +15,7 @@ import { Input } from "@foundry/ui/input";
 import { Label } from "@foundry/ui/label";
 import { Switch } from "@foundry/ui/switch";
 import { normalizePostal } from "../zones";
+import { postalArea } from "../fsa";
 import { ZoneMap, clampMapRadius, type MapZone } from "./zone-map";
 import { useDeliveryActions, type TypeOption, type ZoneRow } from "./context";
 
@@ -78,6 +79,7 @@ export function ZoneEditDialog({
   const bounds = boundsFor(allZones, radiusKm, zone?.publicId || undefined);
   const busy = pending || retiring;
   const activeTypes = types.filter((t) => t.active);
+  const parsedPrefixes = parsePrefixes(prefixText);
 
   /** Parse, clamp and adopt on blur; restore the last good value if unparseable. */
   function commitRadius() {
@@ -264,6 +266,22 @@ export function ZoneEditDialog({
               <p id="zone-prefixes-help" className="text-muted-foreground text-xs">
                 Comma or space separated. The longest matching prefix wins, so L3R beats L3.
               </p>
+              {parsedPrefixes.length > 0 && (
+                <ul className="grid gap-0.5 text-xs" aria-label="Areas these prefixes cover">
+                  {parsedPrefixes.map((p) => {
+                    const area = postalArea(p);
+                    return (
+                      <li key={p} className="flex gap-2">
+                        <span className="w-10 shrink-0 font-mono font-medium">{p}</span>
+                        <span className={area ? "text-muted-foreground" : "text-destructive"}>
+                          {area ? area.name : "Unknown postal area"}
+                          {area?.neighbourhoods && <span className="opacity-70"> · {area.neighbourhoods}</span>}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           )}
 
