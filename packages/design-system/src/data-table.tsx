@@ -568,9 +568,10 @@ export function TableEmptyRow({
   action?: ReactNode;
 }) {
   return (
-    <TableRow className="hover:bg-transparent">
+    <TableRow data-table-empty className="hover:bg-transparent">
       <TableCell colSpan={colSpan} className="h-40 text-center">
-        <div className="grid place-items-center gap-3 py-8">
+        {/* Sized to the visible box (the table container becomes a size container while it shows this row), so a table wider than its scroll box still centers this in view. */}
+        <div className="grid w-[calc(100cqw-1rem)] place-items-center gap-3 py-8">
           <span className="bg-muted text-muted-foreground grid size-12 place-items-center rounded-xl">
             <Icon className="size-6" />
           </span>

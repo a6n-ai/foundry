@@ -11,7 +11,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
       // Thin, theme-colored scrollbar instead of the browser's raw OS chrome —
       // a wide table (many columns) still needs to scroll, but shouldn't look
       // like it broke out of the design.
-      className="relative w-full overflow-x-auto [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
+      className="relative w-full [&:has([data-table-empty])]:[container-type:inline-size] overflow-x-auto [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
     >
       <table
         data-slot="table"
