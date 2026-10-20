@@ -19,7 +19,7 @@ describe("assertInAppPath", () => {
     expect(assertInAppPath("/subscribe?p=veg")).toBe("/subscribe?p=veg");
   });
 
-  it.each(["https://evil.test", "//evil.test", "/\\evil.test", "subscribe", "/a\r\nLocation: x"])("rejects %s", (t) => {
+  it.each(["https://evil.test", "//evil.test", "/\\evil.test", "subscribe", "/a\r\nLocation: x", "/\t/evil.test", "/\n/evil.test", "/\\/evil.test"])("rejects %j", (t) => {
     expect(() => assertInAppPath(t)).toThrow();
   });
 });

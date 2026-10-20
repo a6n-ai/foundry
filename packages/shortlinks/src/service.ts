@@ -22,15 +22,22 @@ export function normalizeCode(raw: string): string | null {
 
 /**
  * Only same-app paths: a short link that could point anywhere is an open redirect wearing the
- * app's domain. Rejects absolute URLs, protocol-relative `//host`, and `/\host` (browsers treat
- * a backslash like a slash).
+ * app's domain. Control characters are refused outright (browsers drop tabs and newlines, so
+ * "/<tab>/evil.test" would become "//evil.test"); what is left must parse to the same origin
+ * as a fixed base, which rules out absolute URLs, "//host" and "/\host". The path is returned
+ * rebuilt from the parsed URL, so what gets stored is what the browser would follow.
  */
+const BASE = "https://app.invalid";
 export function assertInAppPath(target: string): string {
-  if (!target.startsWith("/") || target.startsWith("//") || target.startsWith("/\\") || /[\r\n]/.test(target)) {
+  // eslint-disable-next-line no-control-regex
+  if (/[\x00-\x1f\x7f]/.test(target) || target.length > 2000 || !target.startsWith("/")) {
     throw new Error(`short link target must be an in-app path, got "${target.slice(0, 40)}"`);
   }
-  if (target.length > 2000) throw new Error("short link target is too long");
-  return target;
+  const url = new URL(target, BASE);
+  if (url.origin !== BASE || target.startsWith("//") || target.startsWith("/\\")) {
+    throw new Error(`short link target must be an in-app path, got "${target.slice(0, 40)}"`);
+  }
+  return url.pathname + url.search + url.hash;
 }
 
 export async function createShortLink(db: Database, input: { target: string; createdBy?: bigint | null }): Promise<string> {
