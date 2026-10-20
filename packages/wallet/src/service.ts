@@ -73,7 +73,9 @@ export function capRedemption(
   orderTotal: number,
 ): { coinsSpent: number; currencyValue: number } {
   let currencyValue = Math.min(coins * rate, orderTotal);
-  const coinsSpent = Math.round(currencyValue / rate);
+  // Floor, not round: never spend a coin worth more than what is left to pay.
+  // The epsilon keeps 0.3 / 0.1 = 2.9999… at 3.
+  const coinsSpent = Math.floor(currencyValue / rate + 1e-9);
   // Re-apply cap after recompute: for non-round rates, coinsSpent*rate can exceed order.total
   currencyValue = Math.min(Number((coinsSpent * rate).toFixed(2)), orderTotal);
   return { coinsSpent, currencyValue };
@@ -108,6 +110,26 @@ export function unexpired(
   now: number,
 ) {
   return sql`(${walletLedger.reservedUntil} is null or ${walletLedger.reservedUntil} > ${now})`;
+}
+
+/**
+ * Net coins spent at checkout: spends (and lapsed holds taken again) minus
+ * spends given back. Shared with apps' own aggregate queries, same reason as
+ * `unexpired`: one spelling of "spent".
+ */
+export function spentCoinsSql(walletLedger: WalletTables<string>["walletLedger"]) {
+  return sql<number>`cast(coalesce(sum(case
+    when ${walletLedger.sourceType} in ('redemption', 'redemption_late') then ${walletLedger.coins}
+    when ${walletLedger.sourceType} = 'redemption_reversal' then -${walletLedger.coins}
+    else 0 end), 0) as int)`;
+}
+
+/** Net coins earned: every non-checkout row, credits up and take-backs down. */
+export function earnedCoinsSql(walletLedger: WalletTables<string>["walletLedger"]) {
+  return sql<number>`cast(coalesce(sum(case
+    when ${walletLedger.sourceType} in ('redemption', 'redemption_late', 'redemption_reversal') then 0
+    when ${walletLedger.direction} = 'credit' then ${walletLedger.coins}
+    else -${walletLedger.coins} end), 0) as int)`;
 }
 
 async function readBalance(
@@ -734,9 +756,7 @@ export function createWalletService<E extends string>(deps: WalletDeps<E>) {
     },
 
     async earnSpendTotals(userId: bigint): Promise<{ earned: number; spent: number }> {
-      const coinsIf = (dir: "credit" | "debit") =>
-        sql<number>`cast(coalesce(sum(case when ${walletLedger.direction} = ${dir} then ${walletLedger.coins} else 0 end), 0) as int)`;
-      const [agg] = await db.select({ earned: coinsIf("credit"), spent: coinsIf("debit") })
+      const [agg] = await db.select({ earned: earnedCoinsSql(walletLedger), spent: spentCoinsSql(walletLedger) })
         .from(walletLedger).where(and(eq(walletLedger.userId, userId), unexpired(walletLedger, Date.now())));
       return { earned: agg.earned, spent: agg.spent };
     },

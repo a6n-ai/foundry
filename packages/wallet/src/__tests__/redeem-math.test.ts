@@ -26,10 +26,10 @@ describe("capRedemption", () => {
 
   it("re-caps after the recompute pushes value back over the total (deleting the second cap alone breaks this)", () => {
     // 143 * 0.07 = 10.01, so the first cap clamps currencyValue to 10;
-    // coinsSpent = round(10 / 0.07) = 143; recomputing coinsSpent * rate
-    // gives 10.01 again, over `total` — only the second cap catches that.
+    // coinsSpent = floor(10 / 0.07) = 142 (rounding used to charge 143 for
+    // $10.00); the second cap stays as a guard for float error.
     const out = capRedemption(143, 0.07, 10);
-    expect(out.coinsSpent).toBe(143);
+    expect(out.coinsSpent).toBe(142);
     expect(out.currencyValue).toBeLessThanOrEqual(10);
     expect(out.currencyValue).not.toBe(10.01);
   });
@@ -43,6 +43,16 @@ describe("capRedemption", () => {
   it("rounds currency to two decimals", () => {
     const out = capRedemption(33, 0.07, 100);
     expect(out.currencyValue).toBe(Number(out.currencyValue.toFixed(2)));
+  });
+});
+
+describe("capRedemption never overspends", () => {
+  it("floors when the order total caps the redemption", () => {
+    expect(capRedemption(1000, 0.1, 10.05)).toEqual({ coinsSpent: 100, currencyValue: 10 });
+  });
+
+  it("still takes exact multiples despite float error", () => {
+    expect(capRedemption(3, 0.1, 100)).toEqual({ coinsSpent: 3, currencyValue: 0.3 });
   });
 });
 
