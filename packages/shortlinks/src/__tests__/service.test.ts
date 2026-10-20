@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 import { assertInAppPath, createShortLink, makeCode, normalizeCode } from "../service";
 
 describe("codes", () => {
-  it("are 6 characters with no look-alikes", () => {
-    for (let i = 0; i < 200; i++) expect(makeCode()).toMatch(/^[2-9A-HJKMNP-Z]{6}$/);
+  it("are 8 characters with no look-alikes", () => {
+    for (let i = 0; i < 200; i++) expect(makeCode()).toMatch(/^[2-9A-HJKMNP-Z]{8}$/);
   });
 
   it("normalize case and reject anything else", () => {
-    expect(normalizeCode(" k7m2qx ")).toBe("K7M2QX");
-    expect(normalizeCode("K7M2Q")).toBeNull();
-    expect(normalizeCode("K7M2Q0")).toBeNull();
+    expect(normalizeCode(" k7m2qxab ")).toBe("K7M2QXAB");
+    expect(normalizeCode("K7M2QXA")).toBeNull();
+    expect(normalizeCode("K7M2QXA0")).toBeNull();
     expect(normalizeCode("../etc")).toBeNull();
   });
 });

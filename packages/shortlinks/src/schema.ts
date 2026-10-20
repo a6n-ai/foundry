@@ -2,7 +2,7 @@ import { baseColumns } from "@foundry/database";
 import { pgTable, text } from "drizzle-orm/pg-core";
 
 /**
- * A short code that redirects to a path inside the same app (`/q/K7M2QX` → `/subscribe?…`).
+ * A short code that redirects to a path inside the same app (`/q/K7M2QXAB` → `/subscribe?…`).
  * A plain table: nothing here references app tables (`created_by` carries no FK, as in
  * `baseColumns`), so an app re-exports it from its schema barrel and drizzle-kit generates
  * that app's migration.

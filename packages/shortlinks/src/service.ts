@@ -5,7 +5,9 @@ import { shortLinks } from "./schema";
 
 // No 0/O, 1/I/L: codes get read aloud and retyped from WhatsApp screenshots.
 const ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
-const CODE_LENGTH = 6;
+// 31^8 ≈ 8.5e11 codes: a link can carry a coupon code, so guessing one has to be impractical
+// without a rate limiter (10k live links → ~85M requests per hit). Still short to read out.
+const CODE_LENGTH = 8;
 const MAX_TRIES = 5;
 
 export function makeCode(): string {
