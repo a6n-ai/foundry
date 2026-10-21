@@ -73,6 +73,15 @@ describe("intents", () => {
     expect(opts.idempotencyKey).toBe("pi:p1:500:none:pm_1");
   });
 
+  it("uses a fresh idempotency key per attempt on saved-card charges", async () => {
+    const s = fake();
+    const base = { amountCents: 500, customerId: "cus_1", paymentMethodId: "pm_1", paymentRef: "p1", returnUrl: "u" };
+    await createAndConfirmIntent(s, { ...base, attempt: "0" });
+    await createAndConfirmIntent(s, { ...base, attempt: "1" });
+    const keys = (s.paymentIntents.create as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[1].idempotencyKey);
+    expect(keys).toEqual(["pi:p1:500:none:pm_1:0", "pi:p1:500:none:pm_1:1"]);
+  });
+
   it("defaults the method label", () => {
     expect(parseStripeConfig({}).methodLabel).toBe("Pay with Stripe");
   });

@@ -38,6 +38,8 @@ export async function previewConfirmationToken(stripe: Stripe, tokenId: string):
 export async function createAndConfirmIntent(stripe: Stripe, i: {
   amountCents: number; customerId: string; paymentRef: string;
   orgRef?: string | null; taxCalculationId?: string | null; returnUrl: string; description?: string;
+  /** Retry counter for saved-card (paymentMethodId) charges: a new value gives a fresh idempotency key after a decline or abandoned 3DS. */
+  attempt?: string;
 } & ({ confirmationTokenId: string; paymentMethodId?: never } | { paymentMethodId: string; confirmationTokenId?: never })): Promise<IntentResult> {
   const source = i.confirmationTokenId ? { confirmation_token: i.confirmationTokenId } : { payment_method: i.paymentMethodId };
   try {
@@ -54,7 +56,7 @@ export async function createAndConfirmIntent(stripe: Stripe, i: {
         metadata: { paymentRef: i.paymentRef, ...(i.orgRef ? { orgRef: i.orgRef } : {}) },
         ...(i.taxCalculationId ? { hooks: { inputs: { tax: { calculation: i.taxCalculationId } } } } : {}),
       },
-      { idempotencyKey: `pi:${i.paymentRef}:${i.amountCents}:${i.taxCalculationId ?? "none"}:${i.confirmationTokenId ?? i.paymentMethodId}` },
+      { idempotencyKey: `pi:${i.paymentRef}:${i.amountCents}:${i.taxCalculationId ?? "none"}:${i.confirmationTokenId ?? i.paymentMethodId}${i.attempt ? `:${i.attempt}` : ""}` },
     );
     return toResult(pi);
   } catch (e) {
