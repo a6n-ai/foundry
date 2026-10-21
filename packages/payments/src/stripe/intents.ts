@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import type { CardFunding } from "./surcharge";
-import type { CardPreview, IntentResult, IntentStatus } from "./types";
+import type { CardPreview, IntentResult, IntentStatus, SavedCard } from "./types";
 
 const FUNDING = new Set(["credit", "debit", "prepaid", "unknown"]);
 const funding = (f: string | null | undefined): CardFunding => (f && FUNDING.has(f) ? (f as CardFunding) : "unknown");
@@ -32,13 +32,14 @@ function cardFailure(e: unknown): IntentResult | null {
 export async function previewConfirmationToken(stripe: Stripe, tokenId: string): Promise<CardPreview> {
   const t = await stripe.confirmationTokens.retrieve(tokenId);
   const c = t.payment_method_preview?.card;
-  return { funding: funding(c?.funding), brand: c?.brand ?? null, last4: c?.last4 ?? null };
+  return { funding: funding(c?.funding), brand: c?.brand ?? null, last4: c?.last4 ?? null, wallet: c?.wallet?.type ?? null };
 }
 
 export async function createAndConfirmIntent(stripe: Stripe, i: {
-  amountCents: number; customerId: string; confirmationTokenId: string; paymentRef: string;
+  amountCents: number; customerId: string; paymentRef: string;
   orgRef?: string | null; taxCalculationId?: string | null; returnUrl: string; description?: string;
-}): Promise<IntentResult> {
+} & ({ confirmationTokenId: string; paymentMethodId?: never } | { paymentMethodId: string; confirmationTokenId?: never })): Promise<IntentResult> {
+  const source = i.confirmationTokenId ? { confirmation_token: i.confirmationTokenId } : { payment_method: i.paymentMethodId };
   try {
     const pi = await stripe.paymentIntents.create(
       {
@@ -46,14 +47,14 @@ export async function createAndConfirmIntent(stripe: Stripe, i: {
         currency: "cad",
         customer: i.customerId,
         confirm: true,
-        confirmation_token: i.confirmationTokenId,
+        ...source,
         setup_future_usage: "off_session",
         return_url: i.returnUrl,
         description: i.description,
         metadata: { paymentRef: i.paymentRef, ...(i.orgRef ? { orgRef: i.orgRef } : {}) },
         ...(i.taxCalculationId ? { hooks: { inputs: { tax: { calculation: i.taxCalculationId } } } } : {}),
       },
-      { idempotencyKey: `pi:${i.paymentRef}:${i.amountCents}:${i.taxCalculationId ?? "none"}:${i.confirmationTokenId}` },
+      { idempotencyKey: `pi:${i.paymentRef}:${i.amountCents}:${i.taxCalculationId ?? "none"}:${i.confirmationTokenId ?? i.paymentMethodId}` },
     );
     return toResult(pi);
   } catch (e) {
@@ -63,11 +64,23 @@ export async function createAndConfirmIntent(stripe: Stripe, i: {
   }
 }
 
+export async function listCards(stripe: Stripe, customerId: string): Promise<SavedCard[]> {
+  const [customer, list] = await Promise.all([
+    stripe.customers.retrieve(customerId),
+    stripe.customers.listPaymentMethods(customerId, { limit: 10 }),
+  ]);
+  const def = "deleted" in customer ? null : (customer.invoice_settings?.default_payment_method ?? null);
+  const defId = typeof def === "string" ? def : def?.id ?? null;
+  const cards = list.data.flatMap((p) => p.card ? [{
+    paymentMethodId: p.id, brand: p.card.brand ?? null, last4: p.card.last4 ?? null, funding: funding(p.card.funding),
+    expMonth: p.card.exp_month, expYear: p.card.exp_year, isDefault: p.id === defId,
+  }] : []);
+  return cards.sort((x, y) => Number(y.isDefault) - Number(x.isDefault));
+}
+
 export async function defaultCard(stripe: Stripe, customerId: string) {
-  const list = await stripe.customers.listPaymentMethods(customerId, { limit: 10 });
-  const pm = list.data.find((p) => p.card);
-  if (!pm?.card) return null;
-  return { paymentMethodId: pm.id, funding: funding(pm.card.funding), brand: pm.card.brand ?? null, last4: pm.card.last4 ?? null };
+  const c = (await listCards(stripe, customerId))[0];
+  return c ? { paymentMethodId: c.paymentMethodId, funding: c.funding, brand: c.brand, last4: c.last4 } : null;
 }
 
 export async function chargeSavedCard(stripe: Stripe, i: {

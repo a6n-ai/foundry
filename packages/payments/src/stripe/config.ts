@@ -17,7 +17,7 @@ export const stripePluginConfigSchema = z.object({
   livemode: z.boolean().optional(),
   connectedAt: z.number().optional(),
   lastEventAt: z.number().optional(),
-  methodLabel: z.string().default("Card"),
+  methodLabel: z.string().default("Pay with Stripe"),
   tax: z.object({
     enabled: z.boolean().default(false),
     taxCode: z.string().optional(),

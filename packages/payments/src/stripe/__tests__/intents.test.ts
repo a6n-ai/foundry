@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import type Stripe from "stripe";
-import { createAndConfirmIntent, previewConfirmationToken, chargeSavedCard, fetchIntentStatus } from "../intents";
+import { createAndConfirmIntent, previewConfirmationToken, chargeSavedCard, fetchIntentStatus, listCards } from "../intents";
+import { parseStripeConfig } from "../config";
 import { ensureCustomer } from "../customer";
 
 function fake(over: Record<string, unknown> = {}) {
@@ -41,7 +42,39 @@ describe("intents", () => {
   });
 
   it("previews funding", async () => {
-    expect(await previewConfirmationToken(fake(), "ctoken_1")).toEqual({ funding: "credit", brand: "visa", last4: "4242" });
+    expect(await previewConfirmationToken(fake(), "ctoken_1")).toEqual({ funding: "credit", brand: "visa", last4: "4242", wallet: null });
+  });
+
+  it("flags wallet tokens", async () => {
+    const s = fake({ confirmationTokens: { retrieve: vi.fn(async () => ({ payment_method_preview: { card: { funding: "debit", brand: "visa", last4: "1111", wallet: { type: "apple_pay" } } } })) } });
+    expect((await previewConfirmationToken(s, "ctoken_2")).wallet).toBe("apple_pay");
+  });
+
+  it("lists cards default-first and skips non-card methods", async () => {
+    const card = (id: string, last4: string) => ({ id, card: { brand: "visa", last4, funding: "credit", exp_month: 1, exp_year: 2030 } });
+    const s = fake({
+      customers: {
+        retrieve: vi.fn(async () => ({ invoice_settings: { default_payment_method: "pm_b" } })),
+        listPaymentMethods: vi.fn(async () => ({ data: [card("pm_a", "1111"), { id: "pm_x" }, card("pm_b", "2222")] })),
+      },
+    });
+    const out = await listCards(s, "cus_1");
+    expect(out.map((c) => [c.paymentMethodId, c.isDefault])).toEqual([["pm_b", true], ["pm_a", false]]);
+    expect(out[0]).toEqual({ paymentMethodId: "pm_b", brand: "visa", last4: "2222", funding: "credit", expMonth: 1, expYear: 2030, isDefault: true });
+  });
+
+  it("charges a saved card on-session", async () => {
+    const s = fake();
+    await createAndConfirmIntent(s, { amountCents: 500, customerId: "cus_1", paymentMethodId: "pm_1", paymentRef: "p1", returnUrl: "https://x/r" });
+    const [params, opts] = (s.paymentIntents.create as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    expect(params).toMatchObject({ payment_method: "pm_1", confirm: true, return_url: "https://x/r" });
+    expect(params).not.toHaveProperty("confirmation_token");
+    expect(params).not.toHaveProperty("off_session");
+    expect(opts.idempotencyKey).toBe("pi:p1:500:none:pm_1");
+  });
+
+  it("defaults the method label", () => {
+    expect(parseStripeConfig({}).methodLabel).toBe("Pay with Stripe");
   });
 
   it("charges saved cards off-session", async () => {
