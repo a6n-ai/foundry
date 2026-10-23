@@ -23,10 +23,10 @@ export function createRemoteBus(opts: { url: string; secret: string; fetch?: typ
   };
 }
 
-export function pickBus(
-  env: { REALTIME_URL?: string; REALTIME_SECRET?: string } = process.env,
-): Bus {
-  return env.REALTIME_URL && env.REALTIME_SECRET
-    ? createRemoteBus({ url: env.REALTIME_URL, secret: env.REALTIME_SECRET })
+// No `= process.env` default: apps augment ProcessEnv, which trips the weak-type check.
+export function pickBus(env?: { REALTIME_URL?: string; REALTIME_SECRET?: string }): Bus {
+  const e = env ?? { REALTIME_URL: process.env.REALTIME_URL, REALTIME_SECRET: process.env.REALTIME_SECRET };
+  return e.REALTIME_URL && e.REALTIME_SECRET
+    ? createRemoteBus({ url: e.REALTIME_URL, secret: e.REALTIME_SECRET })
     : memoryBus;
 }

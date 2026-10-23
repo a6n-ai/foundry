@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { memoryBus } from "../memory-bus";
 import { createRemoteBus, pickBus } from "../remote-bus";
 
@@ -46,5 +46,19 @@ describe("RemoteBus", () => {
 
   it("pickBus returns a remote bus when both vars set", () => {
     expect(pickBus({ REALTIME_URL: "x", REALTIME_SECRET: "y" })).not.toBe(memoryBus);
+  });
+
+  describe("process.env", () => {
+    afterEach(() => vi.unstubAllEnvs());
+
+    it("pickBus reads process.env when called without an argument", () => {
+      vi.stubEnv("REALTIME_URL", "x");
+      vi.stubEnv("REALTIME_SECRET", "y");
+      expect(pickBus()).not.toBe(memoryBus);
+      vi.unstubAllEnvs();
+      vi.stubEnv("REALTIME_URL", "");
+      vi.stubEnv("REALTIME_SECRET", "");
+      expect(pickBus()).toBe(memoryBus);
+    });
   });
 });
