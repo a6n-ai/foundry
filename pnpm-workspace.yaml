@@ -1,7 +1,9 @@
 packages:
   - "packages/*"
   - "tooling/*"
+  - "services/*"
 
 allowBuilds:
   esbuild: true
   unrs-resolver: true
+  workerd: true

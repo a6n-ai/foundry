@@ -1,0 +1,23 @@
+{
+  "name": "@foundry/realtime-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "smoke": "esbuild scripts/smoke.ts --bundle --platform=node --format=esm --outfile=.wrangler/smoke.mjs --log-level=warning && node .wrangler/smoke.mjs"
+  },
+  "dependencies": {
+    "@foundry/realtime": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4",
+    "@types/node": "^22",
+    "esbuild": "^0.28.2",
+    "typescript": "^5",
+    "vitest": "^4.1.9",
+    "wrangler": "^4"
+  }
+}

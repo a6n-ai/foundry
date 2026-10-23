@@ -9,3 +9,7 @@ node_modules/
 .claude/*
 !.claude/skills/
 !.claude/skills/**
+
+# wrangler local secrets
+.dev.vars
+.wrangler/
