@@ -1,0 +1,1 @@
+{"id":"evt_paid","object":"event","api_version":"2026-09-30.endive","type":"payment_intent.succeeded","data":{"object":{"id":"pi_1","object":"payment_intent","amount_received":20480,"currency":"cad","metadata":{"paymentRef":"pay_abc"},"created":1791000000,"status":"succeeded"}}}

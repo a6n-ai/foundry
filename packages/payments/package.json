@@ -7,10 +7,13 @@
     ".": "./src/index.ts",
     "./plugin": "./src/plugin.ts",
     "./server": "./src/plugin.server.ts",
-    "./providers": "./src/providers.ts"
+    "./providers": "./src/providers.ts",
+    "./stripe": "./src/stripe/index.ts",
+    "./stripe/plugin": "./src/stripe/plugin.ts",
+    "./stripe/config": "./src/stripe/config.ts"
   },
   "types": "./src/index.ts",
   "scripts": { "typecheck": "tsc --noEmit", "test": "vitest run --passWithNoTests" },
-  "dependencies": { "@foundry/commons": "workspace:*", "lucide-react": "^1.20.0", "zod": "^4.4.3" },
+  "dependencies": { "@foundry/commons": "workspace:*", "lucide-react": "^1.20.0", "stripe": "23.0.0", "zod": "^4.4.3" },
   "devDependencies": { "typescript": "^5", "vitest": "^4.1.9" }
 }
