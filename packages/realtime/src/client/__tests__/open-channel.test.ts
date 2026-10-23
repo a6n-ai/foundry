@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { openChannel } from "../open-channel";
+import { openChannel, resetOpenChannelForTests } from "../open-channel";
 
 class FakeWS {
   static all: FakeWS[] = [];
@@ -40,6 +40,7 @@ let fetchMock: ReturnType<typeof vi.fn>;
 const flush = () => vi.advanceTimersByTimeAsync(0);
 
 beforeEach(() => {
+  resetOpenChannelForTests();
   vi.useFakeTimers();
   FakeWS.all = [];
   FakeES.all = [];
@@ -141,14 +142,105 @@ describe("openChannel", () => {
     expect(FakeWS.all).toHaveLength(3);
   });
 
-  it("counts a rejected token fetch as a failed open", async () => {
-    fetchMock.mockRejectedValue(new Error("net"));
+  it("token route 503 three times then 404 ends on EventSource, not polling", async () => {
+    fetchMock
+      .mockResolvedValueOnce(status(503))
+      .mockResolvedValueOnce(status(503))
+      .mockResolvedValueOnce(status(503))
+      .mockResolvedValueOnce(status(404));
+    const onEvent = vi.fn();
+    openChannel("chan", onEvent);
+    await vi.advanceTimersByTimeAsync(1_000 + 2_000 + 4_000);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(FakeES.all).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(onEvent).not.toHaveBeenCalled();
+  });
+
+  it("retries the token route after a network error", async () => {
+    fetchMock
+      .mockRejectedValueOnce(new Error("net"))
+      .mockResolvedValueOnce(ok({ url: "https://rt.test", token: "t" }));
+    openChannel("c", vi.fn());
+    await flush();
+    expect(FakeWS.all).toHaveLength(0);
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(FakeWS.all[0]!.url).toBe("wss://rt.test/ws?token=t");
+  });
+
+  it("WebSocket constructor throw counts as a failed open", async () => {
+    fetchMock.mockResolvedValue(ok({ url: "https://rt.test", token: "t" }));
+    vi.stubGlobal(
+      "WebSocket",
+      class {
+        constructor() {
+          throw new Error("blocked");
+        }
+      },
+    );
     const onEvent = vi.fn();
     openChannel("chan", onEvent);
     await vi.advanceTimersByTimeAsync(1_000 + 2_000);
     expect(fetchMock).toHaveBeenCalledTimes(3);
     await vi.advanceTimersByTimeAsync(60_000);
     expect(onEvent).toHaveBeenCalledWith({ type: "message", channel: "chan" });
+  });
+
+  it("socket that drops right after open keeps backing off and reaches polling after 3 drops", async () => {
+    fetchMock.mockResolvedValue(ok({ url: "https://rt.test", token: "t" }));
+    const onEvent = vi.fn();
+    openChannel("chan", onEvent);
+    await flush();
+    FakeWS.all[0]!.onopen!();
+    FakeWS.all[0]!.onclose!();
+    await vi.advanceTimersByTimeAsync(1_000);
+    FakeWS.all[1]!.onopen!();
+    FakeWS.all[1]!.onclose!();
+    await vi.advanceTimersByTimeAsync(1_999);
+    expect(FakeWS.all).toHaveLength(2);
+    await vi.advanceTimersByTimeAsync(1);
+    FakeWS.all[2]!.onopen!();
+    FakeWS.all[2]!.onclose!();
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(FakeWS.all).toHaveLength(3);
+    expect(onEvent).toHaveBeenCalledWith({ type: "message", channel: "chan" });
+  });
+
+  it("second openChannel after a 404 skips the token fetch", async () => {
+    fetchMock.mockResolvedValue(status(404));
+    openChannel("a", vi.fn());
+    await flush();
+    openChannel("b", vi.fn());
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(FakeES.all.map((e) => e.url)).toEqual(["/api/realtime?channel=a", "/api/realtime?channel=b"]);
+  });
+
+  it("strips trailing slashes from the worker url", async () => {
+    fetchMock.mockResolvedValue(ok({ url: "https://rt.test/", token: "t" }));
+    openChannel("c", vi.fn());
+    await flush();
+    expect(FakeWS.all[0]!.url).toBe("wss://rt.test/ws?token=t");
+  });
+
+  it("a non-string token in a 200 body counts as a failed open", async () => {
+    fetchMock.mockResolvedValue(ok({ url: "https://rt.test", token: 5 }));
+    const onEvent = vi.fn();
+    openChannel("chan", onEvent);
+    await vi.advanceTimersByTimeAsync(3_000 + 60_000);
+    expect(FakeWS.all).toHaveLength(0);
+    expect(onEvent).toHaveBeenCalledWith({ type: "message", channel: "chan" });
+  });
+
+  it("reconnect backoff resets once a socket stays open 10s", async () => {
+    fetchMock.mockResolvedValue(ok({ url: "https://rt.test", token: "t" }));
+    openChannel("c", vi.fn());
+    await flush();
+    FakeWS.all[0]!.onopen!();
+    await vi.advanceTimersByTimeAsync(10_000);
+    FakeWS.all[0]!.onclose!();
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(FakeWS.all).toHaveLength(2);
   });
 
   it("close function stops socket, timers and retries", async () => {

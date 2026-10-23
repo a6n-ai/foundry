@@ -12,7 +12,19 @@ describe("RemoteBus", () => {
       method: "POST",
       headers: { authorization: "Bearer s3cret", "content-type": "application/json" },
       body: '{"channel":"notify:u1","event":{"type":"message","channel":"notify:u1"}}',
+      signal: expect.any(AbortSignal),
     });
+  });
+
+  it("publish strips trailing slashes from the base url", async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    await createRemoteBus({ url: "https://rt.test//", secret: "s", fetch }).publish("c", event);
+    expect(fetch.mock.calls[0]![0]).toBe("https://rt.test/publish");
+  });
+
+  it("publish rejects when fetch aborts", async () => {
+    const fetch = vi.fn().mockRejectedValue(new DOMException("timeout", "TimeoutError"));
+    await expect(createRemoteBus({ url: "https://rt.test", secret: "s", fetch }).publish("c", event)).rejects.toThrow();
   });
 
   it("publish throws on non-2xx", async () => {

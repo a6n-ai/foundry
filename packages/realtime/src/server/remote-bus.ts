@@ -6,12 +6,14 @@ import { memoryBus } from "./memory-bus";
 // subscribe to the Worker directly, never through the app.
 export function createRemoteBus(opts: { url: string; secret: string; fetch?: typeof fetch }): Bus {
   const doFetch = opts.fetch ?? fetch;
+  const base = opts.url.replace(/\/+$/, "");
   return {
     async publish(channel: Channel, event: RealtimeEvent) {
-      const res = await doFetch(`${opts.url}/publish`, {
+      const res = await doFetch(`${base}/publish`, {
         method: "POST",
         headers: { authorization: `Bearer ${opts.secret}`, "content-type": "application/json" },
         body: JSON.stringify({ channel, event }),
+        signal: AbortSignal.timeout(3000),
       });
       if (!res.ok) throw new Error(`RemoteBus: publish failed (${res.status})`);
     },
