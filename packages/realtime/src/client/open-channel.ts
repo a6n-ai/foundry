@@ -104,7 +104,7 @@ export function openChannel(channel: string, onEvent: (e: RealtimeEvent) => void
       return;
     }
     if (closed) return;
-    if (res.status === 403) return;
+    if (res.status === 401 || res.status === 403) return;
     if (res.status === 404) {
       noWorker = true;
       return openEventSource();

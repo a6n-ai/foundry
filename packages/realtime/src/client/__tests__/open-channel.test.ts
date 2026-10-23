@@ -78,6 +78,15 @@ describe("openChannel", () => {
     expect(FakeWS.all).toHaveLength(0);
   });
 
+  it("does nothing when token route returns 401", async () => {
+    fetchMock.mockResolvedValue(status(401));
+    openChannel("c", vi.fn());
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(FakeES.all).toHaveLength(0);
+    expect(FakeWS.all).toHaveLength(0);
+  });
+
   it("opens wss socket with token and forwards parsed events", async () => {
     fetchMock.mockResolvedValue(ok({ url: "https://rt.test", token: "t" }));
     const onEvent = vi.fn();
