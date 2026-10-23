@@ -5,9 +5,9 @@ const BASE = process.env.BASE ?? "http://127.0.0.1:8787";
 const SECRET = process.env.SECRET ?? "";
 const CH = "ticket:t1";
 
+// workers-types declares `process: any`, so process.exit() can't type as never here.
 function fail(msg: string): never {
-  console.error(`smoke FAILED: ${msg}`);
-  process.exit(1);
+  throw new Error(`smoke FAILED: ${msg}`);
 }
 
 type Sock = { ws: WebSocket; frames: string[] };

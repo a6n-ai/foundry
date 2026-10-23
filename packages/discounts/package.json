@@ -17,11 +17,11 @@
     "@foundry/database": "workspace:*"
   },
   "devDependencies": {
-    "drizzle-orm": "^0.45.2",
-    "typescript": "^5",
-    "vitest": "^4.1.9"
+    "drizzle-orm": "^0.45.4",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   },
   "peerDependencies": {
-    "drizzle-orm": "^0.45.2"
+    "drizzle-orm": "^0.45.4"
   }
 }

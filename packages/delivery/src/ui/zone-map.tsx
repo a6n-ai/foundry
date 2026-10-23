@@ -178,7 +178,7 @@ export function ZoneMap({
         // silent (worker never started, style never ready, source never loaded),
         // and a console line is the only thing that made any of them findable.
         instance.on("error", (e) => {
-          console.warn("[maplibre]", (e as { error?: Error })?.error?.message ?? e);
+          console.warn("[maplibre]", e.error?.message ?? e);
         });
 
         // Gate on the STYLE being ready, not the map's "load" event. `load`
