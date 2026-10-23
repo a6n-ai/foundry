@@ -8,3 +8,4 @@ export type RealtimeEvent =
   | { type: "presence"; userId: string; role: RealtimeRole; online: boolean }
   | { type: "typing"; userId: string; role: RealtimeRole; typing: boolean }
   | { type: "message"; channel: string }; // live "something new" ping → peer refreshes
+export { signRealtimeToken, verifyRealtimeToken, type RealtimeTokenPayload } from "./token";

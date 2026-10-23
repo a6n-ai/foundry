@@ -4,6 +4,6 @@ import type { Channel, RealtimeEvent } from "../index";
 // current process — correct for a single instance. A RedisBus adapter (same
 // interface) becomes necessary only with >1 instance; not built yet.
 export interface Bus {
-  publish(channel: Channel, event: RealtimeEvent): void;
+  publish(channel: Channel, event: RealtimeEvent): void | Promise<void>;
   subscribe(channel: Channel, cb: (e: RealtimeEvent) => void): () => void;
 }
