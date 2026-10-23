@@ -2,7 +2,7 @@ import { signRealtimeToken } from "@foundry/realtime";
 import { describe, expect, it, vi } from "vitest";
 import { handle } from "../routes";
 
-const SECRET = "test-secret";
+const SECRET = "test-secret-0123456789-0123456789-abcd";
 function mkEnv() {
   const publish = vi.fn(async () => {});
   const fetch = vi.fn(async () => new Response(null, { status: 200 }));
@@ -40,5 +40,19 @@ describe("routes", () => {
     expect(idFromName).toHaveBeenCalledWith("notify:u1");
     expect(publish).toHaveBeenCalledWith(event);
     expect(res.status).toBe(204);
+  });
+  it("publish returns 500 when REALTIME_SECRET is missing", async () => {
+    const { get } = mkEnv();
+    const env = { ROOMS: { idFromName: vi.fn(), get } } as never;
+    const res = await handle(post({ channel: "a", event: { type: "message", channel: "a" } }, "Bearer undefined"), env);
+    expect(res.status).toBe(500);
+    expect(get).not.toHaveBeenCalled();
+  });
+  it("ws returns 500 when REALTIME_SECRET is shorter than 32 chars", async () => {
+    const { get } = mkEnv();
+    const env = { REALTIME_SECRET: "short", ROOMS: { idFromName: vi.fn(), get } } as never;
+    const res = await handle(new Request("https://rt/ws?token=x", { headers: { upgrade: "websocket" } }), env);
+    expect(res.status).toBe(500);
+    expect(get).not.toHaveBeenCalled();
   });
 });

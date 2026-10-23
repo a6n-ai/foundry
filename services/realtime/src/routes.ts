@@ -24,6 +24,10 @@ function validEvent(e: unknown): e is RealtimeEvent {
 
 export async function handle(req: Request, env: Env): Promise<Response> {
   const url = new URL(req.url);
+  if (url.pathname === "/") return new Response("ok");
+  if (typeof env.REALTIME_SECRET !== "string" || env.REALTIME_SECRET.length < 32) {
+    return new Response("misconfigured", { status: 500 });
+  }
 
   if (url.pathname === "/ws" && req.method === "GET") {
     if (req.headers.get("upgrade")?.toLowerCase() !== "websocket") return new Response("upgrade required", { status: 426 });
@@ -46,6 +50,5 @@ export async function handle(req: Request, env: Env): Promise<Response> {
     return new Response(null, { status: 204 });
   }
 
-  if (url.pathname === "/") return new Response("ok");
   return new Response("not found", { status: 404 });
 }
