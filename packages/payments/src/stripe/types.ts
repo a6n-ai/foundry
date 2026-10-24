@@ -22,7 +22,7 @@ export type IntentResult = {
   reason?: string;
 };
 
-export type CardPreview = { funding: CardFunding; brand: string | null; last4: string | null; wallet: string | null };
+export type CardPreview = { type: string | null; funding: CardFunding; brand: string | null; last4: string | null; wallet: string | null };
 
 export type SavedCard = {
   paymentMethodId: string; brand: string | null; last4: string | null; funding: CardFunding;

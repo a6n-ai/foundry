@@ -31,8 +31,11 @@ function cardFailure(e: unknown): IntentResult | null {
 
 export async function previewConfirmationToken(stripe: Stripe, tokenId: string): Promise<CardPreview> {
   const t = await stripe.confirmationTokens.retrieve(tokenId);
+  const type = t.payment_method_preview?.type ?? null;
   const c = t.payment_method_preview?.card;
-  return { funding: funding(c?.funding), brand: c?.brand ?? null, last4: c?.last4 ?? null, wallet: c?.wallet?.type ?? null };
+  // Link exposes no card details before the charge; report it as a wallet so callers apply wallet policy.
+  const wallet = type === "link" ? "link" : c?.wallet?.type ?? null;
+  return { type, funding: funding(c?.funding), brand: c?.brand ?? null, last4: c?.last4 ?? null, wallet };
 }
 
 export async function createAndConfirmIntent(stripe: Stripe, i: {

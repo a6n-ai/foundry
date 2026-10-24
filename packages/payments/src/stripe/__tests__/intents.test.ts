@@ -42,7 +42,12 @@ describe("intents", () => {
   });
 
   it("previews funding", async () => {
-    expect(await previewConfirmationToken(fake(), "ctoken_1")).toEqual({ funding: "credit", brand: "visa", last4: "4242", wallet: null });
+    expect(await previewConfirmationToken(fake(), "ctoken_1")).toEqual({ type: null, funding: "credit", brand: "visa", last4: "4242", wallet: null });
+  });
+
+  it("reports Link as a wallet with the token type", async () => {
+    const s = fake({ confirmationTokens: { retrieve: vi.fn(async () => ({ payment_method_preview: { type: "link" } })) } });
+    expect(await previewConfirmationToken(s, "ctoken_3")).toEqual({ type: "link", funding: "unknown", brand: null, last4: null, wallet: "link" });
   });
 
   it("flags wallet tokens", async () => {
