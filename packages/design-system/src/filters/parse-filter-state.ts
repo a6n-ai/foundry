@@ -36,8 +36,12 @@ export function parseFilterState(
 
   for (const f of spec) {
     if (f.kind === "search") {
-      q = sp.q?.trim() ?? "";
-      if (q) parts.push(or(...f.fields.map((field) => like(field, `%${q}%`))));
+      q = sp.q?.trim().replace(/\s+/g, " ") ?? "";
+      // Every word must hit some field, in any order, so "kumar ram" and
+      // "ram  kumar" both find "Ram Kumar" (like compiles to ilike: case-blind).
+      for (const word of q.split(" ").filter(Boolean)) {
+        parts.push(or(...f.fields.map((field) => like(field, `%${word}%`))));
+      }
       continue;
     }
     if (f.kind === "dateRange") {

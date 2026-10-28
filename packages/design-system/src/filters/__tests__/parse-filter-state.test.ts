@@ -47,6 +47,13 @@ describe("parseFilterState", () => {
     expect(s2.condition).toBeUndefined(); // non-numeric single bound ignored
   });
 
+  it("search splits on whitespace: each word must match some field", () => {
+    const s = parseFilterState(spec, { q: "  Ram   Kumar " });
+    expect(s.q).toBe("Ram Kumar");
+    const words = (s.condition as any).conditions.map((c: any) => c.conditions.map((l: any) => l.value));
+    expect(words).toEqual([["%Ram%", "%Ram%"], ["%Kumar%", "%Kumar%"]]);
+  });
+
   it("empty multi value → facet dropped", () => {
     const s = parseFilterState(spec, { source: "" });
     expect(s.condition).toBeUndefined();

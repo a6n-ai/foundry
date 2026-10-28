@@ -23,9 +23,15 @@ export function SearchInput({
   const [draft, setDraft] = useState(value);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const focusedRef = useRef(false);
+
   // Keep the draft in sync when the owner changes the value out-of-band
-  // (e.g. a "Clear filters" button setting it back to "").
-  useEffect(() => setDraft(value), [value]);
+  // (e.g. a "Clear filters" button setting it back to ""). Skipped while
+  // typing: a URL-backed value lands after the debounce + navigation, and
+  // syncing then would wipe the keys typed since.
+  useEffect(() => {
+    if (!focusedRef.current) setDraft(value);
+  }, [value]);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   const emit = (v: string) => {
@@ -65,8 +71,8 @@ export function SearchInput({
       <input
         value={draft}
         onChange={(e) => emit(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onFocus={() => { focusedRef.current = true; setFocused(true); }}
+        onBlur={() => { focusedRef.current = false; setFocused(false); }}
         placeholder={ph}
         className="placeholder:text-muted-foreground w-full min-w-0 rounded-lg bg-transparent py-1 pr-8 pl-8 text-sm outline-none"
       />
