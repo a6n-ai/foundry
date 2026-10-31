@@ -81,6 +81,8 @@ export type DataTableProps<Row, K extends string> = {
    * Server-paged lists omit this and render ListPagination themselves.
    */
   pagination?: { page: number; size: number } | "client";
+  /** `"client"` paging: rows per page to start with (default DEFAULT_SIZE). */
+  pageSize?: number;
   /** Server-paged lists: rows skipped before this page (page * size), so "#" keeps counting. */
   serialOffset?: number;
 };
@@ -378,7 +380,7 @@ export function DataTable<Row, K extends string>({
   sort, serial = true, idAccessor, idHref, onRowClick, idLabel = "ID",
   search, filters, actions,
   emptyIcon: EmptyIcon, emptyMessage, emptySearchMessage, emptyAction,
-  pagination, serialOffset: serverOffset = 0,
+  pagination, pageSize = DEFAULT_SIZE, serialOffset: serverOffset = 0,
 }: DataTableProps<Row, K>) {
   const [searchValue, setSearchValue] = useSearchQuery();
   const router = useRouter();
@@ -388,7 +390,7 @@ export function DataTable<Row, K extends string>({
   const layout = useColumnLayout(columns, KIND_WIDTH, hasId, serial);
   const clientPaging = pagination === "client";
   const [clientPage, setClientPage] = useState(0);
-  const [clientSize, setClientSize] = useState(DEFAULT_SIZE);
+  const [clientSize, setClientSize] = useState(pageSize);
   useEffect(() => {
     setClientPage(0);
   }, [searchValue]);
