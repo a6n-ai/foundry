@@ -1,5 +1,6 @@
 import type { IntegrationsConfigStore } from "@foundry/commons/plugin";
-import { DEFAULT_DOORDASH_CONFIG, parseDoorDashConfig, type DoorDashConfig } from "./config";
+import { integrationSlice } from "@foundry/commons/plugin-kit";
+import { doorDashConfigSchema, DEFAULT_DOORDASH_CONFIG, parseDoorDashConfig, type DoorDashConfig } from "./config";
 import { DOORDASH_PLUGIN_ID } from "./plugin";
 
 export async function getDoorDashConfig(store: IntegrationsConfigStore): Promise<DoorDashConfig> {
@@ -17,12 +18,13 @@ export async function setDoorDashConfig(
 }
 
 export async function installDoorDash(store: IntegrationsConfigStore): Promise<void> {
-  const current = await getDoorDashConfig(store);
-  await setDoorDashConfig(store, { ...current, installed: true });
+  await doorDashSlice(store).update({ installed: true });
 }
 
 /** Keeps the url so a reinstall does not force re-entering it. */
 export async function uninstallDoorDash(store: IntegrationsConfigStore): Promise<void> {
-  const current = await getDoorDashConfig(store);
-  await setDoorDashConfig(store, { ...current, installed: false });
+  await doorDashSlice(store).update({ installed: false });
 }
+
+/** Install/uninstall merge into this key; the rest of the config survives an uninstall. */
+export const doorDashSlice = (store: IntegrationsConfigStore) => integrationSlice(DOORDASH_PLUGIN_ID, doorDashConfigSchema, { store });

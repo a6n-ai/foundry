@@ -39,3 +39,30 @@ export function isEnvelope(x: unknown): x is Envelope {
 export function generateKeyB64(): string {
   return randomBytes(32).toString("base64");
 }
+
+/**
+ * A secret stored AES-GCM sealed under the app's master key. `context` binds the envelope to
+ * its field, so a token pasted into another plugin's slot cannot be opened there.
+ */
+export function sealedSecret(context: string, masterKey: () => string | null | undefined) {
+  const key = () => masterKey()?.trim() || null;
+  return {
+    /** Null when the server has no master key: the caller must refuse to store the secret. */
+    seal(plain: string): Envelope | null {
+      const k = key();
+      return k ? seal(plain, k, context) : null;
+    },
+    /** Null when unset, the key is missing, or the key changed since it was sealed. */
+    open(env: Envelope | null | undefined): string | null {
+      const k = key();
+      if (!env || !k) return null;
+      try {
+        return open(env, k, context);
+      } catch {
+        return null;
+      }
+    },
+    hasKey: () => key() != null,
+  };
+}
+export type SealedSecret = ReturnType<typeof sealedSecret>;

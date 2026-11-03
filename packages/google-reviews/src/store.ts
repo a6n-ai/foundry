@@ -1,4 +1,6 @@
 import type { IntegrationsConfigStore } from "@foundry/commons/plugin";
+import { integrationSlice } from "@foundry/commons/plugin-kit";
+import { googleReviewsConfigSchema } from "./config";
 import {
   DEFAULT_GOOGLE_REVIEWS_CONFIG,
   parseGoogleReviewsConfig,
@@ -23,12 +25,13 @@ export async function setGoogleReviewsConfig(
 }
 
 export async function installGoogleReviews(store: IntegrationsConfigStore): Promise<void> {
-  const current = await getGoogleReviewsConfig(store);
-  await setGoogleReviewsConfig(store, { ...current, installed: true });
+  await googleReviewsSlice(store).update({ installed: true });
 }
 
 /** Keeps placeId so a reinstall does not force re-entering it. No secrets live here. */
 export async function uninstallGoogleReviews(store: IntegrationsConfigStore): Promise<void> {
-  const current = await getGoogleReviewsConfig(store);
-  await setGoogleReviewsConfig(store, { ...current, installed: false });
+  await googleReviewsSlice(store).update({ installed: false });
 }
+
+/** Install/uninstall merge into this key; the rest of the config survives an uninstall. */
+export const googleReviewsSlice = (store: IntegrationsConfigStore) => integrationSlice(GOOGLE_REVIEWS_PLUGIN_ID, googleReviewsConfigSchema, { store });
