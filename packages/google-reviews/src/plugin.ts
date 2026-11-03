@@ -1,5 +1,6 @@
 import { StarIcon } from "lucide-react";
 import type { PluginMeta } from "@foundry/commons/plugin";
+import { LOGO } from "./logo";
 
 /**
  * Client-safe Google Reviews plugin catalog metadata.
@@ -21,4 +22,5 @@ export const GOOGLE_REVIEWS_PLUGIN_META: PluginMeta = {
   description: GOOGLE_REVIEWS_PLUGIN.description,
   icon: StarIcon,
   settingsHref: "/dashboard/settings/google-reviews",
+  logo: LOGO,
 };

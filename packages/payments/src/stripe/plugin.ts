@@ -1,5 +1,6 @@
 import { CreditCardIcon } from "lucide-react";
 import type { PluginMeta } from "@foundry/commons/plugin";
+import { LOGO } from "./logo";
 
 export const STRIPE_PLUGIN: PluginMeta = {
   id: "stripe",
@@ -7,4 +8,5 @@ export const STRIPE_PLUGIN: PluginMeta = {
   description: "Card, Apple Pay and Google Pay. Stripe Tax and an optional credit-card surcharge.",
   icon: CreditCardIcon,
   settingsHref: "/dashboard/settings/payments/stripe",
+  logo: LOGO,
 };

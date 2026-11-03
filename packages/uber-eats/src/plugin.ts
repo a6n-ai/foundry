@@ -1,5 +1,6 @@
 import { ExternalLinkIcon } from "lucide-react";
 import type { PluginMeta } from "@foundry/commons/plugin";
+import { LOGO } from "./logo";
 
 /**
  * Client-safe Uber Eats plugin catalog metadata.
@@ -20,4 +21,5 @@ export const UBER_EATS_PLUGIN_META: PluginMeta = {
   description: UBER_EATS_PLUGIN.description,
   icon: ExternalLinkIcon,
   settingsHref: "/dashboard/settings/uber-eats",
+  logo: LOGO,
 };

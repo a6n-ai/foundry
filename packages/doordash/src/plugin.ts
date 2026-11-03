@@ -1,5 +1,6 @@
 import { ExternalLinkIcon } from "lucide-react";
 import type { PluginMeta } from "@foundry/commons/plugin";
+import { LOGO } from "./logo";
 
 /**
  * Client-safe DoorDash plugin catalog metadata.
@@ -20,4 +21,5 @@ export const DOORDASH_PLUGIN_META: PluginMeta = {
   description: DOORDASH_PLUGIN.description,
   icon: ExternalLinkIcon,
   settingsHref: "/dashboard/settings/doordash",
+  logo: LOGO,
 };

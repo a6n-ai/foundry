@@ -1,5 +1,6 @@
 import { ChartLineIcon } from "lucide-react";
 import type { PluginMeta } from "@foundry/commons/plugin";
+import { LOGO } from "./logo";
 
 export const GA_PLUGIN_ID = "google-analytics" as const;
 /** Config key in the integrations blob (kept from the app-local version so saved settings carry over). */
@@ -13,4 +14,5 @@ export const GA_PLUGIN_META: PluginMeta = {
   description: "GA4 visitors, traffic sources, and conversions, with server-side purchases.",
   icon: ChartLineIcon,
   settingsHref: GA_SETTINGS_HREF,
+  logo: LOGO,
 };

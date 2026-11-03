@@ -20,7 +20,12 @@ export type PluginMeta = {
   icon: LucideIcon;
   /** Settings route revealed once installed. */
   settingsHref?: string;
+  /** The vendor's brand mark, when the plugin is a third-party product. Plain data, so it crosses the RSC boundary. */
+  logo?: PluginLogo;
 };
+
+/** A single-path brand mark on a 24×24 viewBox (Simple Icons, CC0), with the brand's hex color (no #). */
+export type PluginLogo = { title: string; hex: string; path: string };
 
 export type PluginNavItem = { title: string; href: string; icon: LucideIcon };
 export type PluginNavSection = { label: string; items: PluginNavItem[] };
