@@ -25,7 +25,7 @@ const hmacKey = (secret: string) =>
 export async function signRealtimeToken(
   secret: string,
   p: { channel: Channel; userId: string; role: RealtimeRole },
-  ttlSeconds = 60,
+  ttlSeconds = 300,
   now = Date.now(),
 ): Promise<string> {
   const payload: RealtimeTokenPayload = {
