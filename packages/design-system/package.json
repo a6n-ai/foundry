@@ -15,22 +15,22 @@
     "@foundry/commons": "workspace:*",
     "@foundry/realtime": "workspace:*",
     "@foundry/ui": "workspace:*",
-    "class-variance-authority": "catalog:",
-    "lucide-react": "catalog:",
-    "maplibre-gl": "catalog:"
+    "class-variance-authority": "^0.7.1",
+    "lucide-react": "^1.61.0",
+    "maplibre-gl": "^6.15.0"
   },
   "peerDependencies": {
     "next": "^16.4.2",
     "react": "^19"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "next": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   }
 }

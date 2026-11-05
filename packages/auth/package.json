@@ -16,8 +16,8 @@
     "@foundry/email": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "catalog:",
-    "better-auth": "catalog:"
+    "typescript": "^7.0.2",
+    "better-auth": "1.7.12"
   },
   "peerDependencies": {
     "better-auth": "1.7.12"

@@ -19,12 +19,12 @@
   },
   "dependencies": {
     "@foundry/commons": "workspace:*",
-    "lucide-react": "catalog:",
+    "lucide-react": "^1.61.0",
     "stripe": "23.0.1",
-    "zod": "catalog:"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   }
 }

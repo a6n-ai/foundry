@@ -4,72 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-catalogs:
-  default:
-    '@testing-library/react':
-      specifier: ^16.3.3
-      version: 16.3.3
-    '@types/node':
-      specifier: ^26.6.5
-      version: 26.6.5
-    '@types/react':
-      specifier: ^19.3.0
-      version: 19.3.0
-    '@types/react-dom':
-      specifier: ^19.3.0
-      version: 19.3.0
-    better-auth:
-      specifier: 1.7.12
-      version: 1.7.12
-    class-variance-authority:
-      specifier: ^0.7.1
-      version: 0.7.1
-    drizzle-orm:
-      specifier: ^0.45.4
-      version: 0.45.4
-    input-otp:
-      specifier: ^1.5.0
-      version: 1.5.0
-    jsdom:
-      specifier: ^30.1.3
-      version: 30.1.3
-    lucide-react:
-      specifier: ^1.61.0
-      version: 1.61.0
-    maplibre-gl:
-      specifier: ^6.15.0
-      version: 6.15.0
-    nanoid:
-      specifier: ^6.0.2
-      version: 6.0.2
-    next:
-      specifier: 16.4.3
-      version: 16.4.3
-    postgres:
-      specifier: ^3.4.9
-      version: 3.4.9
-    react:
-      specifier: 19.3.1
-      version: 19.3.1
-    react-dom:
-      specifier: 19.3.1
-      version: 19.3.1
-    react-hook-form:
-      specifier: ^7.90.0
-      version: 7.90.0
-    sonner:
-      specifier: ^2.0.8
-      version: 2.0.8
-    typescript:
-      specifier: ^7.0.2
-      version: 7.0.2
-    vitest:
-      specifier: ^5.0.5
-      version: 5.0.5
-    zod:
-      specifier: ^4.6.7
-      version: 4.6.7
-
 importers:
 
   .:
@@ -78,10 +12,10 @@ importers:
         specifier: ^2.11.10
         version: 2.11.10
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/address:
@@ -99,35 +33,35 @@ importers:
         specifier: workspace:*
         version: link:../ui
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       sonner:
-        specifier: 'catalog:'
+        specifier: ^2.0.8
         version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
     devDependencies:
       '@testing-library/react':
-        specifier: 'catalog:'
+        specifier: ^16.3.3
         version: 16.3.3(@testing-library/dom@10.4.1)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
       jsdom:
-        specifier: 'catalog:'
+        specifier: ^30.1.3
         version: 30.1.3(@noble/hashes@2.4.0)
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       react-dom:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/ai:
@@ -136,14 +70,14 @@ importers:
         specifier: workspace:*
         version: link:../commons
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/auth:
@@ -156,10 +90,10 @@ importers:
         version: link:../email
     devDependencies:
       better-auth:
-        specifier: 'catalog:'
+        specifier: 1.7.12
         version: 1.7.12(drizzle-orm@0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9))(next@16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2)))
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
 
   packages/auth-ui:
@@ -174,41 +108,41 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0(@standard-schema/spec@1.1.0)(react-hook-form@7.90.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)
       input-otp:
-        specifier: 'catalog:'
+        specifier: ^1.5.0
         version: 1.5.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       react-hook-form:
-        specifier: 'catalog:'
+        specifier: ^7.90.0
         version: 7.90.0(@types/react@19.3.0)(react@19.3.1)
       sonner:
-        specifier: 'catalog:'
+        specifier: ^2.0.8
         version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       '@types/react-dom':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
       next:
-        specifier: 'catalog:'
+        specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       react-dom:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/clover:
@@ -226,29 +160,29 @@ importers:
         specifier: workspace:*
         version: link:../ui
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       sonner:
-        specifier: 'catalog:'
+        specifier: ^2.0.8
         version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       next:
-        specifier: 'catalog:'
+        specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/commons:
@@ -263,26 +197,26 @@ importers:
         specifier: ^10.4.0
         version: 10.4.0
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/coupons:
     devDependencies:
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/crm:
@@ -297,35 +231,35 @@ importers:
         specifier: workspace:*
         version: link:../ui
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       sonner:
-        specifier: 'catalog:'
+        specifier: ^2.0.8
         version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
     devDependencies:
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       '@types/react-dom':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
       next:
-        specifier: 'catalog:'
+        specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       react-dom:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/database:
@@ -334,20 +268,20 @@ importers:
         specifier: workspace:*
         version: link:../commons
       nanoid:
-        specifier: 'catalog:'
+        specifier: ^6.0.2
         version: 6.0.2
     devDependencies:
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
       postgres:
-        specifier: 'catalog:'
+        specifier: ^3.4.9
         version: 3.4.9
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/delivery:
@@ -365,32 +299,32 @@ importers:
         specifier: workspace:*
         version: link:../ui
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       maplibre-gl:
-        specifier: 'catalog:'
+        specifier: ^6.15.0
         version: 6.15.0
       sonner:
-        specifier: 'catalog:'
+        specifier: ^2.0.8
         version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
     devDependencies:
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
       next:
-        specifier: 'catalog:'
+        specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/design-system:
@@ -405,38 +339,38 @@ importers:
         specifier: workspace:*
         version: link:../ui
       class-variance-authority:
-        specifier: 'catalog:'
+        specifier: ^0.7.1
         version: 0.7.1
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       maplibre-gl:
-        specifier: 'catalog:'
+        specifier: ^6.15.0
         version: 6.15.0
     devDependencies:
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       '@types/react-dom':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
       next:
-        specifier: 'catalog:'
+        specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       react-dom:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/discounts:
@@ -449,13 +383,13 @@ importers:
         version: link:../database
     devDependencies:
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/doordash:
@@ -464,20 +398,20 @@ importers:
         specifier: workspace:*
         version: link:../commons
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/email:
@@ -492,23 +426,23 @@ importers:
         specifier: ^1.0.12
         version: 1.0.12(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       react-dom:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/friends:
@@ -521,16 +455,16 @@ importers:
         version: link:../database
     devDependencies:
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
       postgres:
-        specifier: 'catalog:'
+        specifier: ^3.4.9
         version: 3.4.9
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/google-analytics:
@@ -539,29 +473,29 @@ importers:
         specifier: workspace:*
         version: link:../commons
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       next:
-        specifier: 'catalog:'
+        specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/google-reviews:
@@ -576,38 +510,38 @@ importers:
         specifier: workspace:*
         version: link:../ui
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       sonner:
-        specifier: 'catalog:'
+        specifier: ^2.0.8
         version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
       next:
-        specifier: 'catalog:'
+        specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       postgres:
-        specifier: 'catalog:'
+        specifier: ^3.4.9
         version: 3.4.9
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/meta-pixel:
@@ -616,29 +550,29 @@ importers:
         specifier: workspace:*
         version: link:../commons
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       next:
-        specifier: 'catalog:'
+        specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/order-tracking:
@@ -647,20 +581,20 @@ importers:
         specifier: workspace:*
         version: link:../commons
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       better-auth:
-        specifier: 'catalog:'
+        specifier: 1.7.12
         version: 1.7.12(drizzle-orm@0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9))(next@16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2)))
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/payments:
@@ -669,20 +603,20 @@ importers:
         specifier: workspace:*
         version: link:../commons
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       stripe:
         specifier: 23.0.1
         version: 23.0.1(@types/node@26.6.5)
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/places:
@@ -694,23 +628,23 @@ importers:
         specifier: workspace:*
         version: link:../commons
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/realtime:
@@ -720,19 +654,19 @@ importers:
         version: link:../commons
     devDependencies:
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/routes:
@@ -745,16 +679,16 @@ importers:
         version: link:../database
     devDependencies:
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
       next:
-        specifier: 'catalog:'
+        specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/shortlinks:
@@ -764,16 +698,16 @@ importers:
         version: link:../database
     devDependencies:
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
       postgres:
-        specifier: 'catalog:'
+        specifier: ^3.4.9
         version: 3.4.9
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/storage:
@@ -791,32 +725,32 @@ importers:
         specifier: workspace:*
         version: link:../database
       nanoid:
-        specifier: 'catalog:'
+        specifier: ^6.0.2
         version: 6.0.2
     devDependencies:
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
       postgres:
-        specifier: 'catalog:'
+        specifier: ^3.4.9
         version: 3.4.9
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/themes:
     devDependencies:
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
 
   packages/uber-eats:
@@ -825,20 +759,20 @@ importers:
         specifier: workspace:*
         version: link:../commons
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/ui:
@@ -853,7 +787,7 @@ importers:
         specifier: workspace:*
         version: link:../themes
       class-variance-authority:
-        specifier: 'catalog:'
+        specifier: ^0.7.1
         version: 0.7.1
       clsx:
         specifier: ^2.1.1
@@ -862,10 +796,10 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       input-otp:
-        specifier: 'catalog:'
+        specifier: ^1.5.0
         version: 1.5.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       lucide-react:
-        specifier: 'catalog:'
+        specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       radix-ui:
         specifier: ^1.8.1
@@ -874,13 +808,13 @@ importers:
         specifier: ^10.0.2
         version: 10.0.2(@types/react@19.3.0)(react@19.3.1)
       react-hook-form:
-        specifier: 'catalog:'
+        specifier: ^7.90.0
         version: 7.90.0(@types/react@19.3.0)(react@19.3.1)
       react-phone-number-input:
         specifier: ^3.4.18
         version: 3.4.18(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       sonner:
-        specifier: 'catalog:'
+        specifier: ^2.0.8
         version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       tailwind-merge:
         specifier: ^3.7.0
@@ -893,28 +827,28 @@ importers:
         specifier: ^7.0.1
         version: 7.0.1(@testing-library/dom@10.4.1)(vitest@5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2)))
       '@testing-library/react':
-        specifier: 'catalog:'
+        specifier: ^16.3.3
         version: 16.3.3(@testing-library/dom@10.4.1)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@types/react':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0
       '@types/react-dom':
-        specifier: 'catalog:'
+        specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
       jsdom:
-        specifier: 'catalog:'
+        specifier: ^30.1.3
         version: 30.1.3(@noble/hashes@2.4.0)
       react:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1
       react-dom:
-        specifier: 'catalog:'
+        specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   packages/wallet:
@@ -927,16 +861,16 @@ importers:
         version: link:../database
     devDependencies:
       drizzle-orm:
-        specifier: 'catalog:'
+        specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
       postgres:
-        specifier: 'catalog:'
+        specifier: ^3.4.9
         version: 3.4.9
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
 
   services/realtime:
@@ -949,16 +883,16 @@ importers:
         specifier: ^5.20261022.1
         version: 5.20261022.1
       '@types/node':
-        specifier: 'catalog:'
+        specifier: ^26.6.5
         version: 26.6.5
       esbuild:
         specifier: ^0.28.2
         version: 0.28.2
       typescript:
-        specifier: 'catalog:'
+        specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 'catalog:'
+        specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2))
       wrangler:
         specifier: ^4.152.0

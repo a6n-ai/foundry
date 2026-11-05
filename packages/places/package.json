@@ -16,16 +16,16 @@
   "dependencies": {
     "@aws-sdk/client-geo-places": "^3.1155.0",
     "@foundry/commons": "workspace:*",
-    "zod": "catalog:"
+    "zod": "^4.6.7"
   },
   "peerDependencies": {
     "react": "^19"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
-    "@types/react": "catalog:",
-    "react": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "react": "19.3.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   }
 }

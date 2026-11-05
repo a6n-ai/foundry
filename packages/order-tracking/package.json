@@ -14,15 +14,15 @@
   },
   "dependencies": {
     "@foundry/commons": "workspace:*",
-    "zod": "catalog:"
+    "zod": "^4.6.7"
   },
   "peerDependencies": {
     "better-auth": "1.7.12"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
-    "better-auth": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "@types/node": "^26.6.5",
+    "better-auth": "1.7.12",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   }
 }

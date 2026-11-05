@@ -15,17 +15,17 @@
     "@aws-sdk/client-sesv2": "^3.1155.0",
     "@foundry/commons": "workspace:*",
     "@react-email/components": "^1.0.12",
-    "zod": "catalog:"
+    "zod": "^4.6.7"
   },
   "peerDependencies": {
     "react": "^19",
     "react-dom": "^19"
   },
   "devDependencies": {
-    "@types/react": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "@types/react": "^19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   }
 }
