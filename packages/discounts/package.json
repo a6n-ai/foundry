@@ -17,9 +17,9 @@
     "@foundry/database": "workspace:*"
   },
   "devDependencies": {
-    "drizzle-orm": "^0.45.4",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.5"
+    "drizzle-orm": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "drizzle-orm": "^0.45.4"

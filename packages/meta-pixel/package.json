@@ -17,19 +17,19 @@
   },
   "dependencies": {
     "@foundry/commons": "workspace:*",
-    "lucide-react": "^1.20.0",
-    "zod": "^4.4.3"
+    "lucide-react": "catalog:",
+    "zod": "catalog:"
   },
   "peerDependencies": {
     "react": "^19",
-    "next": "16.3.3"
+    "next": "^16.4.2"
   },
   "devDependencies": {
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "next": "16.3.3",
-    "react": "19.2.4",
-    "typescript": "^5",
-    "vitest": "^4.1.9"
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

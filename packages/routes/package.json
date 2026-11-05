@@ -19,9 +19,9 @@
     "next": "^16.4.2"
   },
   "devDependencies": {
-    "drizzle-orm": "^0.45.4",
-    "next": "16.4.3",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.5"
+    "drizzle-orm": "catalog:",
+    "next": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

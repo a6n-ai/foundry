@@ -1,7 +1,7 @@
 ---
 name: foundry-auth
 description: >
-  Configure Better Auth 1.6 with @foundry/auth and @foundry/auth-ui in a Next.js
+  Configure Better Auth 1.7 with @foundry/auth and @foundry/auth-ui in a Next.js
   16 consumer. Use when wiring login, email OTP, invites, permissions,
   createAccessControl, CrmShell auth, ChangePasswordForm, ForgotPasswordForm,
   CodeOtp, disableSignUp, passwordSet, or proxy.ts session gates.
@@ -10,7 +10,8 @@ description: >
 # Foundry auth
 
 `@foundry/auth` is server helpers. `@foundry/auth-ui` is client forms. Better Auth
-(`1.6.x` — match the consumer lockfile) owns sessions. Do not reimplement
+(`1.7.12` — workspace catalog; peer of `@foundry/auth` and `@foundry/order-tracking`)
+owns sessions. The app installs `better-auth` once. Do not reimplement
 password/email/OTP screens.
 
 ## `@foundry/auth` exports
