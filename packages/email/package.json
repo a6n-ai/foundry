@@ -13,7 +13,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@foundry/aws": "workspace:*",
+    "@foundry/cloud": "workspace:*",
     "@foundry/commons": "workspace:*",
     "react-email": "^6.11.6",
     "zod": "^4.6.7"

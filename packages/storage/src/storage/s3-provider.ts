@@ -1,4 +1,4 @@
-import { createAwsClient } from "@foundry/aws";
+import { createAwsClient } from "@foundry/cloud";
 import { parseListObjectsV2 } from "./s3-xml";
 import type {
   GetResult,

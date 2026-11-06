@@ -15,7 +15,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@foundry/aws": "workspace:*",
+    "@foundry/cloud": "workspace:*",
     "@foundry/commons": "workspace:*",
     "@foundry/database": "workspace:*",
     "nanoid": "^6.0.2"

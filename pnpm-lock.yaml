@@ -145,7 +145,7 @@ importers:
         specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.6.1))
 
-  packages/aws:
+  packages/cloud:
     dependencies:
       aws4fetch:
         specifier: ^1.0.20
@@ -432,9 +432,9 @@ importers:
 
   packages/email:
     dependencies:
-      '@foundry/aws':
+      '@foundry/cloud':
         specifier: workspace:*
-        version: link:../aws
+        version: link:../cloud
       '@foundry/commons':
         specifier: workspace:*
         version: link:../commons
@@ -565,9 +565,9 @@ importers:
 
   packages/maps:
     dependencies:
-      '@foundry/aws':
+      '@foundry/cloud':
         specifier: workspace:*
-        version: link:../aws
+        version: link:../cloud
     devDependencies:
       '@types/node':
         specifier: ^26.6.5
@@ -656,9 +656,9 @@ importers:
 
   packages/places:
     dependencies:
-      '@foundry/aws':
+      '@foundry/cloud':
         specifier: workspace:*
-        version: link:../aws
+        version: link:../cloud
       '@foundry/commons':
         specifier: workspace:*
         version: link:../commons
@@ -747,9 +747,9 @@ importers:
 
   packages/storage:
     dependencies:
-      '@foundry/aws':
+      '@foundry/cloud':
         specifier: workspace:*
-        version: link:../aws
+        version: link:../cloud
       '@foundry/commons':
         specifier: workspace:*
         version: link:../commons

@@ -1,4 +1,4 @@
-import { AwsError, encodePathSegment, awsConfigFromEnv, createAwsClient, type AwsConfig } from "@foundry/aws";
+import { AwsError, encodePathSegment, awsConfigFromEnv, createAwsClient, type AwsConfig } from "@foundry/cloud";
 import { createLogger } from "@foundry/commons/logger";
 import type { PlaceProvider, PlaceSuggestion, ResolvedPlace } from "./types";
 

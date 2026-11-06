@@ -1,4 +1,4 @@
-import { AwsError, awsConfigFromEnv, createAwsClient, type AwsConfig } from "@foundry/aws";
+import { AwsError, awsConfigFromEnv, createAwsClient, type AwsConfig } from "@foundry/cloud";
 import { AppError } from "@foundry/commons";
 import {
   AbstractEmailProvider,

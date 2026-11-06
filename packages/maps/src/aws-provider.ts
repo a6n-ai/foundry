@@ -1,4 +1,4 @@
-import { AwsError, awsConfigFromEnv, createAwsClient, encodePathSegment as seg, type AwsConfig } from "@foundry/aws";
+import { AwsError, awsConfigFromEnv, createAwsClient, encodePathSegment as seg, type AwsConfig } from "@foundry/cloud";
 import type { MapAsset, MapTileProvider } from "./types";
 
 export interface AwsMapOptions extends AwsConfig {

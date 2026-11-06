@@ -7,7 +7,7 @@
  *
  * Usage: AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=us-east-1 GOOGLE_PLACES_API_KEY=... pnpm tsx scripts/compare-providers.ts
  */
-import { awsConfigFromEnv, createAwsClient } from "@foundry/aws";
+import { awsConfigFromEnv, createAwsClient } from "@foundry/cloud";
 import { awsPlaceProvider } from "../src/aws-provider";
 import { googlePlaceProvider } from "../src/google-provider";
 import { CANADIAN_ADDRESS_FIXTURES } from "../src/__tests__/fixtures/canadian-addresses";

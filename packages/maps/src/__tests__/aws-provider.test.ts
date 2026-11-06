@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { AwsError } from "@foundry/aws";
+import { AwsError } from "@foundry/cloud";
 import { awsMapProvider } from "../aws-provider";
 
 const credentials = { accessKeyId: "AKIDEXAMPLE", secretAccessKey: "secret" };
