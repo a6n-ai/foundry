@@ -15,7 +15,7 @@
   "dependencies": {
     "@foundry/aws": "workspace:*",
     "@foundry/commons": "workspace:*",
-    "react-email": "^6.11.7",
+    "react-email": "^6.11.6",
     "zod": "^4.6.7"
   },
   "peerDependencies": {
