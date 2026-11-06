@@ -13,7 +13,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@aws-sdk/client-sesv2": "^3.1155.0",
+    "@foundry/aws": "workspace:*",
     "@foundry/commons": "workspace:*",
     "@react-email/components": "^1.0.12",
     "zod": "^4.6.7"
@@ -23,6 +23,7 @@
     "react-dom": "^19"
   },
   "devDependencies": {
+    "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
