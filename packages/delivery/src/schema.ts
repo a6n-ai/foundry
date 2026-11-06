@@ -38,6 +38,9 @@ export function makeDeliveryTables(deps: {
       /** Postal zone: FSA-style prefixes, longest match wins. Empty for a circle zone. */
       postalPrefixes: text("postal_prefixes").array().notNull().default(sql`'{}'::text[]`),
       slotWindow: text("slot_window"),
+      /** Where the area sits on a map, geocoded from the name on save. Null until it resolves. */
+      lat: numeric("lat", { precision: 9, scale: 6 }),
+      lng: numeric("lng", { precision: 9, scale: 6 }),
       // Soft delete: historical orders keep a resolvable zone.
       active: boolean("active").notNull().default(true),
       organizationId: orgId(),

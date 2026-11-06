@@ -13,6 +13,7 @@ describe("makeDeliveryTables", () => {
     expect(t.deliveryChargeType.enumValues).toEqual(["none", "fixed", "percent"]);
     expect(getTableConfig(t.deliveryChargeConfigs).name).toBe("delivery_charge_configs");
     expect(getTableConfig(t.deliveryZones).name).toBe("delivery_zones");
+    expect(getTableConfig(t.deliveryZones).columns.map((c) => c.name)).toEqual(expect.arrayContaining(["lat", "lng"]));
     expect(getTableConfig(t.deliveryZones).checks.map((c) => c.name)).toEqual(["delivery_zones_shape_check"]);
     expect(getTableConfig(t.deliveryTypes).name).toBe("delivery_types");
     expect(getTableConfig(t.deliveryZoneTypes).indexes.map((i) => i.config.name)).toEqual(["delivery_zone_types_zone_type_unique", "delivery_zone_types_type_idx"]);

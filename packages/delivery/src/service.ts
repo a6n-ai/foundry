@@ -97,6 +97,8 @@ export type DeliveryServiceDeps = {
   /** Whether an app row (an address, order…) still names this tag. In use = retire, not delete. */
   isTagInUse?: (id: bigint) => Promise<boolean>;
   isAddressTagInUse: (id: bigint) => Promise<boolean>;
+  /** Geocodes a zone's name to a map point on save. A miss or error leaves the stored point as it was. */
+  geocodeZone?: (name: string) => Promise<{ lat: number; lng: number } | null>;
   /** Session user for created_by/updated_by. Never taken from input. */
   currentUserId?: () => Promise<bigint | null>;
   /** Optional audit sink, called after each write. */
@@ -320,6 +322,8 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
           postalPrefixes: zone.postalPrefixes,
           slotWindow: zone.slotWindow,
           active: zone.active,
+          lat: zone.lat == null ? null : Number(zone.lat),
+          lng: zone.lng == null ? null : Number(zone.lng),
           types: [],
         };
         byId.set(zone.id, entry);
@@ -490,14 +494,16 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
         slotWindow: input.slotWindow?.trim() || null,
         active: input.active,
       };
+      const point = deps.geocodeZone ? await deps.geocodeZone(name).catch(() => null) : null;
+      const located = point ? { ...values, lat: point.lat.toFixed(6), lng: point.lng.toFixed(6) } : values;
       const by = await actor();
       const [row] = input.publicId
         ? await db
             .update(zones)
-            .set({ ...values, updatedAt: Date.now(), updatedBy: by })
+            .set({ ...located, updatedAt: Date.now(), updatedBy: by })
             .where(and(eq(zones.publicId, input.publicId), orgScope(zones.organizationId, orgId)))
             .returning()
-        : await db.insert(zones).values({ ...values, organizationId: orgId ?? null, createdBy: by, updatedBy: by }).returning();
+        : await db.insert(zones).values({ ...located, organizationId: orgId ?? null, createdBy: by, updatedBy: by }).returning();
       if (!row) throw new ValidationError("Zone not found");
       await audit({ entity: "delivery_zones", entityPublicId: row.publicId, operation: input.publicId ? "update" : "create", changes: values });
       return {
@@ -508,6 +514,8 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
         postalPrefixes: row.postalPrefixes,
         slotWindow: row.slotWindow,
         active: row.active,
+        lat: row.lat == null ? null : Number(row.lat),
+        lng: row.lng == null ? null : Number(row.lng),
         types: [],
       };
     },

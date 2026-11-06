@@ -12,6 +12,9 @@ export type Zone = {
   postalPrefixes: string[];
   slotWindow: string | null;
   active: boolean;
+  /** Map point for the area, geocoded on save. Null (or absent on fixtures) until resolved. */
+  lat?: number | null;
+  lng?: number | null;
 };
 
 /** A fulfillment option and its rules. Rules live on the type, geography on the zone. */
