@@ -87,6 +87,12 @@ describe("awsPlaceProvider requests", () => {
     expect(url.searchParams.get("intended-use")).toBe("Storage");
   });
 
+  it("resolve returns null without fetching for a dot-segment placeId", async () => {
+    const s = setup({});
+    await expect(s.provider.resolve({ placeId: "..", address: "x", persist: false })).resolves.toBeNull();
+    expect(s.fetchFn).not.toHaveBeenCalled();
+  });
+
   it("resolve(placeId, persist:false) omits intended-use", async () => {
     const s = setup({ Position: [-79.3, 43.7], Address: { Label: "L" } });
     await s.provider.resolve({ placeId: "p1", address: "x", persist: false });

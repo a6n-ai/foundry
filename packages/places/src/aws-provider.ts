@@ -1,4 +1,4 @@
-import { AwsError, awsConfigFromEnv, createAwsClient, type AwsConfig } from "@foundry/aws";
+import { AwsError, encodePathSegment, awsConfigFromEnv, createAwsClient, type AwsConfig } from "@foundry/aws";
 import { createLogger } from "@foundry/commons/logger";
 import type { PlaceProvider, PlaceSuggestion, ResolvedPlace } from "./types";
 
@@ -105,7 +105,7 @@ export function awsPlaceProvider(opts: AwsPlaceProviderOptions = {}): PlaceProvi
       const intendedUse = persist ? "Storage" : undefined;
       try {
         if (placeId) {
-          const out = await client.json<PlaceItem>(`${base()}/v2/place/${encodeURIComponent(placeId)}`, {
+          const out = await client.json<PlaceItem>(`${base()}/v2/place/${encodePathSegment(placeId)}`, {
             query: { "intended-use": intendedUse },
             ...RESOLVE_BUDGET,
           });
