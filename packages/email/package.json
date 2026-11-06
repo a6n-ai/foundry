@@ -15,7 +15,13 @@
   "dependencies": {
     "@foundry/aws": "workspace:*",
     "@foundry/commons": "workspace:*",
-    "@react-email/components": "^1.0.12",
+    "@react-email/body": "0.3.0",
+    "@react-email/container": "0.0.16",
+    "@react-email/head": "0.0.13",
+    "@react-email/heading": "0.0.16",
+    "@react-email/html": "0.0.12",
+    "@react-email/markdown": "0.0.18",
+    "@react-email/render": "2.0.6",
     "zod": "^4.6.7"
   },
   "peerDependencies": {
