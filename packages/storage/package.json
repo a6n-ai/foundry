@@ -15,8 +15,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1155.0",
-    "@aws-sdk/s3-request-presigner": "3.1155.0",
+    "@foundry/aws": "workspace:*",
     "@foundry/commons": "workspace:*",
     "@foundry/database": "workspace:*",
     "nanoid": "^6.0.2"
@@ -25,6 +24,7 @@
     "drizzle-orm": "^0.45.4"
   },
   "devDependencies": {
+    "@types/node": "^26.6.5",
     "drizzle-orm": "^0.45.4",
     "postgres": "^3.4.9",
     "typescript": "^7.0.2",

@@ -728,12 +728,9 @@ importers:
 
   packages/storage:
     dependencies:
-      '@aws-sdk/client-s3':
-        specifier: 3.1155.0
-        version: 3.1155.0
-      '@aws-sdk/s3-request-presigner':
-        specifier: 3.1155.0
-        version: 3.1155.0
+      '@foundry/aws':
+        specifier: workspace:*
+        version: link:../aws
       '@foundry/commons':
         specifier: workspace:*
         version: link:../commons
@@ -744,6 +741,9 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2
     devDependencies:
+      '@types/node':
+        specifier: ^26.6.5
+        version: 26.6.5
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261022.1)(kysely@0.29.7)(postgres@3.4.9)
@@ -936,14 +936,6 @@ packages:
     resolution: {integrity: sha512-A6f1nKy99I6tyoK82U6kBHvQQZmdHmTmPzJYPY/0eaOW0r8/qPmEOwjGHs+hL/vCgOwQTupu4LT1XtXNUuDruA==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
 
-  '@aws-sdk/checksums@3.1001.5':
-    resolution: {integrity: sha512-6erto9nK2OZO/woEgmFIaPh5gChgdNd7nL6jgAf8TAXz3/QHC8Pan2TFe9GYp3IxOIKCCGWPylSjtOHKfNzQlw==}
-    engines: {node: '>=20.0.0'}
-
-  '@aws-sdk/client-s3@3.1155.0':
-    resolution: {integrity: sha512-l3uMeIlzWVgj/RTJTh5sKYKtQz1la3cvWLUPn1cwFH4UZpcqTH66SgJHCeB2FOE9bEAjOdbmCyPKt9aw867Fng==}
-    engines: {node: '>=20.0.0'}
-
   '@aws-sdk/client-sesv2@3.1155.0':
     resolution: {integrity: sha512-OwGWcqGFZR6fdjVD4JoSJIsaK/t00Ab8BsvaHT4dERGNJlzNDrUMTqBcjX3XMaAiHcNTIFKaHqloFUE3FxMV/g==}
     engines: {node: '>=20.0.0'}
@@ -984,16 +976,8 @@ packages:
     resolution: {integrity: sha512-LUo46IqPTJ4xKBsrLuoaxiv/D2GTBCcFDMD1y3jKIqPR/p7Rw14RJFZ0iRWftqZtyLPQX9JMGnSi3mBu4y/pNA==}
     engines: {node: '>=20.0.0'}
 
-  '@aws-sdk/middleware-sdk-s3@3.972.81':
-    resolution: {integrity: sha512-jfanv1pV0sJFZw6/DPiNjvK7B478god0zOum5yIWo+/+1Gy+CSXWpGBWx+3nBJyDvjcu/2kUMr4ADUp9BHH34Q==}
-    engines: {node: '>=20.0.0'}
-
   '@aws-sdk/nested-clients@3.997.50':
     resolution: {integrity: sha512-nKb8qu4QsnpZTq/6JIXc72mzuzfh7BK4sUQkpQznPec2z4W7Ob2xYkcM4i5e1yGTBnbJVeFv/0sf3jcz85hclA==}
-    engines: {node: '>=20.0.0'}
-
-  '@aws-sdk/s3-request-presigner@3.1155.0':
-    resolution: {integrity: sha512-t0AlTvpL6bqCGlN2avesGtNNZ/qssSJgIZgIMEoQan0dH8k64k8iK5jDWOGFAjTs4G+ALvXjjkNl5ITxhYGpxw==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/signature-v4-multi-region@3.996.49':
@@ -5454,28 +5438,6 @@ snapshots:
       is-potential-custom-element-name: 1.0.1
       lru-cache: 11.5.3
 
-  '@aws-sdk/checksums@3.1001.5':
-    dependencies:
-      '@aws-sdk/core': 3.978.5
-      '@aws-sdk/types': 3.975.0
-      '@smithy/core': 3.36.2
-      '@smithy/types': 4.19.0
-      tslib: 2.8.1
-
-  '@aws-sdk/client-s3@3.1155.0':
-    dependencies:
-      '@aws-sdk/checksums': 3.1001.5
-      '@aws-sdk/core': 3.978.5
-      '@aws-sdk/credential-provider-node': 3.972.88
-      '@aws-sdk/middleware-sdk-s3': 3.972.81
-      '@aws-sdk/signature-v4-multi-region': 3.996.49
-      '@aws-sdk/types': 3.975.0
-      '@smithy/core': 3.36.2
-      '@smithy/fetch-http-handler': 5.8.0
-      '@smithy/node-http-handler': 4.12.1
-      '@smithy/types': 4.19.0
-      tslib: 2.8.1
-
   '@aws-sdk/client-sesv2@3.1155.0':
     dependencies:
       '@aws-sdk/core': 3.978.5
@@ -5583,15 +5545,6 @@ snapshots:
       '@smithy/types': 4.19.0
       tslib: 2.8.1
 
-  '@aws-sdk/middleware-sdk-s3@3.972.81':
-    dependencies:
-      '@aws-sdk/core': 3.978.5
-      '@aws-sdk/signature-v4-multi-region': 3.996.49
-      '@aws-sdk/types': 3.975.0
-      '@smithy/core': 3.36.2
-      '@smithy/types': 4.19.0
-      tslib: 2.8.1
-
   '@aws-sdk/nested-clients@3.997.50':
     dependencies:
       '@aws-sdk/core': 3.978.5
@@ -5600,15 +5553,6 @@ snapshots:
       '@smithy/core': 3.36.2
       '@smithy/fetch-http-handler': 5.8.0
       '@smithy/node-http-handler': 4.12.1
-      '@smithy/types': 4.19.0
-      tslib: 2.8.1
-
-  '@aws-sdk/s3-request-presigner@3.1155.0':
-    dependencies:
-      '@aws-sdk/core': 3.978.5
-      '@aws-sdk/signature-v4-multi-region': 3.996.49
-      '@aws-sdk/types': 3.975.0
-      '@smithy/core': 3.36.2
       '@smithy/types': 4.19.0
       tslib: 2.8.1
 
