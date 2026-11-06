@@ -23,6 +23,14 @@ export function awsConfigFromEnv(env: Record<string, string | undefined> = proce
 
 const enc = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 
+/** RFC 3986 encode one URL path segment. Rejects "", "." and ".." because URL parsing collapses them (even as %2e), which would silently re-route the request. */
+export function encodePathSegment(value: string): string {
+  if (value === "" || value === "." || value === "..") {
+    throw new AwsError("InvalidPathSegment", `Invalid path segment: ${JSON.stringify(value)}`);
+  }
+  return enc(value);
+}
+
 function withQuery(url: string, query?: AwsRequestOptions["query"]): string {
   const qs = Object.entries(query ?? {})
     .filter((e): e is [string, string] => e[1] !== undefined)

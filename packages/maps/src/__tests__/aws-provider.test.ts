@@ -71,4 +71,20 @@ describe("awsMapProvider", () => {
     await s.provider.tile("0", "0", "0");
     expect(s.calls).toHaveLength(2);
   });
+
+  it.each([
+    ["glyphs ..", (p: ReturnType<typeof awsMapProvider>) => p.glyphs("..", "0-255.pbf")],
+    ["tile ..", (p: ReturnType<typeof awsMapProvider>) => p.tile("..", "0", "0")],
+    ["sprite ..", (p: ReturnType<typeof awsMapProvider>) => p.sprite("..")],
+    ["z format", (p: ReturnType<typeof awsMapProvider>) => p.tile("123", "0", "0")],
+    ["x format", (p: ReturnType<typeof awsMapProvider>) => p.tile("1", "a", "0")],
+    ["y format", (p: ReturnType<typeof awsMapProvider>) => p.tile("1", "0", "12345678")],
+    ["range format", (p: ReturnType<typeof awsMapProvider>) => p.glyphs("Noto Sans Regular", "0-255.png")],
+    ["sprite format", (p: ReturnType<typeof awsMapProvider>) => p.sprite("evil.png")],
+    ["tile empty", (p: ReturnType<typeof awsMapProvider>) => p.tile("", "0", "0")],
+  ])("rejects dot/empty segment (%s) without fetching", async (_n, call) => {
+    const s = setup(ok);
+    await expect(call(s.provider)).rejects.toMatchObject({ code: "InvalidPathSegment" });
+    expect(s.calls).toHaveLength(0);
+  });
 });

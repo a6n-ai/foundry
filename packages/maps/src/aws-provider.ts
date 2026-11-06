@@ -1,4 +1,4 @@
-import { awsConfigFromEnv, createAwsClient, type AwsConfig } from "@foundry/aws";
+import { AwsError, awsConfigFromEnv, createAwsClient, encodePathSegment as seg, type AwsConfig } from "@foundry/aws";
 import type { MapAsset, MapTileProvider } from "./types";
 
 export interface AwsMapOptions extends AwsConfig {
@@ -8,10 +8,12 @@ export interface AwsMapOptions extends AwsConfig {
   variant?: string;
 }
 
-const BUDGET = { retries: 1, timeoutMs: 6_000 };
+const check = (value: string, re: RegExp, what: string) => {
+  if (!re.test(value)) throw new AwsError("InvalidPathSegment", `Invalid ${what}: ${JSON.stringify(value)}`);
+  return value;
+};
 
-// Same encoder as @foundry/aws; aws4fetch decodes then re-encodes the path, so a single pass is stable.
-const seg = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+const BUDGET = { retries: 1, timeoutMs: 6_000 };
 
 export function awsMapProvider(opts: AwsMapOptions = {}): MapTileProvider {
   const env = awsConfigFromEnv();
@@ -33,8 +35,11 @@ export function awsMapProvider(opts: AwsMapOptions = {}): MapTileProvider {
   return {
     id: "aws",
     style: () => get(`/v2/styles/${seg(style)}/descriptor`, { "color-scheme": scheme }),
-    tile: (z, x, y) => get(`/v2/tiles/${seg(tileset)}/${seg(z)}/${seg(x)}/${seg(y)}`),
-    sprite: (file) => get(`/v2/styles/${seg(style)}/${seg(scheme)}/${seg(variant)}/sprites/${seg(file)}`),
-    glyphs: (fontStack, range) => get(`/v2/glyphs/${seg(fontStack)}/${seg(range)}`),
+    tile: async (z, x, y) =>
+      get(`/v2/tiles/${seg(tileset)}/${check(z, /^\d{1,2}$/, "z")}/${check(x, /^\d{1,7}$/, "x")}/${check(y, /^\d{1,7}$/, "y")}`),
+    sprite: async (file) =>
+      get(`/v2/styles/${seg(style)}/${seg(scheme)}/${seg(variant)}/sprites/${seg(check(file, /^sprites(@2x)?\.(png|json)$/, "sprite file"))}`),
+    glyphs: async (fontStack, range) =>
+      get(`/v2/glyphs/${seg(fontStack)}/${check(range, /^\d{1,6}-\d{1,6}\.pbf$/, "glyph range")}`),
   };
 }

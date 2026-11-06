@@ -125,3 +125,14 @@ describe("awsConfigFromEnv", () => {
     expect(awsConfigFromEnv({ AWS_ACCESS_KEY_ID: "a" }).credentials).toBeUndefined();
   });
 });
+
+describe("encodePathSegment", () => {
+  it("encodes per RFC 3986, including / % and sub-delims", async () => {
+    const { encodePathSegment } = await import("../client");
+    expect(encodePathSegment("a b/c%d,e'(x)*!")).toBe("a%20b%2Fc%25d%2Ce%27%28x%29%2A%21");
+  });
+  it.each(["", ".", ".."])("rejects %j with InvalidPathSegment", async (v) => {
+    const { encodePathSegment } = await import("../client");
+    expect(() => encodePathSegment(v)).toThrowError(expect.objectContaining({ code: "InvalidPathSegment" }));
+  });
+});
