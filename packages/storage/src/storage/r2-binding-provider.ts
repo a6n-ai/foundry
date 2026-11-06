@@ -18,8 +18,8 @@ export interface R2BucketLike {
 
 export interface R2BindingStorageConfig {
   bucket: R2BucketLike;
-  /** Signs a percent-encoded key path into a readable URL, e.g. hmacUrlSigner from @foundry/cloud. */
-  signer?: { sign(path: string, ttlSeconds: number): Promise<string> };
+  /** Signs raw (unencoded) key segments into a readable URL, e.g. hmacUrlSigner from @foundry/cloud. */
+  signer?: { sign(segments: string[], ttlSeconds: number): Promise<string> };
 }
 
 /** Workers R2 binding; reads are shared via signed URLs (Cloudflare WAF token validation), uploads must go through put. */
@@ -77,9 +77,9 @@ export class R2BindingStorageProvider implements StorageProvider {
   }
 
   async presignGet(key: string, ttlSeconds: number): Promise<string> {
-    const path = encodeKey(key);
+    encodeKey(key);
     if (!this.signer) throw new Error("presignGet requires a signer (configure R2BindingStorageProvider with a signer)");
-    return this.signer.sign(path, ttlSeconds);
+    return this.signer.sign(key.split("/"), ttlSeconds);
   }
 
   async presignPut(_key: string, _ttlSeconds: number, _opts?: PutOptions): Promise<string> {

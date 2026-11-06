@@ -89,11 +89,11 @@ describe("R2BindingStorageProvider", () => {
     for (const fn of Object.values(bucket)) expect(fn).not.toHaveBeenCalled();
   });
 
-  it("presignGet delegates the encoded path; throws without signer", async () => {
-    const sign = vi.fn(async (p: string, t: number) => `https://cdn/${p}?t=${t}`);
+  it("presignGet delegates raw segments; throws without signer", async () => {
+    const sign = vi.fn(async (p: string[], t: number) => `https://cdn/${p.join("/")}?t=${t}`);
     const s = new R2BindingStorageProvider({ bucket: fakeBucket(), signer: { sign } });
-    expect(await s.presignGet("a b/ü+.png", 60)).toBe("https://cdn/a%20b/%C3%BC%2B.png?t=60");
-    expect(sign).toHaveBeenCalledWith("a%20b/%C3%BC%2B.png", 60);
+    expect(await s.presignGet("a b/ü+.png", 60)).toBe("https://cdn/a b/ü+.png?t=60");
+    expect(sign).toHaveBeenCalledWith(["a b", "ü+.png"], 60);
     await expect(new R2BindingStorageProvider({ bucket: fakeBucket() }).presignGet("a", 1)).rejects.toThrow(/signer/);
   });
 
