@@ -45,3 +45,4 @@ minimumReleaseAgeExclude:
   - eslint-config-next@16.4.3
   - next@16.4.3
   - stripe@23.0.1
+  - react-email@6.11.7

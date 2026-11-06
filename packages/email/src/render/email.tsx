@@ -9,17 +9,9 @@ export async function renderEmailTemplate(input: {
   vars: Record<string, unknown>;
   appName: string;
 }): Promise<{ subject: string; html: string; text: string }> {
-  // Loaded on first render, not at import: the components barrel takes ~1.5s to load, and every
+  // Loaded on first render, not at import: react-email takes ~1.5s to load, and every
   // server module that reaches @foundry/email (auth included) paid it at startup.
-  const [{ Body }, { Container }, { Head }, { Heading }, { Html }, { Markdown }, { render }] = await Promise.all([
-    import("@react-email/body"),
-    import("@react-email/container"),
-    import("@react-email/head"),
-    import("@react-email/heading"),
-    import("@react-email/html"),
-    import("@react-email/markdown"),
-    import("@react-email/render"),
-  ]);
+  const { Body, Container, Head, Heading, Html, Markdown, render } = await import("./react-email-parts");
   const subject = interpolate(input.subject, input.vars);
   const markdown = interpolate(input.body, input.vars);
   const email = (
