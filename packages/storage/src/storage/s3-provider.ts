@@ -1,4 +1,5 @@
 import { createAwsClient } from "@foundry/cloud";
+import { encodeKey } from "./keys";
 import { parseListObjectsV2 } from "./s3-xml";
 import type {
   GetResult,
@@ -21,16 +22,6 @@ export interface S3StorageConfig {
   fetch?: typeof fetch;
 }
 
-const rfc3986 = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
-// Reject, don't encode: aws4fetch decodes the path before signing, so %2E%2E would turn back into "..".
-const encodeKey = (key: string) =>
-  key
-    .split("/")
-    .map((seg) => {
-      if (seg === "" || seg === "." || seg === "..") throw new Error(`Unsafe storage key: ${JSON.stringify(key)}`);
-      return rfc3986(seg);
-    })
-    .join("/");
 const OPTS = { retries: 1, timeoutMs: 10_000 };
 
 /** One signed S3 client pointed at any S3-compatible endpoint. */
