@@ -36,7 +36,7 @@ export function relationAction(rel: FriendRelation): { label: string; kind: Frie
 }
 
 const BTN =
-  "inline-flex h-9 items-center justify-center rounded-[var(--radius)] border border-border bg-background px-3 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50";
+  "inline-flex h-9 items-center justify-center rounded-(--radius) border border-border bg-background px-3 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50";
 const BTN_PRIMARY = "border-transparent bg-primary text-primary-foreground hover:bg-primary/90";
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -72,7 +72,7 @@ function PersonRow({ p, children }: { p: FriendPerson; children?: React.ReactNod
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="border-border bg-card text-card-foreground rounded-[var(--radius)] border p-4">
+    <section className="border-border bg-card text-card-foreground rounded-(--radius) border p-4">
       <h2 className="mb-2 text-base font-semibold">{title}</h2>
       {children}
     </section>
@@ -174,7 +174,7 @@ export function FriendsPanel({
           onChange={(e) => setQ(e.target.value)}
           placeholder="Exact username, e.g. priya.s"
           aria-label="Search friends"
-          className="border-border bg-background h-10 w-full rounded-[var(--radius)] border px-3 text-base"
+          className="border-border bg-background h-10 w-full rounded-(--radius) border px-3 text-base"
         />
         {error ? (
           <p role="alert" className="text-destructive mt-2 text-sm">

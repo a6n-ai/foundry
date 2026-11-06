@@ -45,7 +45,8 @@ export interface EmailCodeSignInProps {
 
 const CODE = /^\d{6}$/;
 /** The one style for secondary actions under an auth screen's main button. */
-export const AUTH_LINK = "text-muted-foreground hover:text-foreground min-h-11 text-sm underline-offset-4 hover:underline";
+// Answers a pointer with more than a colour change: the underline draws in and the link lifts a pixel.
+export const AUTH_LINK = "text-muted-foreground hover:text-foreground min-h-11 text-sm underline underline-offset-4 decoration-transparent transition-[color,text-decoration-color,translate] duration-200 hover:decoration-current hover:-translate-y-px";
 const LINK = AUTH_LINK;
 
 /** Passwordless sign-in: email, then a 6-digit code with a resend countdown. */

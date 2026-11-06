@@ -1,0 +1,22 @@
+/* Shared design tokens for every Realm app (admin and CRM look the same across apps). Apps keep their own
+   colours and fonts in their globals.css; these are the scales that should never drift between them.
+   Import after "tailwindcss": @import "@foundry/themes/tokens.css";
+   static: the variables are always emitted, since plain CSS and inline styles read var(--ease-soft) too. */
+@theme static {
+  /* Motion: one settle curve for UI moves, one spring for presses and pops. */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Type scale, Apple's text styles by name. Size only: line height stays whatever the element sets.
+     @foundry/ui's cn registers these names with tailwind-merge so they never clash with text colours. */
+  --text-caption-2: 11px;
+  --text-caption: 12px;
+  --text-footnote: 13px;
+  --text-subhead: 15px;
+  --text-callout: 16px;
+  --text-body: 17px;
+  --text-title-3: 20px;
+  --text-title-2: 22px;
+  --text-title-1: 28px;
+  --text-large-title: 34px;
+}

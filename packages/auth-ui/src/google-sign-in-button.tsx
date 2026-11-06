@@ -38,7 +38,7 @@ export function GoogleSignInButton({ onSignIn, label = "Continue with Google", u
 
   return (
     <div className="flex flex-col gap-2">
-      <Button variant="outline" className="w-full" pending={pending} pendingLabel="Opening Google…" onClick={() => void start()}>
+      <Button variant="outline" className="w-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] hover:-translate-y-0.5" pending={pending} pendingLabel="Opening Google…" onClick={() => void start()}>
         <GoogleMark />
         {label}
       </Button>
