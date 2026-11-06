@@ -22,7 +22,15 @@ export interface S3StorageConfig {
 }
 
 const rfc3986 = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
-const encodeKey = (key: string) => key.split("/").map(rfc3986).join("/");
+// Reject, don't encode: aws4fetch decodes the path before signing, so %2E%2E would turn back into "..".
+const encodeKey = (key: string) =>
+  key
+    .split("/")
+    .map((seg) => {
+      if (seg === "" || seg === "." || seg === "..") throw new Error(`Unsafe storage key: ${JSON.stringify(key)}`);
+      return rfc3986(seg);
+    })
+    .join("/");
 const OPTS = { retries: 1, timeoutMs: 10_000 };
 
 /** One signed S3 client pointed at any S3-compatible endpoint. */
@@ -31,6 +39,7 @@ export class S3StorageProvider implements StorageProvider {
   private readonly aws: ReturnType<typeof createAwsClient>;
   private readonly bucket: string;
   private readonly base: string;
+  private readonly basePath: string;
 
   constructor(config: S3StorageConfig) {
     this.bucket = config.bucket;
@@ -41,10 +50,13 @@ export class S3StorageProvider implements StorageProvider {
       const e = new URL(config.endpoint);
       this.base = `${e.protocol}//${config.bucket}.${e.host}`;
     }
+    this.basePath = new URL(this.base).pathname.replace(/\/+$/, "") + "/";
   }
 
   private url(key: string) {
-    return `${this.base}/${encodeKey(key)}`;
+    const url = `${this.base}/${encodeKey(key)}`;
+    if (!new URL(url).pathname.startsWith(this.basePath)) throw new Error(`Storage key escapes bucket path: ${JSON.stringify(key)}`);
+    return url;
   }
 
   async put(key: string, body: Uint8Array | string, opts?: PutOptions): Promise<PutResult> {
@@ -105,12 +117,12 @@ export class S3StorageProvider implements StorageProvider {
     });
   }
 
-  presignGet(key: string, ttlSeconds: number): Promise<string> {
+  async presignGet(key: string, ttlSeconds: number): Promise<string> {
     return this.aws.presign(this.url(key), { expiresIn: ttlSeconds });
   }
 
   // contentType is not signed: the uploader may send any Content-Type.
-  presignPut(key: string, ttlSeconds: number, _opts?: PutOptions): Promise<string> {
+  async presignPut(key: string, ttlSeconds: number, _opts?: PutOptions): Promise<string> {
     return this.aws.presign(this.url(key), { method: "PUT", expiresIn: ttlSeconds });
   }
 }

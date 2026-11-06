@@ -87,4 +87,28 @@ describe("S3StorageProvider", () => {
       expect(u.pathname).toBe("/a%20b");
     }
   });
+
+  describe("unsafe keys", () => {
+    for (const k of ["../x", "a/../b", "a//b", "./a", "/a"]) {
+      it(`rejects ${JSON.stringify(k)}`, async () => {
+        const { s, calls } = setup(r2);
+        await expect(s.get(k)).rejects.toThrow(/Unsafe/);
+        await expect(s.put(k, "x")).rejects.toThrow(/Unsafe/);
+        expect(calls).toHaveLength(0);
+      });
+    }
+
+    it("copy rejects unsafe source key", async () => {
+      const { s, calls } = setup(r2);
+      await expect(s.copy("../other/x", "ok")).rejects.toThrow(/Unsafe/);
+      expect(calls).toHaveLength(0);
+    });
+
+    it("presign rejects unsafe key", async () => {
+      const { s, calls } = setup(r2);
+      await expect(s.presignGet("a/../b", 60)).rejects.toThrow(/Unsafe/);
+      await expect(s.presignPut("../b", 60)).rejects.toThrow(/Unsafe/);
+      expect(calls).toHaveLength(0);
+    });
+  });
 });
