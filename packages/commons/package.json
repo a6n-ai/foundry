@@ -3,11 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
     "./logger": "./src/logger.ts",
-    "./model/condition": "./src/model/condition.ts",
-    "./util/pagination": "./src/util/pagination.ts",
+    "./model/*": "./src/model/*.ts",
+    "./util/*": "./src/util/*.ts",
+    "./cache": "./src/cache/index.ts",
+    "./errors": "./src/errors.ts",
+    "./enums": "./src/enums.ts",
     "./plugin": "./src/plugin.ts",
     "./secret-box": "./src/secret-box.ts",
     "./plugin-kit": "./src/plugin-kit.ts"

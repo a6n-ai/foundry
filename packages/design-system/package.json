@@ -3,8 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./franchise-cookie": "./src/franchise-cookie.ts",
+    "./make-image-thumbnail": "./src/make-image-thumbnail.ts",
+    "./use-list-nav": "./src/use-list-nav.ts",
+    "./filters/facet": "./src/filters/facet.ts",
+    "./filters/parse-filter-state": "./src/filters/parse-filter-state.ts",
+    "./*": "./src/*.tsx"
   },
   "types": "./src/index.ts",
   "scripts": {

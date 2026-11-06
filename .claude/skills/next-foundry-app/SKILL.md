@@ -38,6 +38,15 @@ Typical CRM app list:
 Plus `@relay/email` if the app sends mail. Commerce packages (`clover`,
 `payments`, …) only when the app actually depends on them.
 
+## Bundle size
+
+Every package sets `"sideEffects": false` (themes: `["*.css"]`) so unused
+barrel re-exports tree-shake. A new package must too, unless a module does work
+at import time. List every `@foundry/*` / `@relay/*` package that has a `.`
+export in `experimental.optimizePackageImports` as well, so Next rewrites barrel
+imports to the single file used. Packages with no `.` export (`@foundry/ui`)
+are already per-file.
+
 Set `outputFileTracingRoot` and `turbopack.root` to the consumer monorepo root.
 
 ## CSS
