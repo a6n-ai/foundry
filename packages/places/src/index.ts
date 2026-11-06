@@ -15,7 +15,7 @@ export { nominatimProvider } from "./nominatim";
  */
 export function resolveAndPersist(
   input: { placeId?: string; address: string },
-  opts?: { region?: AwsPlaceProviderOptions["region"] },
+  opts?: AwsPlaceProviderOptions,
 ): Promise<ResolvedPlace | null> {
   return awsPlaceProvider(opts).resolve({ ...input, persist: true });
 }

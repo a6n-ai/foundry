@@ -5,9 +5,9 @@
  * and prints a comparison table, flagging dropped unit numbers and
  * disagreements large enough to flip a delivery-zone decision.
  *
- * Usage: AWS_PROFILE=realm-admin GOOGLE_PLACES_API_KEY=... pnpm tsx scripts/compare-providers.ts
+ * Usage: AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=us-east-1 GOOGLE_PLACES_API_KEY=... pnpm tsx scripts/compare-providers.ts
  */
-import { GeoPlacesClient, GeocodeCommand } from "@aws-sdk/client-geo-places";
+import { awsConfigFromEnv, createAwsClient } from "@foundry/aws";
 import { awsPlaceProvider } from "../src/aws-provider";
 import { googlePlaceProvider } from "../src/google-provider";
 import { CANADIAN_ADDRESS_FIXTURES } from "../src/__tests__/fixtures/canadian-addresses";
@@ -31,11 +31,16 @@ type ProviderId = (typeof PROVIDER_IDS)[number];
 // against the AWS SDK directly, instead of burning 15 billable calls that
 // would all fail the same way.
 async function checkAwsAccess(): Promise<{ ok: true } | { ok: false; reason: string }> {
-  if (!process.env.AWS_PROFILE && !process.env.AWS_ACCESS_KEY_ID) {
-    return { ok: false, reason: "AWS_PROFILE / AWS_ACCESS_KEY_ID not set" };
-  }
+  const cfg = awsConfigFromEnv();
+  if (!cfg.credentials) return { ok: false, reason: "AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY not set" };
   try {
-    await new GeoPlacesClient({}).send(new GeocodeCommand({ QueryText: CANADIAN_ADDRESS_FIXTURES[0].address }));
+    const client = createAwsClient("geo-places", cfg);
+    await client.json(`https://places.geo.${client.region}.amazonaws.com/v2/geocode`, {
+      method: "POST",
+      json: { QueryText: CANADIAN_ADDRESS_FIXTURES[0].address },
+      retries: 0,
+      timeoutMs: 8_000,
+    });
     return { ok: true };
   } catch (e) {
     const err = e as { name?: string; message?: string };

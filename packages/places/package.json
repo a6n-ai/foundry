@@ -15,7 +15,7 @@
     "compare-providers": "tsx scripts/compare-providers.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-geo-places": "^3.1155.0",
+    "@foundry/aws": "workspace:*",
     "@foundry/commons": "workspace:*",
     "zod": "^4.6.7"
   },
