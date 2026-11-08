@@ -200,8 +200,8 @@ export function RegionMap({
         moved.current = false;
         // One finger scrolls the page until the map is zoomed in; a mouse always drags.
         if (e.pointerType === "touch" && !cam) return;
+        // No pointer capture yet: a press that never moves must still click the district under it.
         drag.current = { x: e.clientX, y: e.clientY, from: view, moved: false };
-        e.currentTarget.setPointerCapture(e.pointerId);
       }}
       onPointerMove={(e) => {
         if (touches.current.has(e.pointerId)) touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -218,6 +218,7 @@ export function RegionMap({
         if (!d) return;
         const dx = e.clientX - d.x, dy = e.clientY - d.y;
         if (!d.moved && Math.hypot(dx, dy) < 4) return;
+        if (!d.moved) e.currentTarget.setPointerCapture(e.pointerId);
         d.moved = moved.current = true;
         setCam(clampView({ ...d.from, x: d.from.x - dx / d.from.scale, y: d.from.y - dy / d.from.scale }, bounds));
       }}
