@@ -1,15 +1,7 @@
 import { z } from "zod";
 import { isValidPhoneNumber, parsePhoneNumber, parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js";
 
-export function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
-
-export const emailSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .pipe(z.email("Enter a valid email"));
+export { emailSchema, normalizeEmail } from "./email";
 
 export function phoneSchema(defaultCountry: CountryCode = "CA"): z.ZodType<string> {
   return z
