@@ -1,0 +1,86 @@
+/* <RegionMap>: every colour is a --rm-* token; an app sets them to its brand on any ancestor. */
+/* Defaults at zero specificity, so any app rule sets them, whatever the CSS order. */
+:where(.rm) {
+  --rm-land: #f6f3ee; --rm-water: #d9e4e1; --rm-shore: #6f8f86; --rm-water-label: #4f7a6f; --rm-island: var(--rm-land);
+  --rm-district-line: #e2dbcf; --rm-district-alpha: 30%; --rm-district-hot: 62%;
+  --rm-highway: #f0a35c; --rm-trunk: #f4bd85; --rm-casing: #ffffff; --rm-primary: #e7dccb; --rm-rail: #c7b9a4; --rm-river: #a9c2bb;
+  --rm-dot: #e5671c; --rm-dot-ring: #ffffff; --rm-label-bg: rgb(255 255 255 / 0.92); --rm-label: #241f1b; --rm-label-on-bg: #241f1b; --rm-label-on: #ffffff;
+  --rm-shield-bg: #ffffff; --rm-shield: #6b5d4f; --rm-shield-line: #e3d6c3;
+  --rm-pin-in: #2a7a4f; --rm-pin-out: #b3261e; --rm-ring: #e5671c;
+  --rm-group-0: #e5671c; --rm-group-1: #2a5440; --rm-group-2: #a33f0c; --rm-group-3: #c9932b; --rm-group-4: #5b6fa8; --rm-group-5: #8a4f7d;
+}
+.rm {
+  position: relative; overflow: hidden; background: var(--rm-land); user-select: none; contain: layout paint;
+}
+.rm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.rm-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+:where(.rm-svg use) { fill: none; stroke: none; pointer-events: none; }
+.rm-district-off { fill: transparent; stroke: var(--rm-district-line); stroke-width: 1; }
+.rm-district-off[data-pick]:hover { fill: color-mix(in oklch, var(--rm-label) 6%, transparent); }
+[data-pick] { pointer-events: visiblePainted; cursor: pointer; }
+.rm-picked { fill: none; stroke: var(--rm-label); stroke-width: 2.5; }
+.rm-district { pointer-events: visiblePainted; cursor: default; transition: fill 160ms ease; fill: color-mix(in oklch, var(--rm-g, var(--rm-group-0)) var(--rm-district-alpha), transparent); stroke: color-mix(in oklch, var(--rm-g, var(--rm-group-0)) 55%, var(--rm-land)); stroke-width: 1; }
+.rm-district[data-hot] { fill: color-mix(in oklch, var(--rm-g, var(--rm-group-0)) var(--rm-district-hot), transparent); stroke: var(--rm-g, var(--rm-group-0)); }
+@media (prefers-reduced-motion: reduce) { .rm-district { transition: none; } }
+.rm-water { fill: var(--rm-water); }
+.rm-shore { stroke: var(--rm-shore); stroke-width: 1; stroke-linejoin: round; }
+.rm-island { fill: var(--rm-island); stroke: var(--rm-shore); stroke-width: 0.75; }
+.rm-river { stroke: var(--rm-river); stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+.rm-rail { stroke: var(--rm-rail); stroke-width: 1; stroke-dasharray: 4 3; }
+.rm-primary { stroke: var(--rm-primary); stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+.rm-casing { stroke: var(--rm-casing); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.rm-trunk { stroke: var(--rm-trunk); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.rm-highway { stroke: var(--rm-highway); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.rm-ring { fill: color-mix(in oklch, var(--rm-ring) 7%, transparent); stroke: var(--rm-ring); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+
+[data-group="0"] { --rm-g: var(--rm-group-0); } [data-group="1"] { --rm-g: var(--rm-group-1); } [data-group="2"] { --rm-g: var(--rm-group-2); }
+[data-group="3"] { --rm-g: var(--rm-group-3); } [data-group="4"] { --rm-g: var(--rm-group-4); } [data-group="5"] { --rm-g: var(--rm-group-5); }
+
+.rm-water-label { position: absolute; translate: -50% -50%; white-space: nowrap; font-size: 13px; font-weight: 600; font-style: italic; letter-spacing: 0.02em; color: var(--rm-water-label); pointer-events: none; }
+.rm-shield, .rm-place, .rm-pin { position: absolute; translate: -50% -50%; }
+.rm-shield { padding: 0 5px; height: 18px; line-height: 16px; border: 1px solid var(--rm-shield-line); border-radius: 5px; background: var(--rm-shield-bg); color: var(--rm-shield); font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; pointer-events: none; }
+.rm-place { width: 14px; height: 14px; cursor: default; }
+.rm-place i { transition: scale 160ms ease; }
+.rm-place[data-on="true"] i { scale: 1.3; }
+.rm-place i { position: absolute; inset: 0; border-radius: 999px; background: var(--rm-g, var(--rm-dot)); box-shadow: 0 0 0 3px var(--rm-dot-ring), 0 1px 4px rgb(0 0 0 / 0.18); }
+.rm-place b { position: absolute; left: 50%; bottom: calc(100% + 8px); translate: -50% 0; padding: 3px 9px; border-radius: 999px; white-space: nowrap; font-size: 12px; font-weight: 600; line-height: 1.4; background: var(--rm-label-bg); color: var(--rm-label); box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); }
+.rm-place[data-side="bottom"] b { bottom: auto; top: calc(100% + 8px); }
+.rm-place[data-side="right"] b { bottom: auto; top: 50%; left: calc(100% + 8px); translate: 0 -50%; }
+.rm-place[data-side="left"] b { bottom: auto; top: 50%; left: auto; right: calc(100% + 8px); translate: 0 -50%; }
+.rm-place[data-side="none"]:not([data-on="true"]) b { opacity: 0; }
+.rm-place[data-on="true"] { z-index: 2; }
+.rm-place[data-on="true"] b { background: var(--rm-label-on-bg); color: var(--rm-label-on); }
+.rm[data-compact="true"] .rm-place { width: 12px; height: 12px; }
+.rm[data-compact="true"] .rm-place b { padding: 2px 7px; font-size: 11px; }
+.rm-pin { z-index: 3; width: 18px; height: 18px; border-radius: 999px; background: var(--rm-pin-out); box-shadow: 0 0 0 3px var(--rm-dot-ring), 0 2px 6px rgb(0 0 0 / 0.25); }
+.rm-pin[data-served="true"] { background: var(--rm-pin-in); }
+
+.rm-legend { position: absolute; right: 12px; bottom: 12px; z-index: 4; display: flex; flex-wrap: wrap; gap: 6px 12px; max-width: calc(100% - 24px); margin: 0; padding: 8px 12px; list-style: none; border-radius: 12px; background: var(--rm-label-bg); color: var(--rm-label); font-size: 12px; font-weight: 500; box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); }
+.rm-legend li, .rm-legend button { display: inline-flex; align-items: center; gap: 6px; }
+.rm-legend button { padding: 2px 4px; margin: -2px -4px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; cursor: pointer; }
+.rm-legend button:hover { background: color-mix(in oklch, var(--rm-g) 14%, transparent); }
+.rm-legend button:focus-visible { outline: 2px solid var(--rm-label); outline-offset: 1px; }
+.rm-legend i { width: 10px; height: 10px; border-radius: 999px; background: var(--rm-g); }
+.rm-credit { position: absolute; left: 10px; bottom: 6px; z-index: 4; font-size: 10px; color: color-mix(in oklch, var(--rm-label) 45%, transparent); pointer-events: none; }
+
+/* One group standing out (a picked zone's delivery window). */
+.rm-district[data-dim] { fill: color-mix(in oklch, var(--rm-g, var(--rm-group-0)) 10%, transparent); stroke: var(--rm-district-line); }
+.rm[data-active] .rm-place:not([data-group]) i, .rm[data-active="0"] .rm-place:not([data-group="0"]) i, .rm[data-active="1"] .rm-place:not([data-group="1"]) i, .rm[data-active="2"] .rm-place:not([data-group="2"]) i,
+.rm[data-active="3"] .rm-place:not([data-group="3"]) i, .rm[data-active="4"] .rm-place:not([data-group="4"]) i, .rm[data-active="5"] .rm-place:not([data-group="5"]) i { opacity: 0.35; }
+.rm-legend li[data-off] { opacity: 0.4; }
+.rm-legend li[data-on] { font-weight: 700; }
+.rm-legend li[data-on] i { box-shadow: 0 0 0 3px color-mix(in oklch, var(--rm-g) 30%, transparent); }
+
+/* Zoom: buttons top-right; once zoomed a drag pans, so touch stops scrolling the page over the map. */
+.rm { cursor: grab; touch-action: pan-y; }
+/* Zoomed in, every gesture belongs to the map; at rest one finger still scrolls the page. */
+.rm[data-zoomed] { touch-action: none; }
+.rm:active { cursor: grabbing; }
+.rm-zoom { position: absolute; top: 12px; right: 12px; z-index: 4; display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; background: var(--rm-label-bg); box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); }
+.rm-zoom button { width: 36px; height: 36px; border: 0; background: none; color: var(--rm-label); font: 600 18px/1 inherit; cursor: pointer; }
+.rm-zoom button + button { border-top: 1px solid var(--rm-district-line); }
+.rm-zoom button:hover:not(:disabled) { background: color-mix(in oklch, var(--rm-label) 6%, transparent); }
+.rm-zoom button:disabled { opacity: 0.35; cursor: default; }
+.rm-zoom button:focus-visible { outline: 2px solid var(--rm-label); outline-offset: -2px; }
+.rm[data-compact="true"] .rm-legend { left: 8px; right: 8px; bottom: 22px; max-width: none; display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; gap: 4px 8px; padding: 6px 10px; font-size: 11px; }
+.rm[data-compact="true"] .rm-zoom button { width: 40px; height: 40px; }
