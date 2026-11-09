@@ -16,12 +16,21 @@ export interface RoutedTabNavItem {
  * Analytics, Wallet, Discounts, Payments, Finance, Delivery settings, ...) —
  * shadcn's Tabs primitive (@foundry/ui/tabs) with the `line` (underline)
  * variant, each trigger a real Link so every sub-section keeps its own URL.
- * Active tab derives from the pathname (prefix match), not local state — the
+ * Active tab derives from the pathname (longest prefix match), not local state — the
  * URL is the source of truth for which section is open.
  */
+/** Longest matching href wins, so a base tab (`/x`) doesn't stay active on its sub-tabs (`/x/y`). */
+export function activeTabHref(tabs: readonly { href: string }[], pathname: string): string | undefined {
+  return (
+    tabs
+      .filter((t) => pathname === t.href || pathname.startsWith(`${t.href}/`))
+      .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? tabs[0]?.href
+  );
+}
+
 export function RoutedTabNav({ tabs, ariaLabel }: { tabs: readonly RoutedTabNavItem[]; ariaLabel?: string }) {
   const pathname = usePathname();
-  const active = tabs.find((t) => pathname === t.href || pathname.startsWith(`${t.href}/`))?.href ?? tabs[0]?.href;
+  const active = activeTabHref(tabs, pathname);
 
   return (
     <Tabs value={active}>
