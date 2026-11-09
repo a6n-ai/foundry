@@ -22,7 +22,9 @@ export class ChannelRoom extends DurableObject {
       if (w === except) continue;
       try {
         w.send(frame);
-      } catch {}
+      } catch (err) {
+        console.error("realtime: send to socket failed", err);
+      }
     }
   }
 

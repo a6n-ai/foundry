@@ -1,17 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
+import { CloverApiClient } from "../client";
+import { createCloverClient, verifyCloverApiToken } from "../create-client";
 import {
-  CloverApiClient,
-  connectCloverWithApiToken,
-  createCloverClient,
-  disconnectClover,
   isCloverEcommerceConfigured,
   parseCloverConnection,
   toPublicCloverConnection,
-  verifyCloverApiToken,
   type CloverConnection,
   type IntegrationsConfig,
-  type IntegrationsConfigStore,
-} from "../index";
+} from "../config";
+import { connectCloverWithApiToken, disconnectClover, type IntegrationsConfigStore } from "../store";
 
 function memoryStore(initial: IntegrationsConfig = {}): IntegrationsConfigStore {
   let cfg = initial;

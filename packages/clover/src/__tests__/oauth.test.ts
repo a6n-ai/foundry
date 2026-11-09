@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildCloverAuthorizeUrl,
-  isCloverAccessTokenExpired,
-  parseCloverOAuthCallback,
-  parseIntegrationsConfig,
-  resolveCloverHosts,
-  toPublicCloverConnection,
-} from "../index";
+import { parseIntegrationsConfig, toPublicCloverConnection } from "../config";
+import { buildCloverAuthorizeUrl, isCloverAccessTokenExpired, parseCloverOAuthCallback } from "../oauth";
+import { resolveCloverHosts } from "../urls";
 
 describe("resolveCloverHosts", () => {
   it("returns sandbox hosts regardless of region", () => {
