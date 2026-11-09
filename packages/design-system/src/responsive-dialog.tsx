@@ -41,7 +41,6 @@ export function ResponsiveDialog({
   nested?: boolean;
   /** Only the handle swipes the sheet closed; inner widgets (calendars) keep pointer events. */
   handleOnly?: boolean;
-  /** Edge-to-edge body: no padding (tables, maps, full-width lists). */
   flush?: boolean;
 }) {
   const isMobile = useIsMobile();

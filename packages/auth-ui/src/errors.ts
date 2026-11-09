@@ -1,4 +1,3 @@
-/** The shape Better Auth client calls resolve `error` to. */
 export type AuthClientError = { code?: string; status?: number; message?: string } | null | undefined;
 
 /**
@@ -28,7 +27,6 @@ export async function callAction<T>(fn: () => Promise<T>): Promise<T | { error: 
   }
 }
 
-/** Thrown-or-returned helper: null when the call succeeded. */
 export function errorOf(res: unknown): AuthClientError {
   return (res as { error?: AuthClientError } | null | undefined)?.error ?? null;
 }

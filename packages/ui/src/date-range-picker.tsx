@@ -28,7 +28,6 @@ export const zonedEndOfDay = (y: number, m: number, d: number, timeZone: string)
 const startOfDay = (d: Date, tz: string) => zonedStartOfDay(d.getFullYear(), d.getMonth(), d.getDate(), tz);
 const endOfDay = (d: Date, tz: string) => zonedEndOfDay(d.getFullYear(), d.getMonth(), d.getDate(), tz);
 
-// Epoch ms -> a browser-local Date on the same calendar day as `ms` in `timeZone`.
 const toCalendarDay = (ms: number, tz: string) => {
   const [y, m, d] = zonedDateIso(ms, tz).split("-").map(Number);
   return new Date(y!, m! - 1, d!);
@@ -48,7 +47,6 @@ export function DateRangePicker({
   to?: number;
   onChange: (r: { from?: number; to?: number }) => void;
   label?: string;
-  /** IANA zone the picked days mean. Defaults to the browser's. */
   timeZone?: string;
 }) {
   const [open, setOpen] = useState(false);

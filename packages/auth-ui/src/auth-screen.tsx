@@ -5,7 +5,6 @@ import { resolveUi, type AuthUi } from "./ui";
 
 export interface AuthScreenProps {
   children: ReactNode;
-  /** Legal links, support, etc. Sits under the panel. */
   footer?: ReactNode;
   className?: string;
 }
@@ -32,7 +31,6 @@ export function AuthScreen({ children, footer, className }: AuthScreenProps) {
 }
 
 export interface AuthPanelProps {
-  /** The app's logo. Shown once, top-left; bring your own sizing. */
   art: ReactNode;
   title: ReactNode;
   tagline?: ReactNode;

@@ -11,7 +11,6 @@ export function SearchInput({
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
-  // Shorter placeholder shown at mobile widths (<sm) where the full one truncates.
   shortPlaceholder?: string;
   // When > 0, defer onChange until the user pauses typing. Lets server-search
   // tables avoid a refetch per keystroke. Falsy/0 => immediate (legacy behavior).
@@ -19,7 +18,6 @@ export function SearchInput({
 }) {
   const isMobile = useIsMobile();
   const ph = isMobile && shortPlaceholder ? shortPlaceholder : placeholder;
-  // Internal draft so the input stays responsive while onChange is debounced.
   const [draft, setDraft] = useState(value);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 

@@ -16,7 +16,6 @@ const RECORD_AFTER_MS = 2500;
 export type FilterRecommendations = {
   /** The viewer's most-used combinations on this list, as chips. Keyed on the path only. */
   load: (pathname: string, spec: FacetDef[]) => Promise<FilterPreset[]>;
-  /** Called once the facet combination has settled. */
   record: (pathname: string, facetQuery: string, fields: string[]) => Promise<unknown>;
 };
 
@@ -54,7 +53,6 @@ export function ListSearchFilters({
   timeZone?: string;
   DateField?: ComponentType<DateFieldProps>;
   oneChipPerField?: boolean;
-  /** Shows recommended-filter chips above the bar and records the viewer's combinations. */
   recommendations?: FilterRecommendations;
 }) {
   const searchFacet = spec.find((f) => f.kind === "search");
@@ -112,7 +110,6 @@ export function ListSearchFilters({
     };
   }, [pathname, recommendations]);
 
-  // The settled facet combination, recorded once per change.
   const facetQuery = useMemo(() => {
     const sp = new URLSearchParams();
     for (const f of fields) {
@@ -172,7 +169,6 @@ export function ListSearchFilters({
         aria-label="Recommended filters"
         className="flex-wrap"
         value={activePreset ?? ""}
-        // Clicking the active chip again resets to the default view.
         onValueChange={pickPreset}
       >
         {presets.map((p) => (

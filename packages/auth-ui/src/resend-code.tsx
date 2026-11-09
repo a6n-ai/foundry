@@ -20,7 +20,6 @@ function clock(seconds: number) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-/** "Resend in 0:24" countdown that turns into a resend link. */
 export function ResendCode({ onResend, cooldowns = DEFAULT_COOLDOWNS, className }: ResendCodeProps) {
   const [sends, setSends] = useState(0);
   // A deadline, not a decrementing counter: background tabs throttle timers,

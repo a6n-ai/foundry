@@ -24,11 +24,9 @@ export interface ForgotPasswordFormProps {
   onSendEmailOtp: (email: string) => Promise<Result>;
   onResetWithEmailOtp: (input: { email: string; otp: string; password: string }) => Promise<Result>;
   onSuccess?: () => void;
-  /** Restyle with the app's own primitives. Omit for the default shadcn form. */
   ui?: Partial<AuthUi>;
   /** Body-only, for use under AuthPanel (needs `ui`): no headings, CTA pinned low on phones. */
   compact?: boolean;
-  /** Lets a compact host retitle its header per step. */
   onStepChange?: (step: "request" | "verify") => void;
 }
 
@@ -144,7 +142,6 @@ function DefaultForgotPasswordForm(props: ForgotPasswordFormProps) {
   );
 }
 
-/** Same flow drawn with app-supplied primitives; the default path above is left byte-for-byte as shipped. */
 function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<AuthUi> }) {
   const { Button, Field, Code, Notice } = resolveUi(props.ui);
   const [step, setStep] = useState<"request" | "verify">("request");

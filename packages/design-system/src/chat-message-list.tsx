@@ -11,15 +11,12 @@ export type ChatMessage = {
   /** "system" renders centered meta text; otherwise bubble. */
   kind: "system" | "mine" | "theirs";
   body: string;
-  /** Footer under the bubble (e.g. "You · Jul 20"). */
   meta?: string;
   attachments?: ChatAttachment[] | null;
 };
 
 export interface ChatUi {
-  /** Centered meta line for `kind: "system"`. */
   System: ComponentType<{ message: ChatMessage }>;
-  /** One bubble + footer for `mine` / `theirs`. */
   Bubble: ComponentType<{ message: ChatMessage; mine: boolean }>;
 }
 
@@ -75,7 +72,6 @@ export function ChatMessageList({
   messages: ChatMessage[];
   className?: string;
   empty?: ReactNode;
-  /** Restyle with the app's own primitives; defaults to the shadcn bubbles. */
   ui?: Partial<ChatUi>;
 }) {
   const { System, Bubble } = ui ? { ...defaultChatUi, ...ui } : defaultChatUi;

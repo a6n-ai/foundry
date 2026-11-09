@@ -18,7 +18,6 @@ export type FriendsPanelProps = {
   act: (kind: FriendAct, publicId: string) => Promise<{ error?: string; relation?: FriendRelation }>;
   /** Each app passes its own button look (HIG, brutal, CRM); defaults to theme tokens. */
   buttonClassName?: string;
-  /** Where the viewer sets a username, shown when `inviteUrl` is null. */
   accountHref?: string;
 };
 

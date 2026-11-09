@@ -44,7 +44,6 @@ export interface AuthNoticeProps {
   children: ReactNode;
 }
 
-/** The primitives the auth-ui screens draw with. Apps pass a subset to restyle. */
 export interface AuthUi {
   Button: ComponentType<AuthButtonProps>;
   Field: ComponentType<AuthFieldProps>;
@@ -139,7 +138,6 @@ export function resolveUi(ui?: Partial<AuthUi>): AuthUi {
   return ui ? { ...defaultUi, ...ui } : defaultUi;
 }
 
-/** Show/Hide toggle used as a `trailing` slot. */
 export function RevealToggle({ shown, onToggle }: { shown: boolean; onToggle: () => void }) {
   return (
     <button type="button" className="text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 text-xs" onClick={onToggle}>

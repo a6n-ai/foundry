@@ -42,15 +42,12 @@ export type DataTableProps<Row, K extends string> = {
   rowKey: (r: Row) => string;
   /** Returns the <TableCell>… children only — DataTable owns the wrapping <TableRow>. */
   renderRow: (r: Row) => ReactNode;
-  /** Escape hatch: render a custom mobile card body instead of the auto-derived one. */
   mobileCard?: (r: Row) => ReactNode;
   rowClassName?: (r: Row) => string;
   sort?: SortState<K>;
-  /** Leading serial-number ("#") column. On by default; pass false to hide. */
   serial?: boolean;
   /** Leading human ID column (e.g. row.publicId) — always searchable so sales can look rows up by ID. */
   idAccessor?: (r: Row) => string;
-  /** Makes the ID cell a link to the row's detail page. */
   idHref?: (r: Row) => string;
   /**
    * Whole-row click for tables that *select* rather than navigate. Ignored when
@@ -58,7 +55,6 @@ export type DataTableProps<Row, K extends string> = {
    * Clicks on interactive children are excluded, same as the idHref path.
    */
   onRowClick?: (r: Row) => void;
-  /** ID column header label. Defaults to "ID". */
   idLabel?: string;
   search?: {
     placeholder?: string;
@@ -81,7 +77,6 @@ export type DataTableProps<Row, K extends string> = {
    * Server-paged lists omit this and render ListPagination themselves.
    */
   pagination?: { page: number; size: number } | "client";
-  /** `"client"` paging: rows per page to start with (default DEFAULT_SIZE). */
   pageSize?: number;
   /** Server-paged lists: rows skipped before this page (page * size), so "#" keeps counting. */
   serialOffset?: number;
@@ -111,13 +106,8 @@ function useSearchQuery(): [string, (v: string) => void] {
   return [value, set];
 }
 
-// Sticky header seated with a subtle muted wash so rows scroll under it cleanly.
 const HEAD_STICKY = "sticky top-0 z-10 bg-muted/40";
 
-// Fixed layout so a long value can't shove its neighbours around. Each column
-// has a starting width; the row stretches to fill the card, and a drag on the
-// header edge resizes that column. Past the card's width the table scrolls
-// sideways. Chosen widths are remembered for that page.
 /**
  * One width per kind of column, shared by every table in every app, so a
  * "Status" or "Created" column is the same width wherever it appears. Keyed on
@@ -126,22 +116,15 @@ const HEAD_STICKY = "sticky top-0 z-10 bg-muted/40";
  */
 const KIND_WIDTH: Record<string, string> = {};
 const kinds: [string, string[]][] = [
-  // dates / times ("Oct 3, 2026, 11:45 PM" fits)
   ["w-44", ["time", "createdAt", "created", "updatedAt", "lastTouch", "lastMessage", "lastOrder", "lastSynced", "synced", "joined", "expiresAt", "startsAt", "submitted", "eventDate", "capturedAt", "paidAt", "when"]],
-  // date only
   ["w-32", ["start", "occursOn", "customerSince", "planCompletion", "deliveryDate"]],
-  // short states
   ["w-28", ["status", "stage", "published", "priority", "latestStatus", "role", "type", "method", "source", "scope", "category", "stackable", "autoApply", "deployment", "direction", "fulfillment", "payment", "consent", "operation", "entity", "proof", "reporting", "color"]],
   ["w-36", ["kind"]],
-  // money
   ["w-24", ["amount", "total", "price", "spent", "value", "coins", "basePrice", "markup", "rate", "minSpend", "channel", "channels"]],
-  // counts
   ["w-20", ["orders", "count", "memberCount", "members", "tiffins", "guests", "capacity", "remaining", "items", "modifiers", "stops", "serial", "duration", "maximum"]],
   ["w-32", ["phone"]],
-  // short codes / external ids
   ["w-36", ["code", "coupon", "clientCode", "clover", "cloverId", "orderId", "reference"]],
   ["w-10", ["select"]],
-  // row actions (three icon buttons)
   ["w-32", ["actions", "invite", "edit", "action"]],
 ];
 for (const [w, keys] of kinds) for (const k of keys) KIND_WIDTH[k] = w;
@@ -167,8 +150,6 @@ function colWidth(c: { key: string; width?: string }): string | undefined {
 const TABLE_FIXED =
   "table-fixed [&_td]:overflow-hidden [&_td]:text-ellipsis [&_th]:overflow-hidden [&_th]:text-ellipsis";
 
-// The two fixed leading columns: serial "#" and the human ID. Rendered by the
-// live header and the skeleton twin so both stay in lockstep.
 const SERIAL_WIDTH = "w-12";
 const ID_WIDTH = "w-36";
 
@@ -460,8 +441,6 @@ export function DataTable<Row, K extends string>({
                   onClick={
                     idHref || onRowClick
                       ? (e) => {
-                          // Whole row opens the detail — but don't hijack clicks on
-                          // interactive controls (links, buttons, menus, inputs) inside it.
                           if (
                             (e.target as HTMLElement).closest(
                               'a,button,input,select,label,[role="button"],[role="menuitem"]',
@@ -557,10 +536,6 @@ export function DataTable<Row, K extends string>({
   );
 }
 
-/**
- * In-table empty state: one row spanning every column, min-height so the card
- * keeps its shape. Use inside a <TableBody> when a table has no matching rows.
- */
 export function TableEmptyRow({
   colSpan, icon: Icon, message, action,
 }: {
@@ -585,10 +560,6 @@ export function TableEmptyRow({
   );
 }
 
-/**
- * Loading twin — same bordered card + FilterBar + header-from-columns + N grey
- * rows. One source of truth so the skeleton can't drift from DataTable.
- */
 // Exported by name as well as via DataTable.Skeleton: a Server Component cannot
 // dot into a "use client" module, so server-side loading twins must import this.
 export function DataTableSkeleton<K extends string>({

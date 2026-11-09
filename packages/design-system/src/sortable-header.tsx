@@ -30,8 +30,6 @@ export function SortableHeader({ column, label, currentSort, currentDir, align, 
       <button
         type="button"
         onClick={onClick}
-        // Right-aligned numeric headers push the sort control to the cell edge so
-        // the label sits flush over its column. Leave room for the resize grip.
         className={cn(
           "inline-flex max-w-[calc(100%-0.5rem)] items-center gap-1 min-h-11 sm:min-h-0 hover:text-foreground text-muted-foreground data-[active=true]:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none rounded-sm",
           align === "right" && "flex-row-reverse",

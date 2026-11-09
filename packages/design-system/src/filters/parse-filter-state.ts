@@ -20,7 +20,6 @@ const num = (v: string | undefined): number | undefined => {
 function clampSize(v: string | undefined, sizes: readonly number[], dflt: number): number {
   const n = num(v);
   if (n == null) return dflt;
-  // nearest allowed
   return sizes.includes(n) ? n : sizes.reduce((a, b) => (Math.abs(b - n) < Math.abs(a - n) ? b : a));
 }
 

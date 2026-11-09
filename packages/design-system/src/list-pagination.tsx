@@ -15,7 +15,6 @@ export function ListPagination({
   size: number;
   total: number;
   sizes?: readonly number[];
-  /** When set, page changes stay in memory instead of the URL. */
   onChange?: (next: { page: number; size: number }) => void;
 }) {
   const nav = useListNav();

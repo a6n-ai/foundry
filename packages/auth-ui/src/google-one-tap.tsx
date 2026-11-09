@@ -35,6 +35,5 @@ export async function preventGoogleAutoSignIn(): Promise<void> {
   try {
     await navigator.credentials?.preventSilentAccess?.();
   } catch {
-    /* Not supported: nothing to clear. */
   }
 }

@@ -14,9 +14,6 @@ const MAP_STYLE_URL = "/api/map/style";
 
 export type StaticMapMarker = { lat: number; lng: number; color?: string; title?: string };
 
-/** Read-only MapLibre display for the public site — pin(s) only, no drag
- *  handles, no editing. Used at checkout (origin + resolved address) and on
- *  the contact page (single shop pin). */
 export function StaticMap({
   center,
   markers = [],

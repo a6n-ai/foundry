@@ -20,7 +20,6 @@ export function useListNavPending(): boolean {
   return useSyncExternalStore(subscribe, () => inFlight > 0, () => false);
 }
 
-/** Navigates in a transition (old rows stay up) and flags the list as loading meanwhile. */
 export function useListNav(): (href: string, mode?: "push" | "replace") => void {
   const router = useRouter();
   const [pending, start] = useTransition();

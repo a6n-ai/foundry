@@ -18,9 +18,6 @@ const GLASS_PILL = cn(
   "[@media(prefers-reduced-transparency:reduce)]:border-border [@media(prefers-reduced-transparency:reduce)]:bg-background [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none [@media(prefers-reduced-transparency:reduce)]:shadow-sm",
 );
 
-// Mobile-only fixed bottom tab bar with an optional raised center FAB. Presentational
-// only — the app injects role-filtered items (link or action) + FAB callback. Hidden at md+.
-// variant="glass" is the floating Liquid Glass capsule (customer); dock is the edge-to-edge CRM bar.
 export function BottomNav({
   items,
   onFabClick,
@@ -30,9 +27,7 @@ export function BottomNav({
 }: {
   items: BottomNavItem[];
   onFabClick?: () => void;
-  /** Accessible name for the raised center button. */
   fabLabel?: string;
-  /** Optional visible caption under the FAB (e.g. "New plan"). */
   fabCaption?: string;
   variant?: "dock" | "glass";
 }) {

@@ -21,35 +21,29 @@ export interface EmailCodeSignInProps {
   onVerify: (email: string, code: string) => Promise<Result>;
   /** Runs after a successful verify. Navigation belongs to the app. */
   onSuccess: () => void | Promise<void>;
-  /** Shows a back chevron on the email step (e.g. back to the welcome screen). */
   onBack?: () => void;
   title?: ReactNode;
   subtitle?: ReactNode;
   /** Rendered under the form on both steps: "use a password instead", sign-up links, etc. */
   extra?: ReactNode;
-  /** Prefills the email field, e.g. from a "Continue as …" shortcut. */
   defaultEmail?: string;
   /** Email step only, above the email field with an "or" divider: e.g. `<GoogleSignInButton />`. */
   alternatives?: ReactNode;
-  /** Small print under the code-step text. */
   codeHint?: ReactNode;
   /**
    * Body-only mode for use inside AuthWelcome: no headings of its own (the
    * welcome header above stays put), left-aligned, back link at the bottom.
    */
   compact?: boolean;
-  /** Lets a compact host retitle its header per step. */
   onStepChange?: (step: "email" | "code") => void;
   ui?: Partial<AuthUi>;
 }
 
 const CODE = /^\d{6}$/;
 /** The one style for secondary actions under an auth screen's main button. */
-// Answers a pointer with more than a colour change: the underline draws in and the link lifts a pixel.
 export const AUTH_LINK = "text-muted-foreground hover:text-foreground min-h-11 text-sm underline underline-offset-4 decoration-transparent transition-[color,text-decoration-color,translate] duration-200 hover:decoration-current hover:-translate-y-px";
 const LINK = AUTH_LINK;
 
-/** Passwordless sign-in: email, then a 6-digit code with a resend countdown. */
 export function EmailCodeSignIn({
   onSendCode,
   onVerify,
@@ -148,9 +142,6 @@ export function EmailCodeSignIn({
   if (compact) {
     const codeStep = step === "code";
     return (
-      // One form that morphs in place: the email field stays (locked once the
-      // code is sent), the code boxes open up beneath it, and the button
-      // relabels. No step swap, so nothing on screen jumps.
       <form
         method="post"
         noValidate

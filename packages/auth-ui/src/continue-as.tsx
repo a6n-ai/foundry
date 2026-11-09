@@ -17,18 +17,11 @@ export interface ContinueAsProps {
   /** Google: start OAuth with loginHint; email: prefill the code form. Google navigates away. */
   onContinue: () => unknown;
   onOther: () => void;
-  /** Clear the last-user cookie. */
   onForget: () => void;
-  /** Optional sign-up link, e.g. "New here? Create an account". */
   getStarted?: { label: string; onClick: () => void };
   ui?: Partial<AuthUi>;
 }
 
-/**
- * "Welcome back" account card for the last person who signed in on this
- * device (from the last-user cookie): who, one obvious Continue, then the
- * ways out. Canva-style, grouped under the heading.
- */
 export function ContinueAs({ user, onContinue, onOther, onForget, getStarted, ui }: ContinueAsProps) {
   const { Button } = resolveUi(ui);
   const [pending, setPending] = useState(false);

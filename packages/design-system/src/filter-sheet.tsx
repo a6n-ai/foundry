@@ -4,8 +4,6 @@ import { SlidersHorizontalIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@foundry/ui/sheet";
 import { Button } from "@foundry/ui/button";
 
-// A "Filters" trigger opening a bottom sheet of secondary filters, with an
-// active-count badge. Used on mobile to keep the filter row to one primary control.
 export function FilterSheet({ activeCount = 0, iconOnly, children }: { activeCount?: number; iconOnly?: boolean; children: ReactNode }) {
   return (
     <Sheet>

@@ -1,6 +1,5 @@
 "use client";
 
-/** The providers most customers use; shown as one-tap completions after "@". */
 export const COMMON_EMAIL_DOMAINS = ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com", "icloud.com"] as const;
 
 /**

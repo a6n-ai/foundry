@@ -1,8 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@foundry/ui/cn";
 
-// One metric in a StatGrid — the same shape StatCard consumes, so a page can
-// pass a single `items` array and get cards (desktop) or a bar (mobile).
 export type StatItem = {
   label: string;
   value: string | number;

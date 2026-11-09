@@ -1,4 +1,3 @@
-/** Scale (w,h) so the longest side is at most maxDim. */
 function fitWithin(w: number, h: number, maxDim: number): { w: number; h: number } {
   const longest = Math.max(w, h);
   if (longest <= maxDim) return { w: Math.round(w), h: Math.round(h) };
@@ -10,10 +9,6 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number):
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), type, quality));
 }
 
-/**
- * Browser-side image thumbnail for MessageComposer attachments (WebP, JPEG fallback).
- * Kept in design-system so composers stay prop-light across apps.
- */
 export async function makeImageThumbnail(file: File, maxDim = 320): Promise<File> {
   const url = URL.createObjectURL(file);
   try {

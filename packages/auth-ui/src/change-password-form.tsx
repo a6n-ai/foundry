@@ -19,7 +19,6 @@ const changePasswordSchema = z
 
 type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
 
-/** Decoupled: the app supplies the actual better-auth call via `onChangePassword`. */
 export interface ChangePasswordFormProps {
   onChangePassword: (input: { currentPassword: string; newPassword: string }) => Promise<{ error?: unknown }>;
   /**

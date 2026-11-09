@@ -2,9 +2,6 @@
 
 import { cn } from "@foundry/ui/cn";
 
-/**
- * Online/offline indicator for the counterpart; feed `online` from `usePresence`.
- */
 export function PresenceDot({ online, label }: { online: boolean; label: string }) {
   return (
     <span className="text-muted-foreground inline-flex items-center gap-1.5 text-xs" aria-live="polite">

@@ -82,7 +82,6 @@ export function FacetFilters({ spec }: { spec: FacetDef[] }) {
             />
           );
         }
-        // multi (+ optional dependsOn)
         const raw = params.get(f.field) ?? "";
         const values = raw ? raw.split(",").filter(Boolean) : [];
         const parentVals =

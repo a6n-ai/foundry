@@ -1,11 +1,9 @@
 import type { FacetDef } from "./facet";
 
-/** A one-click list view: the exact URL params it sets. */
 export type FilterPreset = { key: string; label: string; params: Readonly<Record<string, string>> };
 
 type Params = { get(name: string): string | null };
 
-/** The facet params a list records and recommends: everything but search and the date range. */
 export function facetFields(spec: readonly FacetDef[]): string[] {
   return spec.flatMap((f) => (f.kind === "search" || f.kind === "dateRange" ? [] : [f.field]));
 }
@@ -26,7 +24,6 @@ export function applyPreset(current: URLSearchParams, preset: FilterPreset | nul
   return sp;
 }
 
-/** The preset whose managed keys match the URL exactly; search and dates don't count. */
 export function activePresetKey(current: Params, presets: readonly FilterPreset[], managed: readonly string[]): string | null {
   return presets.find((p) => managed.every((k) => (p.params[k] ?? null) === current.get(k)))?.key ?? null;
 }

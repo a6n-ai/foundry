@@ -57,9 +57,7 @@ export function SkeletonFilterBar({
   search = true,
 }: {
   pills?: number;
-  /** ReUI / select Filter control twin (button-sized). */
   dropdown?: boolean;
-  /** When false, omit the search input twin (filter-only bars). */
   search?: boolean;
 }) {
   return (
@@ -159,25 +157,15 @@ export function PageSkeleton({
   fields = 4,
   cards = 6,
 }: {
-  /** shape of the primary content block */
   variant?: "table" | "form" | "cards" | "list";
-  /** wrap body in a SectionCard-style card (false = bare, e.g. detail pages) */
   section?: boolean;
-  /** header has a trailing action button */
   action?: boolean;
-  /** header has a subtitle line */
   subtitle?: boolean;
-  /** render N stat cards above the body */
   stats?: number;
-  /** filter-bar pills above a table/list (0 = no filter bar) */
   filters?: number;
-  /** table columns */
   columns?: number;
-  /** table/list rows */
   rows?: number;
-  /** form fields */
   fields?: number;
-  /** card-grid count */
   cards?: number;
 }) {
   const body =
