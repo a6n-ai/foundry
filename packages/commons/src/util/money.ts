@@ -1,12 +1,16 @@
-const DEFAULT_LOCALE = "en-CA";
-const DEFAULT_CURRENCY = "CAD";
+type MoneyOpts = { whole?: boolean; narrow?: boolean };
 
-export function formatMoney(
-  amount: number,
-  currency: string = DEFAULT_CURRENCY,
-  locale: string = DEFAULT_LOCALE,
-): string {
-  return new Intl.NumberFormat(locale, { style: "currency", currency }).format(amount);
+/**
+ * Amounts are major units. INR keeps Indian digit grouping; everything else uses en-CA so CAD renders "$1.00"
+ * and not "CA$1.00". Currency defaults to CAD only for legacy one-arg callers; pass it explicitly in new code.
+ */
+export function formatMoney(amount: number, currency = "CAD", { whole, narrow }: MoneyOpts = {}): string {
+  return new Intl.NumberFormat(currency === "INR" ? "en-IN" : "en-CA", {
+    style: "currency",
+    currency,
+    ...(whole && { maximumFractionDigits: 0 }),
+    ...(narrow && { currencyDisplay: "narrowSymbol" }),
+  }).format(amount);
 }
 
 export function round2(n: number): number {
