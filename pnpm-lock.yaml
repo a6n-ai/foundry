@@ -378,6 +378,9 @@ importers:
 
   packages/design-system:
     dependencies:
+      '@date-fns/tz':
+        specifier: ^1.5.0
+        version: 1.5.0
       '@foundry/commons':
         specifier: workspace:*
         version: link:../commons
@@ -387,12 +390,18 @@ importers:
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
+      date-fns:
+        specifier: ^4.4.0
+        version: 4.4.0
       lucide-react:
         specifier: ^1.61.0
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       maplibre-gl:
         specifier: ^6.15.0
         version: 6.15.0
+      radix-ui:
+        specifier: ^1.8.1
+        version: 1.8.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
     devDependencies:
       '@testing-library/jest-dom':
         specifier: ^7.0.1

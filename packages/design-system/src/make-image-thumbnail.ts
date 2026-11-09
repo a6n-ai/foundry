@@ -1,9 +1,4 @@
-function fitWithin(w: number, h: number, maxDim: number): { w: number; h: number } {
-  const longest = Math.max(w, h);
-  if (longest <= maxDim) return { w: Math.round(w), h: Math.round(h) };
-  const s = maxDim / longest;
-  return { w: Math.round(w * s), h: Math.round(h * s) };
-}
+import { fitWithin } from "./export-image";
 
 function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), type, quality));
