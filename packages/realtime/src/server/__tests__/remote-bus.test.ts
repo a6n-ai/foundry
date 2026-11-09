@@ -45,7 +45,11 @@ describe("RemoteBus", () => {
   });
 
   it("pickBus returns a remote bus when both vars set", () => {
-    expect(pickBus({ REALTIME_URL: "x", REALTIME_SECRET: "y" })).not.toBe(memoryBus);
+    expect(pickBus({ REALTIME_URL: "x", REALTIME_SECRET: "y".repeat(32) })).not.toBe(memoryBus);
+  });
+
+  it("pickBus returns memoryBus when the secret is below the floor", () => {
+    expect(pickBus({ REALTIME_URL: "x", REALTIME_SECRET: "short" })).toBe(memoryBus);
   });
 
   describe("process.env", () => {
@@ -53,7 +57,7 @@ describe("RemoteBus", () => {
 
     it("pickBus reads process.env when called without an argument", () => {
       vi.stubEnv("REALTIME_URL", "x");
-      vi.stubEnv("REALTIME_SECRET", "y");
+      vi.stubEnv("REALTIME_SECRET", "y".repeat(32));
       expect(pickBus()).not.toBe(memoryBus);
       vi.unstubAllEnvs();
       vi.stubEnv("REALTIME_URL", "");

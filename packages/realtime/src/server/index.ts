@@ -3,3 +3,4 @@ export { memoryBus } from "./memory-bus";
 export { PresenceStore, presenceStore, type PresentUser } from "./presence";
 export { sseResponse } from "./sse";
 export { createRemoteBus, pickBus } from "./remote-bus";
+export { MIN_REALTIME_SECRET, realtimeConfigFromEnv } from "./config";

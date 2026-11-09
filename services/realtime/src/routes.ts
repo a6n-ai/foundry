@@ -1,3 +1,4 @@
+import { MIN_REALTIME_SECRET } from "@foundry/realtime/config";
 import { verifyRealtimeToken, type RealtimeEvent } from "@foundry/realtime";
 import type { ChannelRoom } from "./room";
 
@@ -25,7 +26,7 @@ function validEvent(e: unknown): e is RealtimeEvent {
 export async function handle(req: Request, env: Env): Promise<Response> {
   const url = new URL(req.url);
   if (url.pathname === "/") return new Response("ok");
-  if (typeof env.REALTIME_SECRET !== "string" || env.REALTIME_SECRET.length < 32) {
+  if (typeof env.REALTIME_SECRET !== "string" || env.REALTIME_SECRET.length < MIN_REALTIME_SECRET) {
     return new Response("misconfigured", { status: 500 });
   }
 

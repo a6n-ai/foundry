@@ -7,6 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./server": "./src/server/index.ts",
+    "./config": "./src/server/config.ts",
     "./client": "./src/client/index.ts"
   },
   "types": "./src/index.ts",

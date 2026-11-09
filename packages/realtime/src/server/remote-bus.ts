@@ -1,5 +1,6 @@
 import type { Channel, RealtimeEvent } from "../index";
 import type { Bus } from "./bus";
+import { realtimeConfigFromEnv } from "./config";
 import { memoryBus } from "./memory-bus";
 
 // App-side bus that publishes to the realtime Worker over HTTP; clients
@@ -25,8 +26,6 @@ export function createRemoteBus(opts: { url: string; secret: string; fetch?: typ
 
 // No `= process.env` default: apps augment ProcessEnv, which trips the weak-type check.
 export function pickBus(env?: { REALTIME_URL?: string; REALTIME_SECRET?: string }): Bus {
-  const e = env ?? { REALTIME_URL: process.env.REALTIME_URL, REALTIME_SECRET: process.env.REALTIME_SECRET };
-  return e.REALTIME_URL && e.REALTIME_SECRET
-    ? createRemoteBus({ url: e.REALTIME_URL, secret: e.REALTIME_SECRET })
-    : memoryBus;
+  const cfg = realtimeConfigFromEnv(env);
+  return cfg ? createRemoteBus(cfg) : memoryBus;
 }
