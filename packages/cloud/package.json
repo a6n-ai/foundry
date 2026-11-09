@@ -5,7 +5,9 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./cron-auth": "./src/cron-auth.ts",
+    "./background": "./src/background.ts"
   },
   "types": "./src/index.ts",
   "scripts": {
@@ -15,9 +17,19 @@
   "devDependencies": {
     "@types/node": "^26.6.5",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "@opennextjs/cloudflare": "1.20.13"
   },
   "dependencies": {
+    "@foundry/commons": "workspace:*",
     "aws4fetch": "^1.0.20"
+  },
+  "peerDependencies": {
+    "@opennextjs/cloudflare": "^1.20.13"
+  },
+  "peerDependenciesMeta": {
+    "@opennextjs/cloudflare": {
+      "optional": true
+    }
   }
 }
