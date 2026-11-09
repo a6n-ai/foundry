@@ -7,6 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./filters/parse-filter-state": "./src/filters/parse-filter-state.ts",
+    "./filters/reui": "./src/filters/reui/filters.tsx",
     "./timezone-provider": "./src/timezone-provider.tsx",
     "./list-sort": "./src/list-sort.ts",
     "./image-crop": "./src/image-crop.ts",

@@ -214,6 +214,8 @@ interface FilterContextValue {
   showSearchInput?: boolean
   trigger?: React.ReactNode
   allowMultiple?: boolean
+  menuList: "scroll-area" | "plain"
+  fieldWidth: "fixed" | "fit"
 }
 
 const FilterContext = createContext<FilterContextValue>({
@@ -225,9 +227,56 @@ const FilterContext = createContext<FilterContextValue>({
   showSearchInput: true,
   trigger: undefined,
   allowMultiple: true,
+  menuList: "scroll-area",
+  fieldWidth: "fixed",
 })
 
 const useFilterContext = () => useContext(FilterContext)
+
+const SCROLL_AREA_CLASS =
+  "size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 [&_[data-slot=scroll-area-viewport]]:h-full [&_[data-slot=scroll-area-viewport]]:overscroll-contain"
+
+// "plain": Radix ScrollArea's viewport child is display:table, so a max-height on it never becomes a scrollport
+// and a long list can paint over the page. A real overflow box caps at 24rem instead.
+function FilterMenuList({
+  scrollAreaClassName,
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"div"> & { scrollAreaClassName: string }) {
+  const { menuList } = useFilterContext()
+  if (menuList === "plain") {
+    return (
+      <div
+        role="listbox"
+        className={cn(
+          "max-h-96 min-h-0 w-full scroll-pt-2 scroll-pb-2 overflow-y-auto overscroll-contain",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    )
+  }
+  return (
+    <div className="relative flex max-h-full">
+      <div
+        role="listbox"
+        className={cn(
+          "flex max-h-[min(var(--available-height),24rem)] w-full scroll-pt-2 scroll-pb-2 flex-col overscroll-contain",
+          className
+        )}
+        {...props}
+      >
+        <ScrollArea className={scrollAreaClassName}>{children}</ScrollArea>
+      </div>
+    </div>
+  )
+}
+
+const fieldMenuWidthClass = (fieldWidth: "fixed" | "fit") =>
+  fieldWidth === "fit" ? "w-max min-w-[12.5rem] max-w-xs" : "w-[200px]"
 
 // Container variant for filters wrapper
 const filtersContainerVariants = cva("flex flex-wrap items-center", {
@@ -836,13 +885,10 @@ function SelectOptionsPopover<T = unknown>({
           <DropdownMenuSeparator />
         </>
       )}
-      <div className="relative flex max-h-full">
-        <div
-          className="flex max-h-[min(var(--available-height),24rem)] w-full scroll-pt-2 scroll-pb-2 flex-col overscroll-contain"
-          role="listbox"
-          id={`${baseId}-listbox`}
-        >
-          <ScrollArea className="size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 [&_[data-slot=scroll-area-viewport]]:h-full [&_[data-slot=scroll-area-viewport]]:overscroll-contain">
+      <FilterMenuList
+        scrollAreaClassName={SCROLL_AREA_CLASS}
+        id={`${baseId}-listbox`}
+      >
             {allFilteredOptions.length === 0 && (
               <div className="text-muted-foreground py-2 text-center text-sm">
                 {context.i18n.noResultsFound}
@@ -950,9 +996,7 @@ function SelectOptionsPopover<T = unknown>({
                 })}
               </DropdownMenuGroup>
             )}
-          </ScrollArea>
-        </div>
-      </div>
+      </FilterMenuList>
     </>
   )
 
@@ -996,7 +1040,7 @@ function SelectOptionsPopover<T = unknown>({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className={cn("w-[200px] px-0", field.className)}
+        className={cn(fieldMenuWidthClass(context.fieldWidth), "px-0", field.className)}
       >
         {renderMenuContent()}
       </DropdownMenuContent>
@@ -1165,6 +1209,10 @@ interface FiltersProps<T = unknown> {
   enableShortcut?: boolean
   shortcutKey?: string
   shortcutLabel?: string
+  /** "plain" swaps the Radix ScrollArea for a native overflow box (fixes max-height never scrolling). */
+  menuList?: "scroll-area" | "plain"
+  /** "fit" sizes value menus to their content (min 12.5rem, max-w-xs) instead of a fixed 200px. */
+  fieldWidth?: "fixed" | "fit"
 }
 
 interface FilterSubmenuContentProps<T = unknown> {
@@ -1307,12 +1355,11 @@ function FilterSubmenuContent<T = unknown>({
           <DropdownMenuSeparator />
         </>
       )}
-      <div className="relative flex max-h-full">
-        <div
-          className="flex max-h-[min(var(--available-height),24rem)] w-full scroll-pt-2 scroll-pb-2 flex-col overscroll-contain outline-hidden"
-          role="listbox"
-          id={`${baseId}-listbox`}
-          tabIndex={field.searchable === false ? 0 : -1}
+      <FilterMenuList
+        className="outline-hidden"
+        scrollAreaClassName={SCROLL_AREA_CLASS}
+        id={`${baseId}-listbox`}
+        tabIndex={field.searchable === false ? 0 : -1}
           onKeyDown={(e) => {
             if (field.searchable === false) {
               if (e.key === "ArrowDown") {
@@ -1352,7 +1399,6 @@ function FilterSubmenuContent<T = unknown>({
             }
           }}
         >
-          <ScrollArea className="size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 [&_[data-slot=scroll-area-viewport]]:h-full [&_[data-slot=scroll-area-viewport]]:overscroll-contain">
             {filteredOptions.length === 0 ? (
               <div className="text-muted-foreground py-2 text-center text-sm">
                 {i18n.noResultsFound}
@@ -1391,9 +1437,7 @@ function FilterSubmenuContent<T = unknown>({
                 })}
               </DropdownMenuGroup>
             )}
-          </ScrollArea>
-        </div>
-      </div>
+      </FilterMenuList>
     </div>
   )
 }
@@ -1414,6 +1458,8 @@ export function Filters<T = unknown>({
   enableShortcut = false,
   shortcutKey = "f",
   shortcutLabel = "F",
+  menuList = "scroll-area",
+  fieldWidth = "fixed",
 }: FiltersProps<T>) {
   const [addFilterOpen, setAddFilterOpen] = useState(false)
   const [menuSearchInput, setMenuSearchInput] = useState("")
@@ -1586,6 +1632,8 @@ export function Filters<T = unknown>({
         className,
         trigger,
         allowMultiple,
+        menuList,
+        fieldWidth,
       }}
     >
       <div
@@ -1714,14 +1762,11 @@ export function Filters<T = unknown>({
                 </>
               )}
 
-              <div className="relative flex max-h-full">
-                <div
-                  className="flex max-h-[min(var(--available-height),24rem)] w-full scroll-pt-2 scroll-pb-2 flex-col overscroll-contain"
-                  role="listbox"
-                  id={`${rootId}-listbox`}
-                  onMouseEnter={() => setActiveMenu("root")}
-                >
-                  <ScrollArea className="**:data-[slot=scroll-area-scrollbar]:m-0">
+              <FilterMenuList
+                scrollAreaClassName="**:data-[slot=scroll-area-scrollbar]:m-0"
+                id={`${rootId}-listbox`}
+                onMouseEnter={() => setActiveMenu("root")}
+              >
                     {(() => {
                       if (filteredFields.length === 0) {
                         return (
@@ -1777,7 +1822,7 @@ export function Filters<T = unknown>({
                                 {field.icon}
                                 <span>{field.label}</span>
                               </DropdownMenuSubTrigger>
-                              <DropdownMenuSubContent className="w-[200px]">
+                              <DropdownMenuSubContent className={fieldMenuWidthClass(fieldWidth)}>
                                 <FilterSubmenuContent
                                   field={field}
                                   currentValues={currentValues}
@@ -1868,9 +1913,7 @@ export function Filters<T = unknown>({
                         )
                       })
                     })()}
-                  </ScrollArea>
-                </div>
-              </div>
+              </FilterMenuList>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
