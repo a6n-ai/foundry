@@ -16,11 +16,11 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 
 export async function calculateTax(
   stripe: Stripe,
-  i: { amountCents: number; taxCode: string; reference: string; address: TaxAddress },
+  i: { amountCents: number; currency: string; taxCode: string; reference: string; address: TaxAddress },
   timeoutMs = 3000,
 ): Promise<TaxQuote> {
   const calc = await withTimeout(stripe.tax.calculations.create({
-    currency: "cad",
+    currency: i.currency.toLowerCase(),
     line_items: [{ amount: i.amountCents, reference: i.reference, tax_code: i.taxCode, tax_behavior: "exclusive" }],
     customer_details: {
       address: { line1: i.address.line1, city: i.address.city ?? undefined, postal_code: i.address.postalCode, state: i.address.province ?? undefined, country: "CA" },
@@ -54,12 +54,12 @@ export async function listTaxCodes(stripe: Stripe) {
   return out;
 }
 
-export async function taxReadiness(stripe: Stripe, taxCode: string) {
+export async function taxReadiness(stripe: Stripe, taxCode: string, currency: string) {
   const settings = await stripe.tax.settings.retrieve();
   const regs = await stripe.tax.registrations.list({ status: "active", limit: 50 });
   let testReason: string | null = null;
   try {
-    const q = await calculateTax(stripe, { amountCents: 10000, taxCode, reference: "readiness", address: { line1: "100 Queen St W", city: "Toronto", postalCode: "M5H 2N2", province: "ON" } }, 8000);
+    const q = await calculateTax(stripe, { amountCents: 10000, currency, taxCode, reference: "readiness", address: { line1: "100 Queen St W", city: "Toronto", postalCode: "M5H 2N2", province: "ON" } }, 8000);
     testReason = q.reasons[0] ?? null;
   } catch { testReason = null; }
   const settingsActive = settings.status === "active";

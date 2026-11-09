@@ -52,7 +52,7 @@ export async function previewConfirmationToken(stripe: Stripe, tokenId: string):
 }
 
 export async function createAndConfirmIntent(stripe: Stripe, i: {
-  amountCents: number; customerId: string; paymentRef: string;
+  amountCents: number; currency: string; customerId: string; paymentRef: string;
   /** Card fee already inside amountCents (pre-tax), declared to Stripe as amount_details.surcharge. */
   surchargeCents?: number;
   orgRef?: string | null; taxCalculationId?: string | null; returnUrl: string; description?: string;
@@ -65,7 +65,7 @@ export async function createAndConfirmIntent(stripe: Stripe, i: {
     const pi = await stripe.paymentIntents.create(
       {
         amount: i.amountCents,
-        currency: "cad",
+        currency: i.currency.toLowerCase(),
         customer: i.customerId,
         confirm: true,
         ...source,
@@ -106,7 +106,7 @@ export async function defaultCard(stripe: Stripe, customerId: string) {
 }
 
 export async function chargeSavedCard(stripe: Stripe, i: {
-  amountCents: number; customerId: string; paymentMethodId: string; paymentRef: string;
+  amountCents: number; currency: string; customerId: string; paymentMethodId: string; paymentRef: string;
   orgRef?: string | null; taxCalculationId?: string | null;
   /** Caller-owned retry counter: the number of prior definitively failed charges for this payment. Same value = same Stripe idempotency key, so concurrent clicks collapse into one charge. */
   attempt: string;
@@ -115,7 +115,7 @@ export async function chargeSavedCard(stripe: Stripe, i: {
     const pi = await stripe.paymentIntents.create(
       {
         amount: i.amountCents,
-        currency: "cad",
+        currency: i.currency.toLowerCase(),
         customer: i.customerId,
         payment_method: i.paymentMethodId,
         off_session: true,
