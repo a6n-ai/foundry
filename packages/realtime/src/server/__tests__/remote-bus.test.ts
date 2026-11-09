@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { memoryBus } from "../memory-bus";
-import { createRemoteBus, pickBus } from "../remote-bus";
+import { busFromEnv, createRemoteBus, pickBus } from "../remote-bus";
 
 const event = { type: "message", channel: "notify:u1" } as const;
 
@@ -64,5 +64,18 @@ describe("RemoteBus", () => {
       vi.stubEnv("REALTIME_SECRET", "");
       expect(pickBus()).toBe(memoryBus);
     });
+  });
+});
+
+describe("busFromEnv", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("is the in-process bus until REALTIME_URL and a long enough secret are set", () => {
+    vi.stubEnv("REALTIME_URL", "");
+    vi.stubEnv("REALTIME_SECRET", "");
+    expect(busFromEnv()).toBe(memoryBus);
+    vi.stubEnv("REALTIME_URL", "https://rt.test");
+    vi.stubEnv("REALTIME_SECRET", "x".repeat(32));
+    expect(busFromEnv()).not.toBe(memoryBus);
   });
 });

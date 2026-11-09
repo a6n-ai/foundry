@@ -29,3 +29,6 @@ export function pickBus(env?: { REALTIME_URL?: string; REALTIME_SECRET?: string 
   const cfg = realtimeConfigFromEnv(env);
   return cfg ? createRemoteBus(cfg) : memoryBus;
 }
+
+/** The bus for this process from REALTIME_URL / REALTIME_SECRET: remote when configured, in-process otherwise. */
+export const busFromEnv = (): Bus => pickBus();
