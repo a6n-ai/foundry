@@ -11,7 +11,6 @@ export type AddressInput = {
   deliveryInstructions?: string | null;
 };
 
-/** The fields copied onto an order/delivery. */
 export type AddressSnapshot = {
   fullName: string | null;
   addressLine: string;

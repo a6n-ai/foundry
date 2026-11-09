@@ -44,7 +44,6 @@ import type {
 type DeliveryStrategyDto = DeliveryChargeRuleDto;
 type AddressTagDto = DeliveryChargeRuleDto;
 
-/** The app's server actions (auth + org scoping stay in the app). */
 export interface DeliveryChargesActions {
   updateBaseCharge: (amount: number) => Promise<number>;
   saveDeliveryStrategy: (input: DeliveryChargeRuleInput) => Promise<DeliveryChargeRuleDto>;
@@ -59,7 +58,6 @@ export interface DeliveryChargesActions {
 
 export interface DeliveryChargesManagerProps {
   initialBaseCharge: number;
-  /** Every strategy, each pointing at its tag by `groupId`. */
   initialDeliveryStrategies: DeliveryStrategyDto[];
   initialStrategyGroups: DeliveryStrategyGroupDto[];
   /** Omit to hide address tags entirely — for an app that charges by delivery strategy only. */
@@ -92,14 +90,12 @@ export function DeliveryChargesManager({
   const showAddressTags = initialAddressTags !== undefined;
   const [addressTags, setAddressTags] = useState(initialAddressTags ?? []);
 
-  // Dialog states
   const [baseChargeOpen, setBaseChargeOpen] = useState(false);
   const [deliveryStrategyDialogOpen, setDeliveryStrategyDialogOpen] = useState(false);
   const [editingDeliveryStrategy, setEditingDeliveryStrategy] = useState<DeliveryStrategyDto | null>(null);
   const [addressTagDialogOpen, setAddressTagDialogOpen] = useState(false);
   const [editingAddressTag, setEditingAddressTag] = useState<AddressTagDto | null>(null);
 
-  // Base Charge Form State
   const [baseChargeInput, setBaseChargeInput] = useState(initialBaseCharge.toFixed(2));
   const [isSavingBase, startSavingBase] = useTransition();
 
@@ -126,7 +122,6 @@ export function DeliveryChargesManager({
     });
   };
 
-  // Delivery Strategies Actions
   const handleOpenEditDeliveryStrategy = (dt: DeliveryStrategyDto) => {
     setEditingDeliveryStrategy(dt);
     setNewOptionGroupId(null);
@@ -169,7 +164,6 @@ export function DeliveryChargesManager({
     })();
   };
 
-  // Address Tags Actions
   const handleOpenAddAddressTag = () => {
     setEditingAddressTag(null);
     setAddressTagDialogOpen(true);
@@ -614,7 +608,6 @@ function ItemChargeDialogBody({
   strategies = [],
   onSave,
 }: ItemChargeDialogProps) {
-  // Strategies this one is an alternative to: everyone else in its set.
   const [connectedTo, setConnectedTo] = useState<string[]>(() =>
     item?.connectionId ? strategies.filter((o) => o.connectionId === item.connectionId && o.id !== item.id).map((o) => o.id) : [],
   );
@@ -989,7 +982,6 @@ function PillButton({ on, children, ...rest }: { on: boolean; children: React.Re
   );
 }
 
-/** Other strategies in `o`'s set, by name. */
 function connectedNames(all: DeliveryStrategyDto[], o: DeliveryStrategyDto): string {
   if (!o.connectionId) return "";
   return all.filter((x) => x.connectionId === o.connectionId && x.id !== o.id).map((x) => x.name).join(", ");

@@ -13,7 +13,6 @@ export const DEFAULT_GOOGLE_REVIEWS_CONFIG: GoogleReviewsConfig = {
   provider: "places",
 };
 
-/** NULL/garbage config → uninstalled. Never throws on read. */
 export function parseGoogleReviewsConfig(raw: unknown): GoogleReviewsConfig {
   const parsed = googleReviewsConfigSchema.safeParse(raw ?? {});
   return parsed.success ? parsed.data : DEFAULT_GOOGLE_REVIEWS_CONFIG;

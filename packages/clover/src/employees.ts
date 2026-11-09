@@ -17,13 +17,11 @@
 
 export type CloverEmployeeRole = "OWNER" | "ADMIN" | "MANAGER" | "EMPLOYEE";
 
-/** Employee as returned by Platform API `/employees`. */
 export type CloverEmployee = {
   id: string;
   /** Display name (Clover primary name field). */
   name: string;
   nickname?: string | null;
-  /** Merchant-defined custom id. */
   customId?: string | null;
   email?: string | null;
   /** OWNER | ADMIN | MANAGER | EMPLOYEE */
@@ -84,7 +82,6 @@ function optNullableNumber(v: unknown): number | null | undefined {
   return optNumber(v) ?? undefined;
 }
 
-/** Prefer `name`; fall back to firstName + lastName when present. */
 function resolveEmployeeName(o: Record<string, unknown>): string {
   if (typeof o.name === "string" && o.name.trim()) return o.name.trim();
   const first = typeof o.firstName === "string" ? o.firstName.trim() : "";
@@ -93,7 +90,6 @@ function resolveEmployeeName(o: Record<string, unknown>): string {
   return combined;
 }
 
-/** Normalize a raw Platform API employee (throws if id/name missing). */
 export function normalizeCloverEmployee(raw: unknown): CloverEmployee {
   if (!raw || typeof raw !== "object") throw new Error("Invalid Clover employee payload");
   const o = raw as Record<string, unknown>;

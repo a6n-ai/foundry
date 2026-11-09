@@ -50,7 +50,6 @@ export function ZoneEditDialog({
 }: {
   /** null closes the dialog; a zone with no publicId opens it in create mode. */
   zone: ZoneRow | null;
-  /** Circle zones only — the rings drawn for context. */
   allZones: MapZone[];
   types: TypeOption[];
   /** Shared shop origin; null until set, which disables circle zones. */
@@ -75,13 +74,11 @@ export function ZoneEditDialog({
   const [retiring, startRetire] = useTransition();
 
   const editingId = zone?.publicId || "__new__";
-  // Bounds come from the COMMITTED radius, so the hint stays stable while typing.
   const bounds = boundsFor(allZones, radiusKm, zone?.publicId || undefined);
   const busy = pending || retiring;
   const activeTypes = types.filter((t) => t.active);
   const parsedPrefixes = parsePrefixes(prefixText);
 
-  /** Parse, clamp and adopt on blur; restore the last good value if unparseable. */
   function commitRadius() {
     const parsed = Number(radiusText.trim());
     if (!radiusText.trim() || !Number.isFinite(parsed) || parsed <= 0) {
@@ -93,7 +90,6 @@ export function ZoneEditDialog({
     setRadiusText(String(clamped));
   }
 
-  // Every ring for context, with THIS one carrying the value being edited.
   const mapZones: MapZone[] = [
     ...allZones.filter((z) => z.publicId !== editingId),
     {
@@ -117,7 +113,6 @@ export function ZoneEditDialog({
   function save() {
     let radiusToSave: number | null = null;
     if (shape === "circle") {
-      // Blur may not have fired if Save was clicked straight from the field.
       const typed = Number(radiusText.trim());
       radiusToSave =
         radiusText.trim() && Number.isFinite(typed) && typed > 0 ? clampMapRadius(typed, allZones, editingId) : radiusKm;

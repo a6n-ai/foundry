@@ -28,7 +28,6 @@ export interface ListResult {
   nextToken?: string;
 }
 
-/** Contract any storage backend (S3, R2, MinIO, an in-memory fake) fulfills. */
 export interface StorageProvider {
   readonly name: string;
   put(key: string, body: Uint8Array | string, opts?: PutOptions): Promise<PutResult>;

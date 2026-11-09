@@ -1,5 +1,4 @@
 export type DeliveryChargeType = "none" | "fixed" | "percent";
-/** A fixed charge applies once per order, or once for every delivery in the plan. */
 export type DeliveryChargeBasis = "once" | "per_delivery";
 export const DELIVERY_CHARGE_BASES: readonly DeliveryChargeBasis[] = ["once", "per_delivery"];
 
@@ -28,7 +27,6 @@ export interface DeliveryChargeItemResult {
 
 export interface DeliveryChargeCalculationResult {
   baseAmount: number;
-  /** One per picked strategy (one per tag), in the order given. */
   deliveryStrategies: DeliveryChargeItemResult[];
   addressTag?: DeliveryChargeItemResult | null;
   totalDeliveryCharge: number;

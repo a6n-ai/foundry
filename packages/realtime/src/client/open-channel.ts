@@ -24,7 +24,6 @@ export function resetOpenChannelForTests() {
   tokenCache.clear();
 }
 
-/** Decode JWT-ish payload expiry without verifying the signature (cache gate only). */
 export function tokenExpirySeconds(token: string): number | null {
   try {
     const part = token.split(".")[0];

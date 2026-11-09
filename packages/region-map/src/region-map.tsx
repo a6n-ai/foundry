@@ -6,11 +6,9 @@ import { CHIP, hits, labelBox, placeLabels, type Box } from "./labels";
 export type { Box } from "./labels";
 import { projector, UNITS_PER_KM, type LatLng, type RegionBox, type XY } from "./project";
 
-/** The JSON half of a built region (scripts/build-region.ts). */
 export type Region = {
   box: RegionBox; width: number; height: number;
   shields: (XY & { ref: string })[];
-  /** Each named lake with the points its name may sit at, best first. */
   waterLabels?: { name: string; spots: number[][] }[];
   /** The low-detail ring around the box, in map units (it starts left of and above 0). */
   outer?: { x: number; y: number; w: number; h: number };
@@ -59,15 +57,12 @@ export function RegionMap({
   pad?: (width: number) => Pad;
   label: string;
   className?: string;
-  /** Drawn over the map, such as a legend or a credit. */
   children?: ReactNode;
-  /** The district last picked, outlined. */
   picked?: string | null;
   /** Every district is tappable when set, filled or not: "do you come here?" in one tap. */
   onPick?: (districtId: string) => void;
   /** One group (a delivery window, say) to stand out: its districts stay bright, the rest fade. */
   activeGroup?: number | null;
-  /** The district under the pointer (null when it leaves), for a live read-out beside the map. */
   onHover?: (districtId: string | null) => void;
   /** Px boxes the app draws over the map (a panel, a legend), kept clear of names and shields. */
   blocked?: (width: number, height: number) => Box[];
@@ -75,7 +70,6 @@ export function RegionMap({
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [near, setNear] = useState(false);
-  // The place under the pointer, by a district or its own dot; shown like the focused one.
   const [hot, setHot] = useState<string | null>(null);
 
   useEffect(() => {
@@ -95,14 +89,12 @@ export function RegionMap({
   const at = (p: LatLng) => P.at(p);
   const pts = [...places.map(at), ...(pin ? [at(pin)] : [])];
   const base = size && pts.length ? frameOf(pts, size.w, size.h, pad ? pad(size.w) : { top: PAD, right: PAD, bottom: PAD, left: PAD }, { bounds: { w: region.width, h: region.height } }) : null;
-  // Zoom and pan: null is the fitted view. A drag pans once zoomed in; a tap that moved is not a pick.
   const [cam, setCam] = useState<View | null>(null);
   const view = base && cam ? cam : base;
   const drag = useRef<{ x: number; y: number; from: View; moved: boolean } | null>(null);
   const moved = useRef(false);
   const touches = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; mid: { x: number; y: number }; from: View } | null>(null);
-  // Out as far as the whole drawn region, in to 8x the fitted view.
   const ring = region.outer ?? { x: 0, y: 0, w: region.width, h: region.height };
   const limits = base && size ? { min: Math.min(base.scale, size.w / ring.w, size.h / ring.h), max: base.scale * 8 } : null;
   const bounds = ring;
@@ -138,10 +130,8 @@ export function RegionMap({
     const compact = size.w < 600;
     const chip = compact ? CHIP.compact : CHIP.regular;
     const spots = places.map((p) => ({ name: p.name, ...px(at(p)) }));
-    // The zoom buttons' corner (see .rm-zoom) is kept clear of names.
     const controls: Box[] = [{ l: size.w - 60, r: size.w, t: 0, b: 12 + 40 * 3 + 8 }, ...(blocked?.(size.w, size.h) ?? [])];
     const sides = placeLabels(spots, chip, { w: size.w, h: size.h }, controls);
-    // Shields go where nothing else is: not on a dot, a name, the edge or another shield.
     const taken: Box[] = [...controls, ...spots.map((s) => ({ l: s.x - 9, r: s.x + 9, t: s.y - 9, b: s.y + 9 })), ...spots.flatMap((s, i) => (sides[i] === "none" ? [] : [labelBox(s, sides[i] as Exclude<(typeof sides)[number], "none">, chip)]))];
     const shields = region.shields.flatMap((sh) => {
       const q = px(sh);
@@ -151,7 +141,6 @@ export function RegionMap({
       taken.push(b);
       return [{ ...sh, ...q }];
     });
-    // A lake's name: the first of its spots in view and clear of names, dots and shields.
     const lakes = (region.waterLabels ?? []).flatMap((l) => {
       const w = l.name.length * 8 + 8;
       for (const [x = 0, y = 0] of l.spots) {
@@ -188,7 +177,6 @@ export function RegionMap({
         if ((e.target as Element).closest("button, a, .rm-legend") || !view) return;
         engaged.current = true;
         touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        // Two fingers: pinch to zoom about their middle, and move together to pan.
         if (touches.current.size === 2) {
           const [a, b] = [...touches.current.values()] as [{ x: number; y: number }, { x: number; y: number }];
           pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, from: view };
@@ -295,8 +283,6 @@ function circle(center: LatLng, km: number): LatLng[] {
   return out;
 }
 
-/** Swatches for the groups (delivery windows, say) that colour places and districts. With `onPick`,
- *  each is a button that lights its group on the map. */
 export function RegionLegend({ groups, active = null, onPick, className }: { groups: string[]; active?: number | null; onPick?: (group: number) => void; className?: string }) {
   if (groups.length === 0) return null;
   return (

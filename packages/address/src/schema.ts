@@ -63,7 +63,6 @@ export function makeAddressTables<X extends Record<string, PgColumnBuilderBase> 
   return { customerAddresses };
 }
 
-/** The base shape the service needs; an app's table with extra columns is a superset of it. */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type AddressTables = ReturnType<typeof makeAddressTables<{}>>;
 export type CustomerAddressRow = AddressTables["customerAddresses"]["$inferSelect"];

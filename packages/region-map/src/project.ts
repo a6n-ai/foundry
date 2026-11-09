@@ -1,4 +1,3 @@
-/** A region's box in degrees. */
 export type RegionBox = { w: number; s: number; e: number; n: number };
 export type XY = { x: number; y: number };
 export type LatLng = { lat: number; lng: number };

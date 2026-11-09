@@ -18,7 +18,6 @@
  * and the subtotal never moved. Always pass the amount from your own catalog.
  */
 export type CloverAtomicModificationInput = {
-  /** Clover modifier id. */
   modifierId: string;
   name: string;
   /** Extra charge in cents. */
@@ -26,7 +25,6 @@ export type CloverAtomicModificationInput = {
 };
 
 export type CloverAtomicLineItemInput = {
-  /** Clover inventory item id. */
   itemId: string;
   /** Optional display override; Clover always takes the inventory price (see note below). */
   name?: string;
@@ -47,7 +45,6 @@ export type CloverAtomicDiscountInput = {
 export type CloverAtomicOrderInput = {
   lineItems: CloverAtomicLineItemInput[];
   discounts?: CloverAtomicDiscountInput[];
-  /** Merchant order type id (pickup/online). Optional for first slice. */
   orderTypeId?: string;
   note?: string;
   /**
@@ -57,7 +54,6 @@ export type CloverAtomicOrderInput = {
   employeeId?: string;
 };
 
-/** Computed totals from `atomic_order/checkouts`. All amounts integer cents. */
 export type CloverAtomicCheckoutResult = {
   subtotal: number;
   totalTaxAmount: number;
@@ -84,7 +80,6 @@ export type CloverAtomicOrderResult = {
 
 export type CloverPayOrderInput = {
   orderId: string;
-  /** Tokenized card source (`clv_…`). */
   source: string;
   email?: string;
   /** Client IP for fraud / x-forwarded-for. */
@@ -114,18 +109,15 @@ export type CloverChargeInput = {
   source: string;
   email?: string;
   clientIp?: string;
-  /** Optional Platform/Ecommerce order id to associate. */
   orderId?: string;
 };
 
 export type CloverChargeResult = {
   id: string;
   status?: string;
-  /** Ecommerce charge `paid` flag when present. */
   paid?: boolean;
   amount?: number;
   currency?: string;
-  /** Associated Platform/Ecommerce order id when returned. */
   orderId?: string;
   raw: unknown;
 };
@@ -319,7 +311,6 @@ export type CloverEcommerceOrderResult = {
 export type CloverPlatformOrderResult = {
   id: string;
   paymentState?: string;
-  /** Nested Platform payment ids (when expand=payments). */
   paymentIds: string[];
   raw: unknown;
 };
@@ -442,7 +433,6 @@ export function mapCloverRemoteToPaymentStatus(input: {
   return "awaiting_payment";
 }
 
-/** Iframe SDK script URL for the given environment. */
 export function cloverCheckoutSdkUrl(environment: "sandbox" | "production"): string {
   return environment === "sandbox"
     ? "https://checkout.sandbox.dev.clover.com/sdk.js"

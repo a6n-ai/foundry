@@ -85,7 +85,6 @@ import { httpsOrigin, resolveCloverHosts } from "./urls";
 export type CloverApiClientOptions = {
   /** Required for OAuth mode (token refresh). Omit in API-token mode. */
   credentials?: CloverAppCredentials;
-  /** Current connection (merchant + tokens, or merchant API tokens). */
   connection: CloverConnection;
   /**
    * Called when tokens are rotated so the app can persist them.
@@ -144,10 +143,6 @@ export class CloverApiClient {
     return this.connection.environment ?? this.credentials?.environment ?? "sandbox";
   }
 
-  /**
-   * Platform (v3) bearer token, refreshing when near expiry.
-   * Merchant API tokens are permanent, so that mode short-circuits.
-   */
   async getAccessToken(): Promise<string> {
     if (this.connection.authMode === "apiToken") {
       const apiToken = this.connection.apiToken;
@@ -284,7 +279,6 @@ export class CloverApiClient {
     return all;
   }
 
-  /** Merchant display fields for Settings cards — never returns tokens. */
   async getMerchant(): Promise<CloverMerchantSummary> {
     const data = await this.get<{ id?: string; name?: string }>(this.merchantPath(""));
     return {
@@ -293,7 +287,6 @@ export class CloverApiClient {
     };
   }
 
-  // ── Inventory: items ──────────────────────────────────────────────────────
 
   async listItems(params: ListItemsParams = {}): Promise<CloverElements<CloverItem>> {
     const data = await this.get<{ elements?: unknown[] }>(
@@ -305,7 +298,6 @@ export class CloverApiClient {
     return { elements };
   }
 
-  /** Paginate through all items (limit 100 per page). */
   async listAllItems(params: Omit<ListItemsParams, "limit" | "offset"> = {}): Promise<CloverItem[]> {
     return this.paginateInventory((p) => this.listItems({ ...params, ...p }));
   }
@@ -349,7 +341,6 @@ export class CloverApiClient {
     });
   }
 
-  // ── Inventory: categories ─────────────────────────────────────────────────
 
   async listCategories(params: ListInventoryParams = {}): Promise<CloverElements<CloverCategory>> {
     const data = await this.get<{ elements?: unknown[] }>(
@@ -381,7 +372,6 @@ export class CloverApiClient {
     return normalizeCloverCategory(data);
   }
 
-  /** Update via POST …/categories/{categoryId}. */
   async updateCategory(
     categoryId: string,
     input: CloverCategoryUpdateInput,
@@ -397,21 +387,18 @@ export class CloverApiClient {
     await this.delete(this.merchantPath(`categories/${encodeURIComponent(categoryId)}`));
   }
 
-  /** Associate item ↔ category (many-to-many). */
   async associateCategoryItem(categoryId: string, itemId: string): Promise<void> {
     await this.post(this.merchantPath("category_items"), {
       elements: [{ category: { id: categoryId }, item: { id: itemId } }],
     });
   }
 
-  /** Remove item ↔ category association. */
   async dissociateCategoryItem(categoryId: string, itemId: string): Promise<void> {
     await this.post(this.merchantPath("category_items?delete=true"), {
       elements: [{ category: { id: categoryId }, item: { id: itemId } }],
     });
   }
 
-  // ── Inventory: modifier groups + modifiers ────────────────────────────────
 
   async listModifierGroups(
     params: ListInventoryParams = {},
@@ -468,21 +455,18 @@ export class CloverApiClient {
     return normalizeCloverModifier(data);
   }
 
-  /** Associate item ↔ modifier group. */
   async associateItemModifierGroup(modifierGroupId: string, itemId: string): Promise<void> {
     await this.post(this.merchantPath("item_modifier_groups"), {
       elements: [{ modifierGroup: { id: modifierGroupId }, item: { id: itemId } }],
     });
   }
 
-  /** Remove item ↔ modifier group association. */
   async dissociateItemModifierGroup(modifierGroupId: string, itemId: string): Promise<void> {
     await this.post(this.merchantPath("item_modifier_groups?delete=true"), {
       elements: [{ modifierGroup: { id: modifierGroupId }, item: { id: itemId } }],
     });
   }
 
-  // ── Inventory: tax rates ──────────────────────────────────────────────────
 
   async listTaxRates(params: ListInventoryParams = {}): Promise<CloverElements<CloverTaxRate>> {
     const data = await this.get<{ elements?: unknown[] }>(
@@ -500,21 +484,18 @@ export class CloverApiClient {
     return this.paginateInventory((p) => this.listTaxRates({ ...params, ...p }));
   }
 
-  /** Associate item ↔ tax rate. */
   async associateTaxRateItem(taxRateId: string, itemId: string): Promise<void> {
     await this.post(this.merchantPath("tax_rate_items"), {
       elements: [{ taxRate: { id: taxRateId }, item: { id: itemId } }],
     });
   }
 
-  /** Remove item ↔ tax rate association. */
   async dissociateTaxRateItem(taxRateId: string, itemId: string): Promise<void> {
     await this.post(this.merchantPath("tax_rate_items?delete=true"), {
       elements: [{ taxRate: { id: taxRateId }, item: { id: itemId } }],
     });
   }
 
-  // ── Inventory: tags (Order printing labels) ───────────────────────────────
 
   async listTags(params: ListInventoryParams = {}): Promise<CloverElements<CloverTag>> {
     const data = await this.get<{ elements?: unknown[] }>(
@@ -538,21 +519,18 @@ export class CloverApiClient {
     return normalizeCloverTag(await this.post(this.merchantPath("tags"), body));
   }
 
-  /** Associate item ↔ tag. */
   async associateTagItem(tagId: string, itemId: string): Promise<void> {
     await this.post(this.merchantPath("tag_items"), {
       elements: [{ tag: { id: tagId }, item: { id: itemId } }],
     });
   }
 
-  /** Remove item ↔ tag association. */
   async dissociateTagItem(tagId: string, itemId: string): Promise<void> {
     await this.post(this.merchantPath("tag_items?delete=true"), {
       elements: [{ tag: { id: tagId }, item: { id: itemId } }],
     });
   }
 
-  // ── Online-ordering menus ─────────────────────────────────────────────────
 
   /** Unlike every other inventory endpoint this one answers `{menus: [...]}`. */
   async listMenus(): Promise<CloverMenu[]> {
@@ -568,7 +546,6 @@ export class CloverApiClient {
     return Array.isArray(data.items) ? data.items.map((el) => normalizeCloverMenuItem(el)) : [];
   }
 
-  // ── Inventory: discounts ──────────────────────────────────────────────────
 
   async listDiscounts(params: ListInventoryParams = {}): Promise<CloverElements<CloverDiscount>> {
     const data = await this.get<{ elements?: unknown[] }>(
@@ -613,7 +590,6 @@ export class CloverApiClient {
     await this.delete(this.merchantPath(`discounts/${encodeURIComponent(discountId)}`));
   }
 
-  // ── Employees ─────────────────────────────────────────────────────────────
 
   async listEmployees(
     params: ListEmployeesParams = {},
@@ -646,7 +622,6 @@ export class CloverApiClient {
     return normalizeCloverEmployee(data);
   }
 
-  /** Update via POST …/employees/{empId}. */
   async updateEmployee(
     employeeId: string,
     input: CloverEmployeeUpdateInput,
@@ -699,7 +674,6 @@ export class CloverApiClient {
     return normalizeCloverCustomer(data);
   }
 
-  // ── Orders (Platform atomic) ──────────────────────────────────────────────
 
   /**
    * Which Clover order type a website order should carry.
@@ -822,7 +796,6 @@ export class CloverApiClient {
     return normalizeAtomicCheckoutResult(data);
   }
 
-  // ── Ecommerce (SCL host) ──────────────────────────────────────────────────
 
   /** GET /pakms/apikey — public iframe tokenization key (not a secret). */
   async getPakmsApiKey(): Promise<CloverPakmsKey> {
@@ -954,7 +927,6 @@ export type CloverMerchantSummary = {
   name: string;
 };
 
-/** Build Platform API item create/update JSON (omits undefined keys). */
 function cloverItemBody(
   input: CloverItemCreateInput | CloverItemUpdateInput,
   opts: { requireNamePrice?: boolean } = {},

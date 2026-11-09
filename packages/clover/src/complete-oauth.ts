@@ -5,10 +5,6 @@ import {
   type IntegrationsConfigStore,
 } from "./store";
 
-/**
- * Persist a successful OAuth token exchange onto the integrations store.
- * Call after `exchangeCloverAuthorizationCode` + CSRF state validation.
- */
 export async function persistCloverOAuthConnection(
   store: IntegrationsConfigStore,
   input: {

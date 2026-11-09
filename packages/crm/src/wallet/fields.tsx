@@ -5,7 +5,6 @@ import { Label } from "@foundry/ui/label";
 import { Switch } from "@foundry/ui/switch";
 import { cn } from "@foundry/ui/cn";
 
-/** Moved from tiffin-grab discounts/controls.tsx for the shared wallet screens. */
 export function NumberField({
   id, label, value, onChange, prefix, suffix, min, max, step, placeholder, className,
 }: {

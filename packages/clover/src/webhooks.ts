@@ -50,7 +50,6 @@ export type CloverWebhookParseResult =
   | { kind: "notification"; appId?: string; updates: CloverWebhookUpdate[] }
   | { kind: "unknown" };
 
-/** Constant-time string compare for auth codes. */
 export function safeEqualString(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let out = 0;
@@ -72,7 +71,6 @@ export function verifyCloverWebhookAuth(
   return safeEqualString(got, expected);
 }
 
-/** Parse `P:ABC` / `O:XYZ` style object ids from app webhooks. */
 export function parseCloverWebhookObjectId(objectId: string): ParsedCloverObjectId | null {
   const raw = objectId.trim();
   if (!raw) return null;

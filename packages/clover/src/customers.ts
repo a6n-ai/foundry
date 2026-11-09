@@ -15,7 +15,6 @@
 export type CloverCustomerEmail = { emailAddress: string; primaryEmail?: boolean };
 export type CloverCustomerPhone = { phoneNumber: string };
 
-/** Customer as returned by Platform API `/customers`. */
 export type CloverCustomer = {
   id: string;
   firstName?: string | null;
@@ -89,7 +88,6 @@ function firstPhone(o: Record<string, unknown>): string | null {
   return typeof num === "string" ? num : null;
 }
 
-/** Normalize a raw Platform API customer (throws if id missing). */
 export function normalizeCloverCustomer(raw: unknown): CloverCustomer {
   if (!raw || typeof raw !== "object") throw new Error("Invalid Clover customer payload");
   const o = raw as Record<string, unknown>;

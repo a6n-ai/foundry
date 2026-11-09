@@ -114,7 +114,6 @@ export function googlePlaceProvider(): PlaceProvider {
     },
 
     async resolve({ placeId, address, persist }) {
-      // Google has no storage-licensed bucket — see the doc comment above.
       if (persist) return null;
 
       const apiKey = process.env.GOOGLE_PLACES_API_KEY;

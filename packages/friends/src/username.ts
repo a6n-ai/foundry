@@ -12,7 +12,6 @@ export function normalizeUsername(raw: string): { username: string; displayUsern
   return { username: v.toLowerCase(), displayUsername: v };
 }
 
-/** A starting username from a display name: ASCII slug (max 20) + 4 digits. */
 export function suggestUsername(
   name: string | null | undefined,
   rand: () => number = () => 1000 + Math.floor(Math.random() * 9000),

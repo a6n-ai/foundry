@@ -12,7 +12,6 @@ export type ValidateResult =
   | { ok: false; reason: "not_found" | "expired" | "exhausted" | "path_mismatch" };
 
 export class SecuredAccessService {
-  // now() injectable so tests don't need Date.now().
   constructor(private readonly db: Database, private readonly now: () => number = () => Date.now()) {}
 
   async mint(path: string, opts: { ttlSeconds: number; limit?: number }): Promise<{ accessKey: string }> {
@@ -37,7 +36,6 @@ export class SecuredAccessService {
     if (row.path !== path && !path.startsWith(`${row.path}/`)) return { ok: false, reason: "path_mismatch" };
     if (this.now() > row.accessTill) return { ok: false, reason: "expired" };
 
-    // Atomic bump: only succeeds while under the limit (null = unlimited).
     const bumped = await this.db
       .update(filesSecuredAccessKey)
       .set({ accessedCount: sql`${filesSecuredAccessKey.accessedCount} + 1` })

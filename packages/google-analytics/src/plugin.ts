@@ -7,7 +7,6 @@ export const GA_PLUGIN_ID = "google-analytics" as const;
 export const GA_KEY = "googleAnalytics" as const;
 export const GA_SETTINGS_HREF = "/dashboard/settings/google-analytics";
 
-/** Client-safe catalog metadata. */
 export const GA_PLUGIN_META: PluginMeta = {
   id: GA_PLUGIN_ID,
   label: "Google Analytics",

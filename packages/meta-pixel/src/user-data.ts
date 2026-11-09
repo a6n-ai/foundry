@@ -11,7 +11,6 @@ import type { MetaUserDataInput } from "./types";
 
 type MetaUserData = Record<string, string | string[]>;
 
-/** Meta CAPI `user_data` — only keys with values; PII hashed per Meta rules. */
 export function buildMetaUserData(input: MetaUserDataInput): MetaUserData {
   const { fn, ln } = splitPersonName(input.fullName);
   const out: MetaUserData = {};

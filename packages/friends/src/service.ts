@@ -171,7 +171,6 @@ export function createFriendsService(deps: {
     await db.delete(f).where(and(eq(f.requesterId, them.id), eq(f.addresseeId, me.id), eq(f.status, "pending")));
   }
 
-  /** Unfriend, or cancel my own pending request. */
   async function remove(viewerPublicId: string, otherPublicId: string): Promise<void> {
     const me = await customer(viewerPublicId);
     const [them] = await db.select({ id: users.id }).from(users).where(eq(users.publicId, otherPublicId)).limit(1);
@@ -201,7 +200,6 @@ export function createFriendsService(deps: {
     return out;
   }
 
-  /** The viewer's invite ref for `/join?ref=`, or null until they have a username. */
   async function inviteRef(viewerPublicId: string): Promise<string | null> {
     const [u] = (await db
       .select({ id: users.id, username: users.username })
@@ -251,7 +249,6 @@ export function createFriendsService(deps: {
     return true;
   }
 
-  /** Give a customer a username if they have none. Returns the username, or null after repeated clashes. */
   async function ensureUsername(userPublicId: string): Promise<string | null> {
     const [u] = (await db
       .select({ id: users.id, username: users.username })

@@ -82,7 +82,6 @@ export function TypeEditDialog({
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  /** Parse, clamp and adopt on blur; restore the last good value if unparseable. */
   function commitMinSubtotal(): number {
     const parsed = Number(minSubtotalText.trim());
     const next =
@@ -157,7 +156,6 @@ export function TypeEditDialog({
       footer={
         <>
           {!isNew && (
-            // Retire sits apart from the primary action, on the left.
             <Button type="button" variant="outline" className="sm:mr-auto" disabled={busy || !form.active} onClick={retire}>
               {form.active ? "Retire" : "Retired"}
             </Button>

@@ -32,7 +32,6 @@ function normalize(email: string): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = PostgresJsDatabase<any>;
 
-/** Bind the store to an app's Drizzle client. */
 export function drizzleReviewNudgeStore(db: Db): ReviewNudgeStore {
   return {
     async get(email: string): Promise<ReviewNudgeState | undefined> {

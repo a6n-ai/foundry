@@ -45,7 +45,6 @@ export function createGoogleAnalytics(deps: GoogleAnalyticsDeps) {
     update: slice.update,
     openApiSecret,
     legacyMeasurementId: legacyId,
-    /** The ID the site loads: the plugin's once installed, else the legacy fallback. */
     effectiveMeasurementId: (cfg: GaConfig): string | null => (cfg.installed ? cfg.measurementId : legacyId()),
 
     async status(): Promise<GaStatus> {

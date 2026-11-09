@@ -19,7 +19,6 @@ export type PaymentProviderDef = {
    * providers; first consumer lands with Clover Payment.
    */
   requiresPlugin?: string;
-  /** Seed row written into payment_config when the provider is installed. */
   seed: () => PaymentMethodConfig;
 };
 
@@ -64,7 +63,6 @@ export function findPaymentProvider(id: string): PaymentProviderDef | undefined 
   return PAYMENT_PROVIDERS.find((p) => p.id === id);
 }
 
-/** Fill in missing catalog methods whose plugin (if any) is installed. Extras stay. */
 export function mergePaymentCatalog(cfg: PaymentConfig, installedPlugins: readonly string[] = []): PaymentConfig {
   const byId = new Map(cfg.methods.map((m) => [m.id, m]));
   const available = PAYMENT_PROVIDERS.filter((p) => !p.requiresPlugin || installedPlugins.includes(p.requiresPlugin));

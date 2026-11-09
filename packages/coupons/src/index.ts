@@ -19,7 +19,6 @@ export type CouponCandidate = {
   active: boolean;
   /** 0-100. Takes precedence over amountOff when both are set. */
   percentOff?: number | null;
-  /** Positive dollars off. */
   amountOff?: number | null;
   minSubtotal?: number | null;
   /** epoch ms; null = unbounded on that side */
@@ -57,7 +56,6 @@ function round2(n: number): number {
   return Math.round((n + Number.EPSILON) * 100) / 100;
 }
 
-/** null when the candidate is usable. */
 export function ineligibleReason(c: CouponCandidate, ctx: CouponContext): IneligibleReason | null {
   if (!c.active) return "inactive";
   if (c.startsAt != null && ctx.now < c.startsAt) return "not_started";
@@ -90,7 +88,6 @@ export function couponValue(c: CouponCandidate, subtotal: number): number {
 export type AppliedCoupon = { id: string; name: string; amount: number; code?: string };
 export type CouponResolution = {
   applied: AppliedCoupon[];
-  /** Positive dollars, capped at subtotal. */
   total: number;
   /** Candidates rejected, with why — callers surface this, it is never fatal. */
   rejected: { id: string; reason: IneligibleReason }[];

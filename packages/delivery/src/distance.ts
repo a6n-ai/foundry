@@ -1,4 +1,3 @@
-/** Great-circle distance between two lat/lng points, in kilometers. */
 export function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;

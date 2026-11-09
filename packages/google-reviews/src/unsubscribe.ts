@@ -25,7 +25,6 @@ export function verifyUnsubscribeToken(secret: string, email: string, token: str
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
 
-/** Absolute unsubscribe link for the email template. `baseUrl` is the app's own origin. */
 export function buildUnsubscribeUrl(baseUrl: string, secret: string, email: string): string {
   const url = new URL("/api/review-nudge/unsubscribe", baseUrl);
   url.searchParams.set("email", normalize(email));

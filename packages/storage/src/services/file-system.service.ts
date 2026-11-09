@@ -27,7 +27,6 @@ function trimSlashes(value: string): string {
   return value.slice(start, end);
 }
 
-// Storage key = path without a leading slash.
 const toKey = (path: string): string => trimSlashes(normalizePath(path) ?? "");
 
 export class FileSystemService {
@@ -110,8 +109,6 @@ export class FileSystemService {
     if (row) await this.repo.deleteByPublicId(row.publicId);
   }
 
-  // Ensure a directory row exists for each parent segment, returning the leaf
-  // directory id (null for the root). Idempotent.
   private async ensureDirectory(segments: string[]): Promise<bigint | null> {
     let parentId: bigint | null = null;
     let acc = "";

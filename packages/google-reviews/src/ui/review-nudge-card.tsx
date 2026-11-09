@@ -11,7 +11,6 @@ export function ReviewNudgeCard({
 }: {
   businessName: string;
   reviewUrl: string;
-  /** Marks the nudge done server-side; also called on click-through. */
   onDismiss: () => Promise<void>;
 }) {
   const [pending, start] = useTransition();

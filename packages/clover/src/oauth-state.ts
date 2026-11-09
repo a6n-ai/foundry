@@ -4,7 +4,6 @@ import { randomBytes } from "node:crypto";
 const COOKIE = "clover_oauth_state";
 const MAX_AGE_SEC = 60 * 10;
 
-/** Issue a CSRF state cookie for the Clover OAuth authorize redirect. */
 export async function createCloverOAuthState(): Promise<string> {
   const state = randomBytes(24).toString("base64url");
   const jar = await cookies();
@@ -18,7 +17,6 @@ export async function createCloverOAuthState(): Promise<string> {
   return state;
 }
 
-/** Consume and validate the OAuth state cookie (single-use). */
 export async function consumeCloverOAuthState(
   expected: string | null | undefined,
 ): Promise<boolean> {

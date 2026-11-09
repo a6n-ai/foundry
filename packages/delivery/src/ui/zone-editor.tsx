@@ -13,7 +13,6 @@ import { useDeliveryActions, type AddressInputSlot, type TypeOption, type ZoneRo
 
 const PALETTE = ["#2563eb", "#16a34a", "#d97706", "#dc2626", "#7c3aed", "#0891b2"];
 
-/** Blank row that puts the dialog into create mode. */
 const NEW_ZONE: ZoneRow = {
   publicId: "",
   name: "",
@@ -33,11 +32,9 @@ export function DeliveryZonesManager({
 }: {
   /** Vector style URL for the basemap; null falls back to keyless OSM raster. */
   mapStyleUrl?: string | null;
-  /** Centre of radius circles; null until the shop location is set. */
   origin: { lat: number; lng: number } | null;
   zones: ZoneRow[];
   types: TypeOption[];
-  /** The app's address search input for the shop location (e.g. Places autocomplete). */
   addressInput?: AddressInputSlot;
 }) {
   const router = useRouter();
@@ -96,7 +93,6 @@ export function DeliveryZonesManager({
         toast.error(res.error);
         return;
       }
-      // Clear the override so the refreshed (server re-clamped) value takes over.
       setRadiusOverrides((r) => {
         const next = { ...r };
         delete next[publicId];
@@ -113,7 +109,6 @@ export function DeliveryZonesManager({
         origin={origin}
         addressInput={addressInput}
         onOriginResolved={(lat, lng) => {
-          // The action already persisted it; just move the pin and rings.
           setOrigin({ lat, lng });
           router.refresh();
         }}

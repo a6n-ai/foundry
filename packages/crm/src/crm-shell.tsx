@@ -22,7 +22,6 @@ export function CrmShell({
   children,
 }: {
   sidebar: ReactNode;
-  /** Shown top-left on mobile when the sidebar (and its trigger) are hidden. */
   brand?: ReactNode;
   breadcrumbs?: ReactNode;
   center?: ReactNode;

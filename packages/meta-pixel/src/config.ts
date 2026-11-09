@@ -27,11 +27,9 @@ export type MetaPixelStatus = {
 };
 
 export type MetaPixelDeps = SliceStores & {
-  /** The app's integrations master key (e.g. INTEGRATIONS_ENCRYPTION_KEY). */
   masterKey: () => string | null | undefined;
 };
 
-/** One app's Meta Pixel: config slice, sealed token, and the connection the CAPI sender needs. */
 export function createMetaPixel(deps: MetaPixelDeps) {
   const slice = integrationSlice(META_PIXEL_KEY, metaPixelConfigSchema, deps);
   const accessToken = sealedSecret("metaPixel.accessToken", deps.masterKey);

@@ -9,9 +9,7 @@ export type CloverEnvironment = "sandbox" | "production";
 export type CloverRegion = "na" | "eu" | "la";
 
 export type CloverHosts = {
-  /** Browser OAuth authorize host (no scheme). */
   authorizeHost: string;
-  /** Token exchange / refresh / Platform API host (no scheme). */
   apiHost: string;
   /** Ecommerce / SCL API host (no scheme). Documented for later phases. */
   ecommerceHost: string;

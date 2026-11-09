@@ -1,6 +1,5 @@
 export type PlaceSuggestion = {
   placeId: string;
-  /** Display string for the dropdown. The cheap bucket returns exactly this. */
   label: string;
 };
 
@@ -16,7 +15,6 @@ export type ResolvedPlace = {
 
 export type PlaceProvider = {
   id: "aws" | "google" | "nominatim";
-  /** Typeahead. Cheapest bucket — id + text only, never persisted. */
   suggest(query: string, opts?: { near?: { lat: number; lng: number }; country?: string }): Promise<PlaceSuggestion[]>;
   /**
    * `persist: true` selects the storage-licensed bucket (AWS `intendedUse = Stored`),

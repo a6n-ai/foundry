@@ -16,7 +16,6 @@ export function makeCode(): string {
   return code;
 }
 
-/** Codes are upper-case; a link typed in lower case still resolves. Anything else is not a code. */
 export function normalizeCode(raw: string): string | null {
   const code = raw.trim().toUpperCase();
   return code.length === CODE_LENGTH && [...code].every((c) => ALPHABET.includes(c)) ? code : null;
@@ -56,7 +55,6 @@ export async function createShortLink(db: Database, input: { target: string; cre
   throw new Error("could not allocate a short link code");
 }
 
-/** The stored path for a code, or null when the code is malformed or unknown. */
 export async function resolveShortLink(db: Database, rawCode: string): Promise<string | null> {
   const code = normalizeCode(rawCode);
   if (!code) return null;

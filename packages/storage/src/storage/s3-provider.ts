@@ -24,7 +24,6 @@ export interface S3StorageConfig {
 
 const OPTS = { retries: 1, timeoutMs: 10_000 };
 
-/** One signed S3 client pointed at any S3-compatible endpoint. */
 export class S3StorageProvider implements StorageProvider {
   readonly name = "s3";
   private readonly aws: ReturnType<typeof createAwsClient>;

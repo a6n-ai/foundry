@@ -10,7 +10,6 @@ export const cloverAppCredentialsSchema = z.object({
 });
 export type CloverAppCredentials = z.infer<typeof cloverAppCredentialsSchema>;
 
-/** Expiring OAuth token pair from /oauth/v2/token or /oauth/v2/refresh. */
 export const cloverTokenPairSchema = z.object({
   accessToken: z.string().min(1),
   refreshToken: z.string().min(1),
@@ -70,17 +69,14 @@ export const cloverConnectionSchema = z.object({
     // never goes through .parse() (create-client, test fixtures). Optional keeps
     // this an additive field.
     .optional(),
-  /** ISO timestamp of last successful OAuth connect/refresh. */
   connectedAt: z.string().min(1).optional(),
 });
 export type CloverConnection = z.infer<typeof cloverConnectionSchema>;
 export type CloverAuthMode = CloverConnection["authMode"];
 
-/** Admin-submitted API-token connection. Token is input-only, never returned. */
 export const cloverApiTokenConnectSchema = z.object({
   merchantId: z.string().trim().min(1, "Merchant ID is required"),
   apiToken: z.string().trim().min(1, "API token is required"),
-  /** Optional — required only for website checkout (Ecommerce API). */
   ecommercePublicKey: z.string().trim().min(1).optional(),
   ecommercePrivateToken: z.string().trim().min(1).optional(),
   environment: z.enum(["sandbox", "production"]).default("production"),
@@ -170,7 +166,6 @@ export function resolveWebOrderTypeId(
   return fulfillment === "pickup" ? types.pickup : types.delivery;
 }
 
-/** Safe projection for admin UI — never includes tokens or app secret. */
 export type CloverConnectionPublic = {
   installed: boolean;
   connected: boolean;
@@ -184,9 +179,7 @@ export type CloverConnectionPublic = {
    * API token: always true — merchant API tokens do not expire.
    */
   accessTokenValid: boolean;
-  /** Connected *and* able to reach the Ecommerce API — i.e. checkout can work. */
   ecommerceReady: boolean;
-  /** Chosen order types for website orders. Ids only — not secret. */
   webOrderTypes: { pickup?: string; delivery?: string };
 };
 

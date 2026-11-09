@@ -48,7 +48,6 @@ export type CloverTagRef = {
   name?: string;
 };
 
-/** Inventory item as returned by Platform API `/items`. */
 export type CloverItem = {
   id: string;
   name: string;
@@ -63,7 +62,6 @@ export type CloverItem = {
   alternateName?: string | null;
   /** Merchant cost in cents. */
   cost?: number | null;
-  /** Unit of measure (e.g. lb, oz, each). */
   unitName?: string | null;
   /** Hex color, e.g. `#FF0080`. */
   colorCode?: string | null;
@@ -116,7 +114,6 @@ export type CloverItemUpdateInput = Partial<CloverItemCreateInput> & {
   id?: string;
 };
 
-/** Category as returned by `/categories` (Register menu section). */
 export type CloverCategory = {
   id: string;
   name: string;
@@ -145,7 +142,6 @@ export type CloverModifierGroupRef = {
   name?: string;
 };
 
-/** Modifier group (`/modifier_groups`). */
 export type CloverModifierGroup = {
   id: string;
   name: string;
@@ -175,7 +171,6 @@ export type CloverModifierGroupUpdateInput = Partial<CloverModifierGroupCreateIn
   id?: string;
 };
 
-/** Modifier within a group (`/modifiers` or expanded on a group). */
 export type CloverModifier = {
   id: string;
   name: string;
@@ -190,7 +185,6 @@ export type CloverModifier = {
 
 export type CloverModifierCreateInput = {
   name: string;
-  /** Modifier group this modifier belongs to. */
   modifierGroup: { id: string };
   alternateName?: string | null;
   /** Additional cost in cents. */
@@ -248,13 +242,11 @@ export type ListInventoryParams = {
   filter?: string;
 };
 
-/** Convert local dollars (e.g. 12.99) to Clover integer cents. */
 export function dollarsToCloverCents(dollars: number): number {
   if (!Number.isFinite(dollars)) throw new Error("Invalid dollar amount");
   return Math.round(dollars * 100);
 }
 
-/** Convert Clover integer cents to dollars. */
 export function cloverCentsToDollars(cents: number): number {
   if (!Number.isFinite(cents)) throw new Error("Invalid cents amount");
   return Math.round(cents) / 100;
@@ -296,7 +288,6 @@ function elementsOf<T>(
   return { elements };
 }
 
-/** Normalize a raw Platform API item into a typed CloverItem (throws if id/name missing). */
 export function normalizeCloverItem(raw: unknown): CloverItem {
   if (!raw || typeof raw !== "object") throw new Error("Invalid Clover item payload");
   const o = raw as Record<string, unknown>;
@@ -509,7 +500,6 @@ export function normalizeCloverMenuItem(raw: unknown): CloverMenuItem {
   };
 }
 
-/** Clover tag — Register's "Order printing" label. */
 export type CloverTag = {
   id: string;
   name: string;
@@ -650,7 +640,6 @@ export function normalizeCloverDiscount(raw: unknown): CloverDiscount {
   };
 }
 
-/** Primary category name from an expanded item (first element), if any. */
 export function primaryCategoryName(item: CloverItem): string | null {
   const name = item.categories?.elements?.[0]?.name;
   return name && name.trim() ? name.trim() : null;

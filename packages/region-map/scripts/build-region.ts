@@ -65,7 +65,6 @@ function simplify(pts: Pt[], tol: number): Pt[] {
 }
 const lengthOf = (pts: Pt[]) => pts.reduce((sum, p, i) => (i ? sum + Math.hypot(p[0] - pts[i - 1]![0], p[1] - pts[i - 1]![1]) : 0), 0);
 const MARGIN = 20; // units past the box a line may run before it is cut
-/** A rectangle in map units: the detailed box, or the wider low-detail one around it. */
 type Frame = { x0: number; y0: number; x1: number; y1: number };
 const INNER: Frame = { x0: 0, y0: 0, x1: P.width, y1: P.height };
 const near = ([x, y]: Pt, f: Frame = INNER) => x >= f.x0 - MARGIN && y >= f.y0 - MARGIN && x <= f.x1 + MARGIN && y <= f.y1 + MARGIN;
@@ -222,7 +221,6 @@ const primary = by((t) => t.highway === "primary", 0.8, 8);
 const rail = by((t) => t.railway === "rail", 0.8, 6);
 const rivers = by((t) => t.waterway === "river", 0.8, 6);
 
-// Shields: one every 30 km along each numbered highway, at a point inside the box.
 const shields: (XY & { ref: string })[] = [];
 const byRef = new Map<string, Pt[][]>();
 for (const x of lines) {
@@ -243,7 +241,6 @@ for (const [ref, ways] of byRef) {
   }
 }
 
-// Districts: each polygon simplified, keyed by its id.
 const districts: { id: string; d: string }[] = [];
 const file = arg("districts");
 if (file) {

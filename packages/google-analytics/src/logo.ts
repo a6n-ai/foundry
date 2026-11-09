@@ -1,6 +1,5 @@
 import type { PluginLogo } from "@foundry/commons/plugin";
 
-/** Google Analytics brand mark from Simple Icons (CC0). */
 export const LOGO: PluginLogo = {
   title: "Google Analytics",
   hex: "E37400",

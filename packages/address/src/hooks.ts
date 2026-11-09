@@ -65,7 +65,6 @@ export type AddressPick = { kind: "saved"; publicId: string } | { kind: "new"; i
 
 const EMPTY: AddressInput = { addressLine: "", city: "", postalCode: "" };
 
-/** "Use a saved address" vs "add new". Default preselected; no saved addresses → new. */
 export function useAddressPicker({ addresses, initial }: { addresses: SavedAddress[]; initial?: string | null }) {
   const firstId = initial ?? addresses.find((a) => a.isDefault)?.publicId ?? addresses[0]?.publicId ?? null;
   const [pick, setPick] = useState<AddressPick>(firstId ? { kind: "saved", publicId: firstId } : { kind: "new", input: EMPTY });

@@ -25,7 +25,6 @@ export function CloverIntegrationsCard({
   onUninstall,
 }: {
   clover: CloverConnectionPublic;
-  /** Settings → Clover route (shown after install). */
   settingsHref: string;
   onInstall: () => Promise<void>;
   onUninstall: () => Promise<void>;

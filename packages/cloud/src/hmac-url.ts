@@ -7,7 +7,6 @@ export interface HmacUrlSignerOptions {
   baseUrl: string;
   /** Query parameter carrying the token; must match the separator length passed to the WAF rule. Default "verify". */
   paramName?: string;
-  /** Clock in ms, injectable for tests. */
   now?: () => number;
 }
 

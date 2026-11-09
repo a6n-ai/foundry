@@ -32,7 +32,6 @@ export type MapZone = {
   color: string;
 };
 
-/** Ring clamp for live drag feedback — the package's clampRadiusKm, fed map rings. The server re-clamps. */
 export function clampMapRadius(radiusKm: number, zones: MapZone[], excludePublicId: string): number {
   return clampRadiusKm(
     radiusKm,
@@ -117,12 +116,10 @@ export function ZoneMap({
   zones: MapZone[];
   /** Fires continuously while a ring's resize handle is dragged, already clamped, in km. */
   onRadiusChange: (publicId: string, radiusKm: number) => void;
-  /** Fires once when the drag ends — the point to persist. */
   onRadiusCommit: (publicId: string, radiusKm: number) => void;
   onOriginChange: (lat: number, lng: number) => void;
   /** Vector style URL (Amazon Location, proxied same-origin). Null = keyless OSM raster. */
   styleUrl?: string | null;
-  /** Ring to emphasise and zoom to — set when a row in the table is selected. */
   focusedPublicId?: string | null;
   /** The origin is shared by every ring, so editing one zone must not move it. */
   originDraggable?: boolean;
@@ -314,8 +311,6 @@ export function ZoneMap({
               latest.current.zones,
               publicId,
             );
-            // Snap the handle back onto its bearing at the clamped radius so it
-            // cannot visually sit past a neighbour while the mouse is still down.
             const snapped = destinationPoint(o.lat, o.lng, clamped, HANDLE_BEARING);
             m.setLngLat([snapped.lng, snapped.lat]);
             latest.current.onRadiusChange(publicId, clamped);
@@ -335,7 +330,6 @@ export function ZoneMap({
         }
       }
 
-      // Drop handles for zones that were deactivated or deleted.
       for (const [publicId, marker] of handleMarkersRef.current) {
         if (!live.has(publicId)) {
           marker.remove();

@@ -1,4 +1,3 @@
-/** Server-only barrel. Client components import from `@foundry/google-reviews/ui`. */
 export * from "./config";
 export * from "./types";
 export * from "./places-provider";

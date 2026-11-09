@@ -37,11 +37,6 @@ import type {
 } from "../config";
 import type { CloverOrderType } from "../orders";
 
-/**
- * Settings → Clover panel — connection info, reconnect, disconnect.
- * Shown after the plugin is installed under Integrations
- * (parallel to payment method tabs after a payment plugin is added).
- */
 export function CloverSettingsPanel({
   clover,
   merchantName,
@@ -69,7 +64,6 @@ export function CloverSettingsPanel({
   onConnectApiToken?: (
     input: CloverApiTokenConnectInput,
   ) => Promise<CloverApiTokenConnectResult>;
-  /** Merchant's live order types, for the website-order mapping below. */
   orderTypes?: CloverOrderType[];
   /** Persist the website-order type mapping. Omit to hide that section. */
   onSaveWebOrderTypes?: (input: { pickup?: string; delivery?: string }) => Promise<void>;
@@ -337,16 +331,6 @@ export function CloverSettingsPanel({
   );
 }
 
-/**
- * Maps website fulfillment → Clover order type.
- *
- * This is what makes a website order announce itself on Register. Uber Eats and
- * DoorDash orders arrive already tagged by their own Clover integration, and that
- * tag is what drives the POS alert and the kitchen print rules; an order created
- * through the API with no type just appears silently in the Orders list.
- *
- * Leaving a row unset is valid and keeps the previous untyped behaviour.
- */
 type WebSource = "pickup" | "delivery";
 
 const SOURCE_META: Record<WebSource, { label: string; short: string }> = {

@@ -14,7 +14,6 @@ export type BuildAuthorizeUrlInput = {
   region?: CloverRegion;
 };
 
-/** Merchant-facing OAuth authorize URL (high-trust auth-code flow). */
 export function buildCloverAuthorizeUrl(input: BuildAuthorizeUrlInput): string {
   const hosts = resolveCloverHosts(input.environment ?? "sandbox", input.region ?? "na");
   const url = new URL(`${httpsOrigin(hosts.authorizeHost)}/oauth/v2/authorize`);
@@ -32,7 +31,6 @@ export type CloverOAuthCallbackParams = {
   error?: string | null;
 };
 
-/** Parse query params from Clover's redirect (`code` + `merchant_id`). */
 export function parseCloverOAuthCallback(
   params: URLSearchParams | Record<string, string | string[] | undefined>,
 ): CloverOAuthCallbackParams {
@@ -126,7 +124,6 @@ export async function refreshCloverTokens(input: RefreshTokensInput): Promise<Cl
   return mapTokenResponse(raw);
 }
 
-/** True when access token expires within `skewSeconds` (default 60). */
 export function isCloverAccessTokenExpired(
   tokens: CloverTokenPair,
   skewSeconds = 60,

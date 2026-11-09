@@ -17,7 +17,6 @@ export type MoneyLedgerWrite = {
   /** Major currency units, two decimal places (e.g. "68.00"). */
   amount: string;
   currency: string;
-  /** Public id of the payable (booking, order, …). */
   reference: string;
   /**
    * Provider event id (Stripe `evt_…`, etc.). Unique per tenant so a second
@@ -74,7 +73,6 @@ export function refundDebit(
   };
 }
 
-/** True when this provider event was already settled — skip a second write. */
 export function isDuplicateProviderEvent(existingId: string | null | undefined): boolean {
   return Boolean(existingId);
 }

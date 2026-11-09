@@ -26,7 +26,6 @@ export type PaymentConfig = z.infer<typeof paymentConfigSchema>;
 
 export const DEFAULT_PAYMENT_CONFIG: PaymentConfig = { methods: [] };
 
-// NULL/garbage config → simulated mode (no methods). Never throws on read.
 export function parsePaymentConfig(raw: unknown): PaymentConfig {
   const parsed = paymentConfigSchema.safeParse(raw ?? {});
   return parsed.success ? parsed.data : DEFAULT_PAYMENT_CONFIG;
@@ -40,7 +39,6 @@ export function findMethod(cfg: PaymentConfig, id: string): PaymentMethodConfig 
   return cfg.methods.find((m) => m.id === id);
 }
 
-/** App-level save rules the shared schema cannot know. Never throws. */
 export function paymentConfigSaveError(cfg: PaymentConfig): string | null {
   const parsed = paymentConfigSchema.safeParse(cfg);
   if (!parsed.success) return "Invalid payment configuration";

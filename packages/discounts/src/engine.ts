@@ -9,7 +9,6 @@ export type DiscountLine = {
   key: string;
   name: string;
   kind: string;
-  /** Effective percent after cap scaling. */
   percent: number;
   listedPercent: number;
   amount: number;

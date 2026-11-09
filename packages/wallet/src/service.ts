@@ -75,7 +75,6 @@ export function capRedemption(
 ): { coinsSpent: number; currencyValue: number } {
   let currencyValue = Math.min(coins * rate, orderTotal);
   const coinsSpent = coinsFor(currencyValue, rate);
-  // Re-apply cap after recompute: for non-round rates, coinsSpent*rate can exceed order.total
   currencyValue = Math.min(Number((coinsSpent * rate).toFixed(2)), orderTotal);
   return { coinsSpent, currencyValue };
 }
@@ -170,7 +169,6 @@ export async function lockAndQuoteRedemption(
   // ponytail: per-user row lock serializes redemptions; fine at current scale, revisit if redemption throughput becomes hot.
   await lockUser(tx, users, userId);
 
-  // Authoritative balance check inside the locked txn to prevent TOCTOU double-spend
   const balance = await readBalance(tx, walletLedger, userId);
 
   if (coins <= 0) throw new ValidationError("coins must be positive");
@@ -353,7 +351,6 @@ export async function reserveRedemption(
     coins: number;
     currencyValue: number;
     orderId: bigint;
-    /** How long the hold survives unsettled. */
     ttlMs: number;
     now?: number;
     memo?: string;
@@ -750,7 +747,6 @@ export function createWalletService<E extends string>(deps: WalletDeps<E>) {
         .where(and(eq(walletLedger.userId, userId), unexpired(walletLedger, Date.now())))
         .orderBy(desc(walletLedger.createdAt))
         .limit(limit);
-      // eventType cast: same drizzle/TS limitation as ledgerPage above.
       return rows.map((r) => ({ ...r, eventType: r.eventType as E | null }));
     },
 
@@ -787,7 +783,6 @@ export function createWalletService<E extends string>(deps: WalletDeps<E>) {
       coins: number,
       order: { id: bigint; total: number; currency: string },
     ): Promise<{ coinsSpent: number; currencyValue: number }> {
-      // Fast fail: cheap pre-validation before opening a txn
       if (coins <= 0) throw new ValidationError("coins must be positive");
 
       const rate = await activeRate(order.currency);

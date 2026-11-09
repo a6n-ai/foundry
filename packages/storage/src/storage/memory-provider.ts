@@ -17,11 +17,9 @@ interface Entry {
 const toBytes = (body: Uint8Array | string): Uint8Array =>
   typeof body === "string" ? new TextEncoder().encode(body) : body;
 
-/** Test/double backend. Not for production use. */
 export class MemoryStorageProvider implements StorageProvider {
   readonly name = "memory";
   private readonly store = new Map<string, Entry>();
-  // lastModified is injectable so tests stay deterministic without Date.now().
   constructor(private readonly now: () => number = () => 0) {}
 
   async put(key: string, body: Uint8Array | string, opts?: PutOptions): Promise<PutResult> {

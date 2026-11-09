@@ -10,7 +10,6 @@ import { Button } from "@foundry/ui/button";
 import { IntegrationPluginCard, IntegrationPluginCardSkeleton } from "./integration-plugin-card";
 import type { PluginMeta } from "@foundry/commons/plugin";
 
-/** Plain-JSON mirror of PluginStatus — safe to pass server→client. */
 export type PluginCatalogStatus = { installed: boolean; statusLabel?: string };
 
 export type SetPluginInstalled = (

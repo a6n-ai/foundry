@@ -35,7 +35,6 @@ const toInput = (label: string, v: AddressValues): AddressInput => ({
   deliveryInstructions: v.deliveryInstructions,
 });
 
-/** Staff view of one customer's saved addresses (admin customer page). */
 export function CustomerAddressesCard({
   initial,
   actions,

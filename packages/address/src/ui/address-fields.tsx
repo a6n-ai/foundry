@@ -49,7 +49,6 @@ export type AddressFieldsProps = {
   errors?: Partial<Record<AddressFieldKey, string>>;
   disabled?: boolean;
   className?: string;
-  /** Rendered after the postal code row (e.g. zone check button / served banner). */
   postalSlot?: ReactNode;
   onPostalBlur?: () => void;
   /**
@@ -65,7 +64,6 @@ export type AddressFieldsProps = {
   /** App's suggest API route (POST { query } -> { suggestions }). Defaults to
    *  `resolveUrl` with its last path segment swapped for "suggest". */
   suggestUrl?: string;
-  /** Restyle with the app's own primitives; defaults to the shadcn kit. */
   ui?: Partial<AddressUi>;
 };
 
@@ -77,7 +75,6 @@ export function deriveSuggestUrl(resolveUrl: string): string {
   return resolveUrl.replace(/\/[^/]+$/, "/suggest");
 }
 
-/** Props every text-input slot receives; spread `inputProps` on the native input. */
 export type AddressFieldSlotProps = {
   id: string;
   label: string;
@@ -85,11 +82,8 @@ export type AddressFieldSlotProps = {
   /** Spans both grid columns (address line, full name, instructions). */
   wide: boolean;
   inputProps: InputHTMLAttributes<HTMLInputElement>;
-  /** Spinner + suggestion list, to render inside a `relative` wrapper around the input. */
   overlay?: ReactNode;
-  /** True when `overlay` is present, i.e. the input needs a positioning wrapper. */
   combo?: boolean;
-  /** Rendered after the error (postal slot). */
   footer?: ReactNode;
 };
 
@@ -113,7 +107,6 @@ export type AddressSuggestionsSlotProps = {
   onPick: (s: AddressSuggestion) => void;
 };
 
-/** Primitives AddressFields draws with. Apps pass a subset; defaults are the shadcn kit. */
 export type AddressUi = {
   Field: ComponentType<AddressFieldSlotProps>;
   Select: ComponentType<AddressSelectSlotProps>;
@@ -203,7 +196,6 @@ function DefaultSpinner() {
 
 export const defaultAddressUi: AddressUi = { Field: DefaultField, Select: DefaultSelect, Suggestions: DefaultSuggestions, Spinner: DefaultSpinner };
 
-/** Description of one field to draw, produced by `useAddressFields`. */
 export type AddressFieldRow =
   | { kind: "province"; key: "province"; id: string; label: string; error?: string; wide: boolean; value: string; onChange: (v: string) => void; options: readonly { value: string; label: string }[] }
   | { kind: "line"; key: "addressLine"; id: string; label: string; error?: string; wide: boolean; value: string; onChange: (v: string) => void; onResolve: (p: ResolvedPlaceFields) => void }
@@ -336,10 +328,6 @@ export function resolveAddressUi(ui?: Partial<AddressUi>): AddressUi {
   return ui ? { ...defaultAddressUi, ...ui } : defaultAddressUi;
 }
 
-/**
- * Headless address-line autocomplete: 250ms debounce, stale-response guard,
- * arrow/Enter/Escape keyboard, resolve-on-pick.
- */
 export function useAddressAutocomplete({
   id,
   onChange,
@@ -524,7 +512,6 @@ export function AddressLineField({
   );
 }
 
-/** Bare input + dropdown (no label/error chrome), for callers that supply their own, e.g. react-hook-form's FormItem. */
 export function AddressLineAutocomplete({
   id,
   value,

@@ -27,7 +27,6 @@ export function makeDeliveryTables(deps: {
   const { organization } = deps;
   const orgId = () => text("organization_id").references(() => organization.id);
 
-  // ── Zones: where we deliver ────────────────────────────────────────────────
   const deliveryZones = pgTable(
     "delivery_zones",
     {
@@ -53,7 +52,6 @@ export function makeDeliveryTables(deps: {
     ],
   );
 
-  // ── Types: how an order is fulfilled (pickup, instant, scheduled…) ─────────
   const deliveryTypes = pgTable("delivery_types", {
     ...updatableColumns("dty"),
     /** Stable machine key, set once at creation — orders reference it. */
@@ -83,7 +81,6 @@ export function makeDeliveryTables(deps: {
     ],
   );
 
-  // ── Charges: surcharges on top of the order ────────────────────────────────
   const deliveryChargeType = pgEnum("delivery_charge_type", ["none", "fixed", "percent"]);
 
   /** One row per org: base fee, plus the store origin circles are measured from. */

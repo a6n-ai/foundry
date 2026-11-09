@@ -1,6 +1,5 @@
 export type Side = "top" | "bottom" | "right" | "left";
 export type Box = { l: number; r: number; t: number; b: number };
-/** A name chip's size in px: width per character, padding, height. */
 export type Chip = { charW: number; pad: number; h: number };
 
 export const CHIP: Record<"regular" | "compact", Chip> = { regular: { charW: 7.4, pad: 22, h: 27 }, compact: { charW: 6.8, pad: 18, h: 25 } };
@@ -23,7 +22,6 @@ export const hits = (a: Box, b: Box) => a.l < b.r && b.l < a.r && a.t < b.b && b
  *  it some other way). Top-down, so the higher dot keeps the top spot. Points are in px. */
 export function placeLabels(points: { name: string; x: number; y: number }[], chip: Chip = CHIP.regular, bounds?: { w: number; h: number }, blocked: Box[] = []): (Side | "none")[] {
   const order = points.map((p, i) => ({ p, i })).sort((a, b) => a.p.y - b.p.y || a.p.x - b.p.x);
-  // Controls drawn over the map (zoom buttons, say) count as names already placed.
   const placed: Box[] = [...blocked];
   const dots: Box[] = points.map((p) => ({ l: p.x - 9, r: p.x + 9, t: p.y - 9, b: p.y + 9 }));
   const out: (Side | "none")[] = new Array(points.length);

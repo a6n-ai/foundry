@@ -2,7 +2,6 @@ import { FSA_NAMES } from "./fsa-names";
 import { normalizePostal } from "./zones";
 
 export type PostalArea = {
-  /** "Etobicoke", "Queen's Park Ontario Provincial Government", or "Downtown Toronto, Central Toronto" for a short prefix. */
   name: string;
   /** The neighbourhoods GeoNames lists in brackets for one FSA; null for short prefixes. */
   neighbourhoods: string | null;

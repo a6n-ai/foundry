@@ -18,9 +18,7 @@ export function IntegrationPluginCard({
   icon: ReactNode;
   label: string;
   description: string;
-  /** e.g. "Installed" / "Connected" — omit when not installed. */
   statusLabel?: string | null;
-  /** Action row (Add / Remove / Configure). */
   children?: ReactNode;
 }) {
   return (

@@ -3,7 +3,6 @@
 import type { SavedAddress } from "../rules";
 import { formatAddress } from "./address-card";
 
-/** Staff radio list of a customer's saved addresses (e.g. per-delivery change). */
 export function AddressPickerField({
   addresses,
   value,

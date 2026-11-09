@@ -1,6 +1,5 @@
 import type { PluginLogo } from "@foundry/commons/plugin";
 
-/** Meta brand mark from Simple Icons (CC0). */
 export const LOGO: PluginLogo = {
   title: "Meta",
   hex: "0467DF",

@@ -110,12 +110,10 @@ export function createAddressService(deps: AddressServiceDeps) {
     return row;
   }
 
-  /** Transaction-scoped lock on one customer's book (ids are globally unique, so no key clashes). */
   async function lockBook(tx: AddressTx, scope: AddressScope) {
     await tx.execute(sql`select pg_advisory_xact_lock(${scope.userId})`);
   }
 
-  /** A live address in this book at the same place (see addressKey), other than `exceptId`. */
   async function findSame(scope: AddressScope, v: { addressLine: string; addressUnit: string | null; postalCode: string }, tx: AddressTx | Database, exceptId?: bigint) {
     const key = addressKey(v);
     const rows = await tx.select().from(t).where(and(owned(scope), exceptId ? ne(t.id, exceptId) : undefined));

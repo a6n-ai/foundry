@@ -2,7 +2,6 @@ import { interpolate } from "./interpolate";
 
 const CONTAINER = { fontFamily: "system-ui, sans-serif", color: "#111", maxWidth: "520px", margin: "0 auto", padding: "24px", background: "#fff" };
 
-/** Interpolate {{vars}} then render the branded email to HTML + plaintext. */
 export async function renderEmailTemplate(input: {
   subject: string;
   body: string;
@@ -30,7 +29,6 @@ export async function renderEmailTemplate(input: {
   return { subject, html, text };
 }
 
-/** In-app rendering: interpolated title + plaintext body (no email chrome). */
 export function renderInApp(input: {
   subject: string;
   body: string;

@@ -17,7 +17,6 @@ export type DeliveryChargeRuleDto = {
   sortOrder: number;
   /** Strategies only: public id of the strategy's tag (delivery_strategy_groups). */
   groupId?: string | null;
-  /** Strategies only: once per order or per delivery. */
   chargeBasis?: DeliveryChargeBasis;
   /**
    * Strategies only: public id of its connected set; null = combines freely. Strategies with
@@ -101,7 +100,6 @@ export type DeliveryServiceDeps = {
   geocodeZone?: (name: string) => Promise<{ lat: number; lng: number } | null>;
   /** Session user for created_by/updated_by. Never taken from input. */
   currentUserId?: () => Promise<bigint | null>;
-  /** Optional audit sink, called after each write. */
   audit?: (entry: AuditEntry) => Promise<void>;
 };
 
@@ -272,7 +270,6 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
     };
   }
 
-  // Strategies and address tags share ruleColumns (schema.ts); strategies add group_id (their tag).
   const strategies = ruleService(tables.deliveryStrategies, "delivery_strategies", "Delivery strategy", deps.isStrategyInUse, true);
   const tags = ruleService(tables.addressTags as unknown as RuleTable, "address_tags", "Address tag", deps.isAddressTagInUse, false);
 
@@ -334,7 +331,6 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
   }
 
   return {
-    // ── Charges ──────────────────────────────────────────────────────────────
     async getBaseDeliveryCharge(orgId?: string | null): Promise<number> {
       const [row] = await db.select({ baseCharge: configs.baseCharge }).from(configs).where(configFor(orgId)).limit(1);
       return row ? Number(row.baseCharge) : 0;
@@ -347,7 +343,6 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
       return Number(val);
     },
 
-    /** Options of every group (each carries its `groupId`). */
     listDeliveryStrategies: strategies.list,
     saveDeliveryStrategy: strategies.save,
     deleteDeliveryStrategy: strategies.remove,
@@ -403,10 +398,8 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
         if (targets.length !== others.length) throw new ValidationError("Delivery strategy not found");
         if (targets.some((t) => t.groupId !== self.groupId)) throw new ValidationError("Strategies can only connect within their own tag");
 
-        // Reuse this strategy's set, else one a target is already in, else start one.
         let setId = self.connectionId ?? targets.find((t) => t.connectionId != null)?.connectionId ?? null;
         if (setId != null) {
-          // Whoever was connected to this strategy but is no longer picked leaves the set.
           const keep = [self.id, ...targets.map((t) => t.id)];
           await tx.update(strategyTable).set({ connectionId: null }).where(and(eq(strategyTable.connectionId, setId), notInArray(strategyTable.id, keep)));
         }
@@ -448,7 +441,6 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
     saveAddressTag: tags.save,
     deleteAddressTag: tags.remove,
 
-    // ── Store origin (centre of circle zones) ────────────────────────────────
     async getStoreOrigin(orgId?: string | null): Promise<{ lat: number; lng: number } | null> {
       const [row] = await db
         .select({ lat: configs.storeLat, lng: configs.storeLng })
@@ -465,7 +457,6 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
       await upsertConfig(orgId, { storeLat: lat.toFixed(6), storeLng: lng.toFixed(6) });
     },
 
-    // ── Zones ────────────────────────────────────────────────────────────────
     listZones,
 
     async saveZone(input: ZoneInput, orgId?: string | null): Promise<ZoneWithTypes> {
@@ -555,7 +546,6 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
       await audit({ entity: "delivery_zone_types", entityPublicId: zonePublicId, operation: "update", changes: { typePublicIds } });
     },
 
-    // ── Types ────────────────────────────────────────────────────────────────
     async listTypes(options?: ListOptions): Promise<DeliveryType[]> {
       const rows = await db
         .select()
@@ -613,7 +603,6 @@ export function createDeliveryService(deps: DeliveryServiceDeps) {
       await audit({ entity: "delivery_types", entityPublicId: publicId, operation: "update", changes: { active: false } });
     },
 
-    /** Type/zone labels for an order — resolves the FK ids the order row carries. */
     async labelsForOrder(typeId: bigint | null, zoneId: bigint | null): Promise<{ typeLabel: string | null; zoneName: string | null }> {
       const [t] = typeId ? await db.select({ label: types.label }).from(types).where(eq(types.id, typeId)).limit(1) : [];
       const [z] = zoneId ? await db.select({ name: zones.name }).from(zones).where(eq(zones.id, zoneId)).limit(1) : [];

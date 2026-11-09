@@ -14,7 +14,6 @@ export function frameOf(points: XY[], width: number, height: number, pad: Pad, {
   const availW = Math.max(width - pad.left - pad.right, 40), availH = Math.max(height - pad.top - pad.bottom, 40);
   const scale = Math.min(maxScale, availW / Math.max(maxX - minX, 1e-6), availH / Math.max(maxY - minY, 1e-6));
   const w = width / scale, h = height / scale;
-  // The points' middle lands in the middle of the padded area.
   let x = (minX + maxX) / 2 - (pad.left + availW / 2) / scale;
   let y = (minY + maxY) / 2 - (pad.top + availH / 2) / scale;
   if (bounds) {

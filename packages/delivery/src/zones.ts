@@ -12,12 +12,10 @@ export type Zone = {
   postalPrefixes: string[];
   slotWindow: string | null;
   active: boolean;
-  /** Map point for the area, geocoded on save. Null (or absent on fixtures) until resolved. */
   lat?: number | null;
   lng?: number | null;
 };
 
-/** A fulfillment option and its rules. Rules live on the type, geography on the zone. */
 export type DeliveryType = {
   id?: bigint;
   publicId?: string;
@@ -33,7 +31,6 @@ export type DeliveryType = {
   active: boolean;
 };
 
-/** `types` = the zone's mapped types. Empty means the zone offers every active type. */
 export type ZoneWithTypes = Zone & { types: DeliveryType[] };
 
 /** Where the customer is. Postal is checked first; distance only matters when no postal zone matches. */
@@ -41,12 +38,10 @@ export type DeliveryLocation = { postalCode?: string | null; distanceKm?: number
 
 export const isPostalZone = (z: Zone): boolean => z.radiusKm == null;
 
-/** Canadian FSA-style prefix: whitespace stripped, upper-cased. */
 export function normalizePostal(postalCode: string): string {
   return postalCode.replace(/\s+/g, "").toUpperCase();
 }
 
-/** Active postal zone whose longest prefix matches the code, or null. */
 export function matchPostalZone<Z extends Zone>(postalCode: string | null | undefined, zones: Z[]): Z | null {
   const code = postalCode ? normalizePostal(postalCode) : "";
   if (!code) return null;
@@ -86,7 +81,6 @@ export function coveringZones<Z extends Zone>(location: DeliveryLocation, zones:
     .sort((a, b) => (a.radiusKm as number) - (b.radiusKm as number));
 }
 
-/** Active types a zone offers: its mapped ones, or every active type when none are mapped. */
 export function offeredTypes(zone: ZoneWithTypes, allTypes: DeliveryType[]): DeliveryType[] {
   return (zone.types.length ? zone.types : allTypes).filter((t) => t.active);
 }
@@ -97,7 +91,6 @@ const byKeySorted = (types: Iterable<DeliveryType>): DeliveryType[] => {
   return [...byKey.values()].sort((a, b) => a.sortOrder - b.sortOrder);
 };
 
-/** Address-requiring types offered at this location, deduplicated by key, ordered by sortOrder. */
 export function availableTypes(location: DeliveryLocation, zones: ZoneWithTypes[], allTypes: DeliveryType[]): DeliveryType[] {
   return byKeySorted(
     coveringZones(location, zones).flatMap((z) => offeredTypes(z, allTypes)).filter((t) => t.requiresAddress),
@@ -118,7 +111,6 @@ export function unavailableTypes(location: DeliveryLocation, zones: ZoneWithType
   );
 }
 
-/** Most specific covering zone that offers the type. */
 export function zoneForType(
   location: DeliveryLocation,
   typeKey: string,
@@ -184,7 +176,6 @@ export function chooseDelivery(input: {
 
 const money = (n: number): number => Math.round(n * 100) / 100;
 
-/** A type's money effect: its discount on the subtotal. */
 export function applyTypeDiscount(input: { subtotal: number; type: Pick<DeliveryType, "discountPct"> }): { discountAmount: number } {
   return { discountAmount: money(input.subtotal * (input.type.discountPct / 100)) };
 }

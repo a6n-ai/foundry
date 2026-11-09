@@ -35,14 +35,12 @@ export function sseResponse(opts: { channel: Channel; userId: string; role: Real
 
       const send = (event: RealtimeEvent) => safeEnqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
 
-      // Snapshot: who is already here (so a late joiner sees current presence).
       for (const u of presenceStore.online(channel)) {
         send({ type: "presence", userId: u.userId, role: u.role, online: true });
       }
 
       unsubscribe = memoryBus.subscribe(channel, send);
 
-      // Announce self online (only when this is the first stream for the user).
       if (presenceStore.join(channel, userId, role)) {
         memoryBus.publish(channel, { type: "presence", userId, role, online: true });
       }

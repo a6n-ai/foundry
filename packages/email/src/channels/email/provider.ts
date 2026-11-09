@@ -7,22 +7,15 @@ import {
   type SendResult,
 } from "./types";
 
-/** The contract every email provider (SES, SMTP, SendGrid, …) fulfills. */
 export interface EmailProvider {
   readonly name: string;
   send(message: EmailMessage): Promise<SendResult>;
 }
 
 export interface EmailProviderConfig {
-  /** Used when a message omits `from`. */
   defaultFrom: EmailAddress;
 }
 
-/**
- * Shared provider concerns: validate + normalize the message and apply the
- * default sender, then hand a clean PreparedEmail to the concrete transport.
- * Subclasses implement only `deliver` (the actual API/SMTP call).
- */
 export abstract class AbstractEmailProvider implements EmailProvider {
   abstract readonly name: string;
 

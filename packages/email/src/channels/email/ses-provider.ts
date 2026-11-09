@@ -16,7 +16,6 @@ export interface SesProviderConfig extends EmailProviderConfig, AwsConfig {
 
 interface SendEmailResponse { MessageId?: string }
 
-// Mirrors the SDK's retry/timeout budget for every other send path.
 const SEND_BUDGET = { retries: 1, timeoutMs: 10_000 };
 
 function formatAddress({ email, name }: EmailAddress): string {

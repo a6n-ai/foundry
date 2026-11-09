@@ -3,7 +3,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 import type { DeliveryTypeInput, ZoneInput } from "../service";
 
-/** Shared row shapes for the admin screens — the app's page maps service results into these. */
 export type ZoneRow = {
   publicId: string;
   name: string;

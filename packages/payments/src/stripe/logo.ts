@@ -1,6 +1,5 @@
 import type { PluginLogo } from "@foundry/commons/plugin";
 
-/** Stripe brand mark from Simple Icons (CC0). */
 export const LOGO: PluginLogo = {
   title: "Stripe",
   hex: "635BFF",

@@ -16,7 +16,6 @@ export function GoogleReviewsSettingsPanel({
   onSave,
 }: {
   placeId: string;
-  /** False when GOOGLE_PLACES_API_KEY is missing on the server. */
   apiKeyConfigured: boolean;
   onSave: SaveGoogleReviewsPlaceId;
 }) {

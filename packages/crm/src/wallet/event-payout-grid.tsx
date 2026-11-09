@@ -125,7 +125,6 @@ function PayoutRowItem({ row, onSave }: { row: PayoutRowInput; onSave: SavePayou
   );
 }
 
-// Exact loading twin: same SectionCard copy + same PayoutRowShell layout.
 export function EventPayoutGridSkeleton() {
   return (
     <SectionCard title={CARD_TITLE} subtitle={CARD_SUBTITLE}>
