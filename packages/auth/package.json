@@ -5,7 +5,10 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./session": "./src/session.ts",
+    "./next-bailout": "./src/next-bailout.ts",
+    "./last-user": "./src/last-user.ts"
   },
   "types": "./src/index.ts",
   "scripts": {
@@ -17,9 +20,16 @@
   },
   "devDependencies": {
     "typescript": "^7.0.2",
-    "better-auth": "1.7.12"
+    "better-auth": "1.7.12",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0"
   },
   "peerDependencies": {
-    "better-auth": "1.7.12"
+    "better-auth": "1.7.12",
+    "next": "^16.4.2",
+    "react": "^19"
   }
 }
