@@ -5,7 +5,8 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./google-one-tap-prompt": "./src/google-one-tap-prompt.ts"
   },
   "types": "./src/index.ts",
   "scripts": {
@@ -24,7 +25,8 @@
   },
   "peerDependencies": {
     "next": "^16.4.2",
-    "react": "^19"
+    "react": "^19",
+    "better-auth": "1.7.12"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
@@ -33,6 +35,7 @@
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "better-auth": "1.7.12"
   }
 }
