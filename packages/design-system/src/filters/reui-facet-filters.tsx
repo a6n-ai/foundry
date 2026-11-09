@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState, type ComponentType } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useListNav } from "../use-list-nav";
 import type { FacetDef, Option } from "./facet";
@@ -31,17 +31,26 @@ function mapOptions(options: Option[]) {
   return options.map((o) => ({ value: String(o.value), label: o.label }));
 }
 
-// reui renders our DateRangePicker for dateRange facets. reui carries the value
-// as values:[fromMs, toMs]; DateRangePicker speaks {from,to}. This maps between.
-function DateFacetRenderer(label: string) {
+export type DateFieldProps = {
+  label: string;
+  from?: number;
+  to?: number;
+  timeZone?: string;
+  onChange: (r: { from?: number; to?: number }) => void;
+};
+
+// reui renders the date field for dateRange facets. reui carries the value
+// as values:[fromMs, toMs]; the field speaks {from,to}. This maps between.
+function DateFacetRenderer(label: string, timeZone: string | undefined, DateField: ComponentType<DateFieldProps>) {
   return function render({ values, onChange }: CustomRendererProps<Val>) {
     const from = typeof values[0] === "number" ? (values[0] as number) : undefined;
     const to = typeof values[1] === "number" ? (values[1] as number) : undefined;
     return (
-      <DateRangePicker
+      <DateField
         label={label}
         from={from}
         to={to}
+        timeZone={timeZone}
         onChange={(r) =>
           onChange(
             [r.from, r.to].filter((v): v is number => v != null) as Val[],
@@ -52,15 +61,41 @@ function DateFacetRenderer(label: string) {
   };
 }
 
-export function ReuiFacetFilters({ spec }: { spec: FacetDef[] }) {
+export function ReuiFacetFilters({
+  spec,
+  hideDate = false,
+  pinned = [],
+  clearValues,
+  timeZone,
+  DateField = DateRangePicker,
+  oneChipPerField = false,
+}: {
+  spec: FacetDef[];
+  /** The page owns the date picker, so this menu must not also write `from`/`to`. */
+  hideDate?: boolean;
+  /** Facet fields always shown as chips (empty until picked). Also relabels the add button "More filters". */
+  pinned?: readonly string[];
+  /** When a select/pills facet is cleared, write this sentinel instead of deleting the param (e.g. `{ ending: "off" }`). */
+  clearValues?: Readonly<Record<string, string>>;
+  /** IANA zone the picked days mean. Defaults to the browser's. */
+  timeZone?: string;
+  /** Replaces the date picker used for dateRange facets; same props as DateRangePicker. */
+  DateField?: ComponentType<DateFieldProps>;
+  /** A second pick of the same field replaces the first instead of adding a duplicate chip. */
+  oneChipPerField?: boolean;
+}) {
   const nav = useListNav();
   const pathname = usePathname();
   const params = useSearchParams();
+  const view = useMemo(
+    () => (hideDate ? spec.filter((f) => f.kind !== "dateRange") : spec),
+    [spec, hideDate],
+  );
 
   // Fields describe the menu + chips. dependsOn options are pruned against the
   // parent facet's current URL selection so children stay in sync.
   const fields = useMemo<FilterFieldConfig<Val>[]>(() => {
-    return spec.flatMap((f): FilterFieldConfig<Val>[] => {
+    return view.flatMap((f): FilterFieldConfig<Val>[] => {
       if (f.kind === "search") return [];
       if (f.kind === "dateRange") {
         return [
@@ -70,7 +105,7 @@ export function ReuiFacetFilters({ spec }: { spec: FacetDef[] }) {
             type: "custom",
             operators: [{ value: DATE_OP, label: "between" }],
             defaultOperator: DATE_OP,
-            customRenderer: DateFacetRenderer(f.label),
+            customRenderer: DateFacetRenderer(f.label, timeZone, DateField),
           },
         ];
       }
@@ -106,50 +141,76 @@ export function ReuiFacetFilters({ spec }: { spec: FacetDef[] }) {
         },
       ];
     });
-  }, [spec, params]);
+  }, [view, params, timeZone, DateField]);
+
+  // reui finds the filter it is building by the id it minted. Re-deriving with
+  // id=field broke that, so every multi-select pick replaced the last one.
+  const [ids, setIds] = useState<Record<string, string>>({});
+  // Chips added from the menu with no value yet; the URL can't hold them.
+  const [pending, setPending] = useState<Filter<Val>[]>([]);
+  // The URL lags a transition behind each pick. Until it moves, show what reui
+  // just sent so a second quick pick builds on the first.
+  const urlKey = params.toString();
+  const [optimistic, setOptimistic] = useState<{ key: string; filters: Filter<Val>[] } | null>(null);
+  const pinnedSet = useMemo(() => new Set(pinned), [pinned]);
+
+  const withPinned = useCallback(
+    (list: Filter<Val>[]): Filter<Val>[] => {
+      const out = [...list];
+      for (const f of view) {
+        if (f.kind === "search" || !pinnedSet.has(f.field) || out.some((x) => x.field === f.field)) continue;
+        const operator = f.kind === "dateRange" ? DATE_OP : f.kind === "multi" ? MULTI_OP : SELECT_OP;
+        out.push({ id: ids[f.field] ?? f.field, field: f.field, operator, values: [] });
+      }
+      // Pinned chips keep their pinned order whether or not they hold a value, so they never jump.
+      const order = (x: Filter<Val>) => {
+        const i = pinned.indexOf(x.field);
+        return i >= 0 ? i : pinned.length;
+      };
+      return out.sort((a, b) => order(a) - order(b));
+    },
+    [view, pinned, pinnedSet, ids],
+  );
 
   // URL is the source of truth: derive the controlled Filter[] from params each
   // render, one Filter per active facet.
-  const filters = useMemo<Filter<Val>[]>(() => {
+  const derived = useMemo<Filter<Val>[]>(() => {
     const out: Filter<Val>[] = [];
-    for (const f of spec) {
+    const push = (field: string, operator: string, values: Val[]) =>
+      out.push({ id: ids[field] ?? field, field, operator, values });
+    for (const f of view) {
       if (f.kind === "search") continue;
       if (f.kind === "dateRange") {
         const from = num(params.get("from"));
         const to = num(params.get("to"));
-        if (from != null || to != null) {
-          out.push({
-            id: f.field,
-            field: f.field,
-            operator: DATE_OP,
-            values: [from, to].filter((v): v is number => v != null),
-          });
-        }
+        if (from != null || to != null) push(f.field, DATE_OP, [from, to].filter((v): v is number => v != null));
         continue;
       }
       if (f.kind === "multi") {
         const values = csv(params.get(f.field));
-        if (values.length) {
-          out.push({ id: f.field, field: f.field, operator: MULTI_OP, values });
-        }
+        if (values.length) push(f.field, MULTI_OP, values);
         continue;
       }
-      // pills | select
+      // pills | select — skip clear sentinels so they do not render as chips
       const v = params.get(f.field);
-      if (v) {
-        out.push({ id: f.field, field: f.field, operator: SELECT_OP, values: [v] });
-      }
+      if (v && v !== clearValues?.[f.field]) push(f.field, SELECT_OP, [v]);
     }
+    for (const p of pending) if (!out.some((x) => x.field === p.field)) out.push(p);
     return out;
-  }, [spec, params]);
+  }, [view, params, clearValues, pending, ids]);
+
+  const filters = withPinned(optimistic?.key === urlKey ? optimistic.filters : derived);
 
   // Serialize the next Filter[] back into the exact URL params parseFilterState
-  // reads. Any facet absent from `next` has its param(s) deleted.
+  // reads. Any facet absent from `next` has its param(s) deleted (or set to a clearValues sentinel).
   const onChange = (next: Filter<Val>[]) => {
+    setIds((prev) => ({ ...prev, ...Object.fromEntries(next.map((n) => [n.field, n.id])) }));
+    setPending(next.filter((n) => n.values.length === 0 && !pinnedSet.has(n.field)));
+    setOptimistic({ key: urlKey, filters: next });
     const sp = new URLSearchParams(params.toString());
     const byField = new Map(next.map((n) => [n.field, n]));
 
-    for (const f of spec) {
+    for (const f of view) {
       if (f.kind === "search") continue;
       if (f.kind === "dateRange") {
         const hit = byField.get(f.field);
@@ -167,8 +228,9 @@ export function ReuiFacetFilters({ spec }: { spec: FacetDef[] }) {
         if (values.length) sp.set(f.field, values.join(","));
         else sp.delete(f.field);
       } else {
-        // pills | select — single value
+        // pills | select — single value; optional sentinel keeps an explicit clear in the URL
         if (values.length) sp.set(f.field, values[0]);
+        else if (clearValues?.[f.field] != null) sp.set(f.field, clearValues[f.field]);
         else sp.delete(f.field);
       }
     }
@@ -184,6 +246,8 @@ export function ReuiFacetFilters({ spec }: { spec: FacetDef[] }) {
       onChange={onChange}
       size="sm"
       showSearchInput={false}
+      allowMultiple={!oneChipPerField}
+      i18n={pinned.length ? { addFilter: "More filters" } : undefined}
     />
   );
 }
