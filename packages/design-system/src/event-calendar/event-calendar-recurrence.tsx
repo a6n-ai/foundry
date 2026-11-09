@@ -481,11 +481,18 @@ function expandRecurrence<TData>(
 
   // series ordinal at startPeriod, so COUNT and recurrenceIndex stay exact
   let index = 0
+  // the pre-count below and the main loop share one MAX_ITERATIONS budget
+  let iterations = 0
+  let capped = false
   if (startPeriod > 0) {
     if (hasMonthDayParts || hasLimits) {
       // per-period counts vary (skipped days, 4-vs-5 weekday months, a LIMIT
       // filter that empties a whole period) - sum them
       for (let period = 0; period < startPeriod; period++) {
+        if (++iterations > MAX_ITERATIONS) {
+          capped = true
+          break
+        }
         index += candidatesFor(period).length
       }
     } else if (weeklyDays) {
@@ -523,9 +530,8 @@ function expandRecurrence<TData>(
     }
   }
 
-  let iterations = 0
   let period = startPeriod
-  while (iterations < MAX_ITERATIONS && occurrences.length < MAX_OCCURRENCES) {
+  while (!capped && iterations < MAX_ITERATIONS && occurrences.length < MAX_OCCURRENCES) {
     iterations++
     if (rule.count !== undefined && index >= rule.count) break
     // whole-period bounds: never break on a mid-period weekday/day-of-month,
