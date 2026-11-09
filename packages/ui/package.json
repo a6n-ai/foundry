@@ -7,7 +7,6 @@
   "exports": {
     "./cn": "./src/cn.ts",
     "./use-mobile": "./src/use-mobile.ts",
-    "./text": "./src/text/index.ts",
     "./*": "./src/*.tsx"
   },
   "scripts": {
@@ -15,7 +14,6 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@chenglou/pretext": "1.0.0",
     "@foundry/commons": "workspace:*",
     "@foundry/themes": "workspace:*",
     "class-variance-authority": "^0.7.1",

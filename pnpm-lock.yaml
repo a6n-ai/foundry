@@ -848,9 +848,6 @@ importers:
 
   packages/ui:
     dependencies:
-      '@chenglou/pretext':
-        specifier: 1.0.0
-        version: 1.0.0
       '@foundry/commons':
         specifier: workspace:*
         version: link:../commons
@@ -1150,9 +1147,6 @@ packages:
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
-
-  '@chenglou/pretext@1.0.0':
-    resolution: {integrity: sha512-BxKiDMxWJhyzL8asvcgg3T9YnUU7OUFsKO8oRaR2SYAPX4Sh2wM9gqTBjrBaZ4fnl84cEQ8czC0Q1M83z3chsA==}
 
   '@cloudflare/kv-asset-handler@0.5.0':
     resolution: {integrity: sha512-jxQYkj8dSIzc0cD6cMMNdOc1UVjqSqu8BZdor5s8cGjW2I8BjODt/kWPVdY+u9zj3ms75Q5qaZgnxUad83+eAg==}
@@ -5627,8 +5621,6 @@ snapshots:
   '@bramus/specificity@2.4.2':
     dependencies:
       css-tree: 3.2.1
-
-  '@chenglou/pretext@1.0.0': {}
 
   '@cloudflare/kv-asset-handler@0.5.0': {}
 
