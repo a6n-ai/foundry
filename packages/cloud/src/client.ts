@@ -21,20 +21,20 @@ export function awsConfigFromEnv(env: Record<string, string | undefined> = proce
   };
 }
 
-const enc = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+export const rfc3986 = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 
 /** RFC 3986 encode one URL path segment. Rejects "", "." and ".." because URL parsing collapses them (even as %2e), which would silently re-route the request. */
 export function encodePathSegment(value: string): string {
   if (value === "" || value === "." || value === "..") {
     throw new AwsError("InvalidPathSegment", `Invalid path segment: ${JSON.stringify(value)}`);
   }
-  return enc(value);
+  return rfc3986(value);
 }
 
 function withQuery(url: string, query?: AwsRequestOptions["query"]): string {
   const qs = Object.entries(query ?? {})
     .filter((e): e is [string, string] => e[1] !== undefined)
-    .map(([k, v]) => `${enc(k)}=${enc(v)}`)
+    .map(([k, v]) => `${rfc3986(k)}=${rfc3986(v)}`)
     .join("&");
   if (!qs) return url;
   return url + (url.includes("?") ? "&" : "?") + qs;

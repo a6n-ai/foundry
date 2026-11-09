@@ -1,4 +1,4 @@
-const rfc3986 = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+import { rfc3986 } from "@foundry/cloud";
 
 /** Rejects empty/"."/".." segments (so also leading "/") and returns the RFC 3986 encoded key path. Reject, don't encode: aws4fetch decodes the path before signing, so %2E%2E would turn back into "..". */
 export function encodeKey(key: string): string {

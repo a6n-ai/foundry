@@ -1,6 +1,4 @@
-import { encodePathSegment } from "./client";
-
-const rfc3986 = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+import { encodePathSegment, rfc3986 } from "./client";
 
 export interface HmacUrlSignerOptions {
   secret: string;
