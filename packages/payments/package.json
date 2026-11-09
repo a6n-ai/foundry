@@ -10,7 +10,6 @@
     "./server": "./src/plugin.server.ts",
     "./providers": "./src/providers.ts",
     "./stripe": "./src/stripe/index.ts",
-    "./stripe/plugin": "./src/stripe/plugin.ts",
     "./stripe/config": "./src/stripe/config.ts"
   },
   "types": "./src/index.ts",

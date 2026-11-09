@@ -34,3 +34,7 @@ export {
   disconnectClover,
   type IntegrationsConfigStore,
 } from "./store";
+
+export { persistCloverOAuthConnection } from "./complete-oauth";
+export { createCloverOAuthState, consumeCloverOAuthState } from "./oauth-state";
+export { cloverOAuthRedirectUri } from "./redirect-uri";

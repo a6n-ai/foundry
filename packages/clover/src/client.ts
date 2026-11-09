@@ -1047,16 +1047,3 @@ function cloverEmployeeBody(
   if (input.pin != null) body.pin = input.pin;
   return body;
 }
-
-/**
- * App webhook setup (Developer Dashboard → App Settings → Webhooks).
- * Auth via `X-Clover-Auth` + `CLOVER_WEBHOOK_AUTH`. Subscribe to Payments + Orders.
- * Hosted Checkout HMAC webhooks are a separate product path (not used here).
- */
-export const CLOVER_WEBHOOK_NOTES = {
-  configureIn: "Clover Developer Dashboard → app → Webhooks",
-  verify: "Compare X-Clover-Auth to CLOVER_WEBHOOK_AUTH (constant-time)",
-  events: "P (payments CREATE/UPDATE), O (orders CREATE/UPDATE) — then fetch object",
-  idempotency: "Retries expected; settle paid / ledger only once",
-  localDev: "HTTPS public URL required — use ngrok/cloudflare tunnel to localhost",
-} as const;

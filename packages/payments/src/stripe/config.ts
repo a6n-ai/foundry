@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-export const STRIPE_PLUGIN_ID = "stripe" as const;
 export const STRIPE_API_VERSION = "2026-09-30.endive" as const;
 export const SURCHARGE_MAX_PCT = 2.4;
 
