@@ -412,6 +412,9 @@ importers:
 
   packages/discounts:
     dependencies:
+      '@foundry/commons':
+        specifier: workspace:*
+        version: link:../commons
       '@foundry/coupons':
         specifier: workspace:*
         version: link:../coupons

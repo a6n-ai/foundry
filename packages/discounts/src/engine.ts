@@ -1,3 +1,4 @@
+import { coinsFor } from "@foundry/commons/util/money";
 /**
  * Catalog discounts ADD UP as percents of the pre-discount subtotal, capped by
  * maxDiscountPct. Pure: no I/O, no clock. The caller pre-filters applicability.
@@ -40,7 +41,7 @@ export function isRuleActive(
 // Largest-remainder split of targetCents over exact (fractional) cent shares: every share >= 0 and
 // the sum is exactly targetCents, unlike dumping the rounding residual on the last line.
 function allocateCents(exact: number[], targetCents: number): number[] {
-  const out = exact.map((e) => Math.max(0, Math.floor(e + 1e-9)));
+  const out = exact.map((e) => Math.max(0, coinsFor(e, 1)));
   let diff = targetCents - out.reduce((s, c) => s + c, 0);
   const order = exact.map((e, i) => i).sort((a, b) => (exact[b] - Math.floor(exact[b])) - (exact[a] - Math.floor(exact[a])));
   for (let k = 0; diff > 0 && order.length; k++, diff--) out[order[k % order.length]] += 1;

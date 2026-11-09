@@ -14,6 +14,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@foundry/commons": "workspace:*",
     "@foundry/coupons": "workspace:*",
     "@foundry/database": "workspace:*"
   },

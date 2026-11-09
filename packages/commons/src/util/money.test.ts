@@ -9,3 +9,11 @@ describe("formatMoney", () => {
     expect(formatMoney(10, "USD", "en-US")).toBe("$10.00");
   });
 });
+
+describe("coinsFor", () => {
+  it("floors with an epsilon", async () => {
+    const { coinsFor } = await import("./money");
+    expect(coinsFor(0.3, 0.1)).toBe(3);
+    expect(coinsFor(0.29, 0.1)).toBe(2);
+  });
+});

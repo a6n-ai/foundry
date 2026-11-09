@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { PostgresJsTransaction } from "drizzle-orm/postgres-js";
 import type { AnyPgTable } from "drizzle-orm/pg-core";
 import { ValidationError } from "@foundry/commons";
+import { coinsFor } from "@foundry/commons/util/money";
 import type { Condition } from "@foundry/commons/model/condition";
 import type { Page, PageRequest } from "@foundry/commons/util/pagination";
 import { conditionToSql, columnResolver, type Database } from "@foundry/database";
@@ -73,9 +74,7 @@ export function capRedemption(
   orderTotal: number,
 ): { coinsSpent: number; currencyValue: number } {
   let currencyValue = Math.min(coins * rate, orderTotal);
-  // Floor, not round: never spend a coin worth more than what is left to pay.
-  // The epsilon keeps 0.3 / 0.1 = 2.9999… at 3.
-  const coinsSpent = Math.floor(currencyValue / rate + 1e-9);
+  const coinsSpent = coinsFor(currencyValue, rate);
   // Re-apply cap after recompute: for non-round rates, coinsSpent*rate can exceed order.total
   currencyValue = Math.min(Number((coinsSpent * rate).toFixed(2)), orderTotal);
   return { coinsSpent, currencyValue };
