@@ -1,4 +1,6 @@
-export type Option = { value: string; label: string; count?: number; parent?: string };
+import type { ReactNode } from "react";
+
+export type Option = { value: string; label: string; count?: number; parent?: string; icon?: ReactNode };
 
 export type FacetDef =
   | { kind: "pills"; field: string; label: string; options: Option[] }

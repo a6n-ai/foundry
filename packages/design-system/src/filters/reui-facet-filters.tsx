@@ -28,7 +28,7 @@ const num = (v: string | null): number | undefined =>
   v ? Number(v) : undefined;
 
 function mapOptions(options: Option[]) {
-  return options.map((o) => ({ value: String(o.value), label: o.label }));
+  return options.map((o) => ({ value: String(o.value), label: o.label, icon: o.icon }));
 }
 
 export type DateFieldProps = {
