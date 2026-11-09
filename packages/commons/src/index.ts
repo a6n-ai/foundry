@@ -16,3 +16,4 @@ export * from "./util/rate-limit";
 export * from "./util/client-ip";
 export * from "./util/money";
 export * from "./cache";
+export * from "./email";

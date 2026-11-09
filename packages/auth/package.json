@@ -13,8 +13,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@foundry/commons": "workspace:*",
-    "@foundry/email": "workspace:*"
+    "@foundry/commons": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

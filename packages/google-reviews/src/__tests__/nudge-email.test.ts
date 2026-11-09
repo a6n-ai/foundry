@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { renderReviewNudgeEmail } from "../nudge-email";
+import { renderReviewNudgeEmail as render } from "../nudge-email";
+import { fakeRender } from "./fake-render";
+
+const renderReviewNudgeEmail = (i: Omit<Parameters<typeof render>[0], "renderEmail">) => render({ ...i, renderEmail: fakeRender });
 
 const UNSUBSCRIBE_URL = "https://example.com/api/review-nudge/unsubscribe?email=a&token=b";
 

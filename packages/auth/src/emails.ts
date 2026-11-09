@@ -1,6 +1,5 @@
-import { renderEmailTemplate, type EmailProvider } from "@foundry/email";
 import type { Logger } from "@foundry/commons/logger";
-import { OTP_TTL_MINUTES } from "@foundry/commons";
+import { OTP_TTL_MINUTES, type EmailProvider, type RenderEmailTemplate } from "@foundry/commons";
 
 /**
  * Shared security/account email senders — the single source of truth for every
@@ -12,6 +11,7 @@ import { OTP_TTL_MINUTES } from "@foundry/commons";
  */
 export interface SecurityEmailContext {
   provider: EmailProvider;
+  renderEmail: RenderEmailTemplate;
   appName: string;
   log: Pick<Logger, "debug" | "error">;
 }
@@ -27,7 +27,7 @@ async function trySend(
     return;
   }
   try {
-    const rendered = await renderEmailTemplate({ subject, body, vars: {}, appName: ctx.appName });
+    const rendered = await ctx.renderEmail({ subject, body, vars: {}, appName: ctx.appName });
     await ctx.provider.send({
       to: { email: to },
       subject: rendered.subject,

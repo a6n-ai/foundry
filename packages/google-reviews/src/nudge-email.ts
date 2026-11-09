@@ -1,4 +1,4 @@
-import { renderEmailTemplate } from "@foundry/email";
+import type { RenderEmailTemplate } from "@foundry/commons";
 import { writeReviewUrl } from "./nudge";
 
 const SUBJECT = "How was your order from {{businessName}}?";
@@ -17,13 +17,14 @@ Thank you,
 Don't want review requests from {{businessName}}? [Unsubscribe]({{unsubscribeUrl}})`;
 
 export async function renderReviewNudgeEmail(input: {
+  renderEmail: RenderEmailTemplate;
   businessName: string;
   customerName?: string;
   placeId: string;
   /** Signed link that marks this customer done — never authenticated, so it must work for a guest. */
   unsubscribeUrl: string;
 }): Promise<{ subject: string; html: string; text: string }> {
-  return renderEmailTemplate({
+  return input.renderEmail({
     subject: SUBJECT,
     body: BODY,
     appName: input.businessName,

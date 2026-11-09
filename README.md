@@ -4,7 +4,7 @@ Shared TypeScript packages (`@foundry/*`) for Realm apps, Relay, and Monarch (AI
 
 - Floor: commons, themes, ui, design-system, crm, auth, auth-ui, database, routes, storage, realtime, eslint-config
 - Commerce: clover, payments, wallet, coupons, discounts, delivery, address, google-reviews, places
-- Email contract + render (`@foundry/email`) so Foundry never imports Relay; SES lives in `@relay/email`
+- Email provider/renderer types in `@foundry/commons`; apps inject `@relay/email`, so Foundry never imports Relay
 
 Foundry never imports Relay.
 

@@ -4,7 +4,8 @@ import { sendNewLogin, sendOtpEmail, sendPasswordChanged, sendWelcomeVerify } fr
 function fake() {
   const send = vi.fn().mockResolvedValue({ providerMessageId: "m", provider: "fake" });
   const ctx = {
-    provider: { name: "fake", send } as never,
+    provider: { send },
+    renderEmail: async ({ subject, body }: { subject: string; body: string }) => ({ subject, html: `<p>${body}</p>`, text: body }),
     appName: "Tiffin Grab",
     log: { debug: vi.fn(), error: vi.fn() },
   };

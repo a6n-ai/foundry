@@ -1,7 +1,7 @@
 # Foundry — agent guide
 
 Foundry is **packages only** (`@foundry/*`). There are no apps here. Foundry
-never imports Relay (email contract is `@foundry/email`; SES lives in
+never imports Relay (email types live in `@foundry/commons`; apps inject
 `@relay/email`).
 
 Orientation: [`README.md`](README.md).

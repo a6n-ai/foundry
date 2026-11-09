@@ -1,5 +1,5 @@
 import type { IntegrationsConfigStore } from "@foundry/commons/plugin";
-import type { EmailProvider } from "@foundry/email";
+import type { EmailProvider, RenderEmailTemplate } from "@foundry/commons";
 import { createLogger } from "@foundry/commons/logger";
 import { getGoogleReviewsConfig } from "./store";
 import { renderReviewNudgeEmail } from "./nudge-email";
@@ -27,6 +27,7 @@ export async function dispatchReviewNudge(input: {
   configStore: IntegrationsConfigStore;
   nudgeStore: ReviewNudgeStore;
   emailProvider: EmailProvider;
+  renderEmail: RenderEmailTemplate;
   /** App origin + signing secret for the CASL-required unsubscribe link. */
   unsubscribeSecret: string;
   baseUrl: string;
@@ -38,6 +39,7 @@ export async function dispatchReviewNudge(input: {
     if (!shouldNudge(await input.nudgeStore.get(input.email))) return;
 
     const mail = await renderReviewNudgeEmail({
+      renderEmail: input.renderEmail,
       businessName: input.businessName,
       customerName: input.name,
       placeId: cfg.placeId,

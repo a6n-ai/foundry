@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import type { IntegrationsConfigStore } from "@foundry/commons/plugin";
-import type { EmailProvider } from "@foundry/email";
+import type { EmailProvider } from "@foundry/commons";
+import { fakeRender } from "./fake-render";
 import { dispatchReviewNudge } from "../dispatch";
 import { GOOGLE_REVIEWS_PLUGIN_ID } from "../plugin";
 import type { ReviewNudgeState, ReviewNudgeStore } from "../nudge";
@@ -29,7 +30,7 @@ describe("dispatchReviewNudge", () => {
   it("marks sent before sending, and swallows a send failure", async () => {
     const store = nudgeStore();
     const send = vi.fn().mockRejectedValue(new Error("SES is down"));
-    const emailProvider: EmailProvider = { name: "mock", send };
+    const emailProvider: EmailProvider = { send };
 
     await expect(
       dispatchReviewNudge({
@@ -38,6 +39,7 @@ describe("dispatchReviewNudge", () => {
         configStore: configStore(),
         nudgeStore: store,
         emailProvider,
+        renderEmail: fakeRender,
         unsubscribeSecret: "test-secret",
         baseUrl: "https://example.com",
       }),
@@ -52,13 +54,14 @@ describe("dispatchReviewNudge", () => {
   it("never sends a second time for the same customer, even after a prior send failed", async () => {
     const store = nudgeStore();
     const send = vi.fn().mockRejectedValue(new Error("SES is down"));
-    const emailProvider: EmailProvider = { name: "mock", send };
+    const emailProvider: EmailProvider = { send };
     const input = {
       email: "customer@example.com",
       businessName: "Puchkaman",
       configStore: configStore(),
       nudgeStore: store,
       emailProvider,
+      renderEmail: fakeRender,
       unsubscribeSecret: "test-secret",
       baseUrl: "https://example.com",
     };
