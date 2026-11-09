@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ChangePasswordForm, ForgotPasswordForm, DeleteAccountForm, PinForm, defaultUi, type AuthUi } from "../index";
+import { ChangePasswordForm, ForgotPasswordForm, DeleteAccountForm, PinForm, type AuthUi } from "../index";
+import { defaultUi } from "../ui";
 
 const custom: Partial<AuthUi> = {
   Button: ({ children }) => <button data-kit="btn">{children}</button>,

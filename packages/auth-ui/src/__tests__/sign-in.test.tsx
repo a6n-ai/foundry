@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AuthWelcome, EmailCodeSignIn, EmailSuggestions, ResendCode, emailDomainSuggestions, type AuthUi } from "../index";
+import { AuthWelcome, EmailCodeSignIn, EmailSuggestions, ResendCode, type AuthUi } from "../index";
+import { emailDomainSuggestions } from "../email-suggestions";
 
 const kit: Partial<AuthUi> = {
   Button: ({ children }) => <button data-kit="btn">{children}</button>,
