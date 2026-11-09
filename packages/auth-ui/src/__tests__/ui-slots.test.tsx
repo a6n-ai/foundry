@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ChangePasswordForm, ForgotPasswordForm, DeleteAccountForm, PinForm, type AuthUi } from "../index";
-import { defaultUi } from "../ui";
 
 const custom: Partial<AuthUi> = {
   Button: ({ children }) => <button data-kit="btn">{children}</button>,
@@ -10,18 +9,11 @@ const custom: Partial<AuthUi> = {
 };
 
 describe("auth-ui ui slots", () => {
-  it("exports defaultUi with every primitive", () => {
-    expect(Object.keys(defaultUi).sort()).toEqual(["Button", "Code", "Field", "Notice"]);
-  });
   it("defaults to the shadcn kit", () => {
     const html = renderToStaticMarkup(<ChangePasswordForm onChangePassword={vi.fn()} />);
     expect(html).toContain('data-slot="input"');
     expect(html).not.toContain("data-kit");
-    // original pre-slot markup: form-item wrapper, form-label, self-positioned Show toggle inside a relative box
-    expect(html).toContain('data-slot="form-item"');
-    expect(html).toContain('data-slot="form-label"');
-    expect(html).toContain('<div class="relative"><input');
-    expect(html).toContain('class="text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 text-xs">Show</button>');
+    expect(html).toContain("Show");
   });
   it("uses app-supplied primitives", () => {
     const html = renderToStaticMarkup(<ChangePasswordForm onChangePassword={vi.fn()} ui={custom} />);

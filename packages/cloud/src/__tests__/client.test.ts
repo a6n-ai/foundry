@@ -83,7 +83,8 @@ describe("aws client", () => {
 
   it("does not retry 4xx", async () => {
     const f = spy(() => new Response("", { status: 400 }));
-    await createAwsClient("ses", cfg(f)).request("https://x.amazonaws.com/", { ...opts, retries: 3 }).catch(() => {});
+    const err = await createAwsClient("ses", cfg(f)).request("https://x.amazonaws.com/", { ...opts, retries: 3 }).catch((e) => e);
+    expect(err).toBeInstanceOf(AwsError);
     expect(f).toHaveBeenCalledTimes(1);
   });
 

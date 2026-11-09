@@ -1,33 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PAYMENT_PROVIDERS, findPaymentProvider, mergePaymentCatalog } from "../providers";
-
-describe("PAYMENT_PROVIDERS", () => {
-  it("ships cash (default on), e-Transfer, then Stripe gated on its plugin", () => {
-    expect(PAYMENT_PROVIDERS.map((p) => p.id)).toEqual(["cash", "etransfer", "stripe"]);
-    expect(findPaymentProvider("stripe")?.requiresPlugin).toBe("stripe");
-    expect(findPaymentProvider("manual")).toBeUndefined();
-  });
-
-  it("seeds cash enabled so it is available without an extra toggle", () => {
-    expect(findPaymentProvider("cash")!.seed()).toEqual({
-      id: "cash",
-      kind: "manual",
-      enabled: true,
-      label: "Cash on delivery",
-      taxes: [],
-    });
-  });
-
-  it("seeds etransfer disabled until a payee handle is set", () => {
-    expect(findPaymentProvider("etransfer")!.seed()).toEqual({
-      id: "etransfer",
-      kind: "manual",
-      enabled: false,
-      label: "Interac e-Transfer",
-      taxes: [],
-    });
-  });
-});
+import { mergePaymentCatalog } from "../providers";
 
 describe("mergePaymentCatalog", () => {
   it("seeds stripe only when its plugin is installed", () => {

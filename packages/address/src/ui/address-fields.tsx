@@ -210,7 +210,7 @@ export type UseAddressFieldsOptions = Pick<
  * Headless logic behind AddressFields: which fields, ids, values, patches and
  * autofill-on-resolve. Draw the rows with any UI kit.
  */
-export function useAddressFields({
+function useAddressFields({
   values,
   onChange,
   preset = "profile",

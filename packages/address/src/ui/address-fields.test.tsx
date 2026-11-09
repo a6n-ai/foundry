@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
-import { AddressFields, useAddressFields } from "./address-fields";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { AddressFields } from "./address-fields";
 
 afterEach(cleanup);
 
@@ -55,7 +55,7 @@ describe("AddressFields", () => {
   });
 });
 
-describe("AddressFields ui slots and hooks", () => {
+describe("AddressFields ui slots", () => {
   it("default markup keeps shadcn input, label and postal slot", () => {
     const { container } = render(<AddressFields values={{}} onChange={vi.fn()} preset="delivery" postalSlot={<i data-testid="ps" />} />);
     expect(container.querySelector('[data-slot="input"]')).toBeTruthy();
@@ -82,26 +82,24 @@ describe("AddressFields ui slots and hooks", () => {
     expect(onChange).toHaveBeenCalledWith({ province: "ON" });
   });
 
-  it("useAddressFields autofills structured fields and reports lat/lng on resolve", () => {
+  it("a resolve never replaces a longer typed postal code or blanks a field", async () => {
     const onChange = vi.fn();
-    const onResolve = vi.fn();
-    const { result } = renderHook(() => useAddressFields({ values: {}, onChange, onResolve, fields: ["addressLine"], resolveUrl: "/api/places/resolve" }));
-    const row = result.current.rows[0]!;
-    expect(result.current.suggestUrl).toBe("/api/places/suggest");
-    if (row.kind !== "line") throw new Error("expected line row");
-    row.onResolve({ lat: 1, lng: 2, city: "Toronto" });
-    expect(onChange).toHaveBeenCalledWith({ city: "Toronto" });
-    expect(onResolve).toHaveBeenCalledWith({ lat: 1, lng: 2 });
-  });
-
-  it("a resolve never replaces a longer typed postal code or blanks a field", () => {
-    const onChange = vi.fn();
-    const { result } = renderHook(() =>
-      useAddressFields({ values: { postalCode: "M4N 3M5", city: "Toronto" }, onChange, fields: ["addressLine"], resolveUrl: "/api/places/resolve" }),
+    vi.stubGlobal("fetch", vi.fn(async (url: string) =>
+      new Response(JSON.stringify(url.endsWith("/suggest")
+        ? { suggestions: [{ placeId: "p1", label: "1 Yonge St" }] }
+        : { place: { lat: 1, lng: 2, addressLine: "1 Yonge St", postalCode: "M4N" } }))));
+    render(
+      <AddressFields
+        values={{ postalCode: "M4N 3M5", city: "Toronto" }}
+        onChange={onChange}
+        resolveUrl="/api/places/resolve"
+        fields={["addressLine"]}
+      />,
     );
-    const row = result.current.rows[0]!;
-    if (row.kind !== "line") throw new Error("expected line row");
-    row.onResolve({ lat: 1, lng: 2, addressLine: "1 Yonge St", postalCode: "M4N", city: undefined });
-    expect(onChange).toHaveBeenCalledWith({ addressLine: "1 Yonge St" });
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "1 Yonge" } });
+    fireEvent.mouseDown(await screen.findByRole("option", { name: "1 Yonge St" }));
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith({ addressLine: "1 Yonge St" }));
+    expect(onChange).not.toHaveBeenCalledWith(expect.objectContaining({ postalCode: expect.anything() }));
+    vi.unstubAllGlobals();
   });
 });

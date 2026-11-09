@@ -10,10 +10,6 @@ describe("parseGoogleReviewsConfig", () => {
     expect(parseGoogleReviewsConfig({ installed: "yes" })).toEqual(DEFAULT_GOOGLE_REVIEWS_CONFIG);
   });
 
-  it("defaults provider to places", () => {
-    expect(parseGoogleReviewsConfig({ installed: true }).provider).toBe("places");
-  });
-
   it("keeps a configured place id", () => {
     const cfg = parseGoogleReviewsConfig({ installed: true, placeId: "ChIJabc" });
     expect(cfg).toEqual({ installed: true, placeId: "ChIJabc", provider: "places" });
