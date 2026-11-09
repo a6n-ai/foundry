@@ -3,7 +3,7 @@ export {
   IntegrationPluginCard,
   IntegrationPluginCardSkeleton,
 } from "./integration-plugin-card";
-export type { PluginMeta, PluginNavItem, PluginNavSection } from "./plugin";
+export type { PluginMeta, PluginNavItem, PluginNavSection } from "@foundry/commons/plugin";
 export {
   PluginCatalog,
   PluginCatalogSkeleton,

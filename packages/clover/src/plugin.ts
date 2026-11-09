@@ -21,6 +21,8 @@ export const CLOVER_PLUGIN_META: PluginMeta = {
   description: CLOVER_PLUGIN.description,
   icon: CreditCardIcon,
   settingsHref: "/dashboard/settings/clover",
+  category: "Payments",
+  tone: "emerald",
 };
 
 /**

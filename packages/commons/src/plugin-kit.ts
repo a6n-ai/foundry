@@ -61,12 +61,16 @@ export function slicePlugin<T extends Installable>(opts: {
   statusLabel?: (cfg: T) => string | undefined;
   /** Extra fields to set on install, e.g. carrying over a legacy env value. */
   onInstall?: (cfg: T) => Partial<T> | Promise<Partial<T>>;
+  /** Extra fields to set on uninstall. Omit to keep the config whole; pass a reset (e.g. wipe tokens) to drop it. */
+  onUninstall?: (cfg: T) => Partial<T> | Promise<Partial<T>>;
   requires?: string[];
+  nav?: PluginServer["nav"];
 }): PluginServer {
-  const { id, slice, statusLabel, onInstall, requires } = opts;
+  const { id, slice, statusLabel, onInstall, onUninstall, requires, nav } = opts;
   return {
     id,
     requires,
+    nav,
     async status(): Promise<PluginStatus> {
       const cfg = await slice.get();
       return cfg.installed ? { installed: true, statusLabel: statusLabel?.(cfg) } : { installed: false };
@@ -75,6 +79,23 @@ export function slicePlugin<T extends Installable>(opts: {
       const extra = onInstall ? await onInstall(await slice.get()) : {};
       await slice.update({ ...extra, installed: true } as Partial<T>);
     },
-    uninstall: () => slice.update({ installed: false } as Partial<T>),
+    async uninstall() {
+      const extra = onUninstall ? await onUninstall(await slice.get()) : {};
+      await slice.update({ ...extra, installed: false } as Partial<T>);
+    },
+  };
+}
+
+/** `get`/`set` for a slice keyed in the shared config blob, bound to a store at call time. */
+export function sliceAccessors<S extends z.ZodType<Installable>>(key: string, schema: S) {
+  type T = z.infer<S>;
+  const slice = (store: IntegrationsConfigStore) => integrationSlice(key, schema, { store });
+  return {
+    slice,
+    get: (store: IntegrationsConfigStore): Promise<T> => slice(store).get(),
+    async set(store: IntegrationsConfigStore, next: T): Promise<void> {
+      const cfg = await store.get();
+      await store.set({ ...cfg, [key]: slice(store).parse(next) });
+    },
   };
 }

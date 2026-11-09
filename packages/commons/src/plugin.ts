@@ -1,5 +1,3 @@
-import type { LucideIcon } from "lucide-react";
-
 /**
  * The plugin contract, floor-level so every package that models an
  * installable feature (payments, Clover, Google Reviews, …) can depend on
@@ -7,6 +5,15 @@ import type { LucideIcon } from "lucide-react";
  * for compatibility and owns the components that render them
  * (`PluginCatalog`, `IntegrationPluginCard`).
  */
+
+/** Structural icon component (lucide icons satisfy it) so commons stays free of any UI library. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PluginIcon = (props: { className?: string }) => any;
+
+export type PluginCategory = "Payments" | "Marketing" | "Operations";
+export type PluginTone =
+  | "gray" | "red" | "orange" | "amber" | "green" | "emerald"
+  | "teal" | "sky" | "blue" | "indigo" | "pink";
 
 /**
  * Client-safe plugin catalog metadata. Imported directly by client components —
@@ -17,7 +24,11 @@ export type PluginMeta = {
   id: string;
   label: string;
   description: string;
-  icon: LucideIcon;
+  icon: PluginIcon;
+  /** Marketplace shelf this plugin sits on. */
+  category?: PluginCategory;
+  /** Icon tile color. */
+  tone?: PluginTone;
   /** Settings route revealed once installed. */
   settingsHref?: string;
   /** The vendor's brand mark, when the plugin is a third-party product. Plain data, so it crosses the RSC boundary. */
@@ -27,7 +38,7 @@ export type PluginMeta = {
 /** A single-path brand mark on a 24×24 viewBox (Simple Icons, CC0), with the brand's hex color (no #). */
 export type PluginLogo = { title: string; hex: string; path: string };
 
-export type PluginNavItem = { title: string; href: string; icon: LucideIcon };
+export type PluginNavItem = { title: string; href: string; icon: PluginIcon };
 export type PluginNavSection = { label: string; items: PluginNavItem[] };
 
 export type PluginStatus = {

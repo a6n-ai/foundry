@@ -7,7 +7,6 @@
   "exports": {
     ".": "./src/index.ts",
     "./server": "./src/plugin.server.ts",
-    "./plugin": "./src/plugin.ts",
     "./*": "./src/*.tsx"
   },
   "types": "./src/index.ts",

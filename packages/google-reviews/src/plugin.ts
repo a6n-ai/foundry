@@ -22,5 +22,7 @@ export const GOOGLE_REVIEWS_PLUGIN_META: PluginMeta = {
   description: GOOGLE_REVIEWS_PLUGIN.description,
   icon: StarIcon,
   settingsHref: "/dashboard/settings/google-reviews",
+  category: "Marketing",
+  tone: "amber",
   logo: LOGO,
 };

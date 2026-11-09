@@ -14,5 +14,7 @@ export const META_PIXEL_PLUGIN_META: PluginMeta = {
   description: "Facebook and Instagram ad tracking: browser pixel plus Conversions API.",
   icon: MegaphoneIcon,
   settingsHref: META_PIXEL_SETTINGS_HREF,
+  category: "Marketing",
+  tone: "blue",
   logo: LOGO,
 };

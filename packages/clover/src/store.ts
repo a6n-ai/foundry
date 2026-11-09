@@ -1,41 +1,28 @@
-import { DEFAULT_CLOVER_CONNECTION } from "./config";
+import { cloverConnectionSchema } from "./config";
 import type {
   CloverApiTokenConnectInput,
   CloverConnection,
   IntegrationsConfig,
 } from "./config";
 import type { IntegrationsConfigStore as BaseStore } from "@foundry/commons/plugin";
+import { integrationSlice } from "@foundry/commons/plugin-kit";
+import { CLOVER_PLUGIN_ID } from "./plugin";
 
 export type IntegrationsConfigStore = BaseStore<IntegrationsConfig>;
 
-export async function getCloverConnection(
-  store: IntegrationsConfigStore,
-): Promise<CloverConnection> {
-  const cfg = await store.get();
-  return cfg.clover ?? { ...DEFAULT_CLOVER_CONNECTION };
-}
+export const cloverSlice = (store: IntegrationsConfigStore) =>
+  integrationSlice(CLOVER_PLUGIN_ID, cloverConnectionSchema, { store });
 
-export async function setCloverConnection(
+export const getCloverConnection = (store: IntegrationsConfigStore): Promise<CloverConnection> =>
+  cloverSlice(store).get();
+
+export const setCloverConnection = (
   store: IntegrationsConfigStore,
   clover: CloverConnection,
-): Promise<void> {
-  const cfg = await store.get();
-  await store.set({ ...cfg, clover });
-}
+): Promise<void> => store.get().then((cfg) => store.set({ ...cfg, clover }));
 
-export async function installCloverPlugin(store: IntegrationsConfigStore): Promise<void> {
-  const current = await getCloverConnection(store);
-  await setCloverConnection(store, {
-    ...current,
-    installed: true,
-    connected: current.connected,
-  });
-}
-
-export async function uninstallCloverPlugin(store: IntegrationsConfigStore): Promise<void> {
-  // Removing the plugin clears tokens — merchant must reconnect after reinstall.
-  await setCloverConnection(store, { ...DEFAULT_CLOVER_CONNECTION });
-}
+export const installCloverPlugin = (store: IntegrationsConfigStore): Promise<void> =>
+  cloverSlice(store).update({ installed: true });
 
 /**
  * Connect a merchant with a permanent API token from their Clover dashboard

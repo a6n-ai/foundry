@@ -11,4 +11,6 @@ export const PAYMENTS_PLUGIN: PluginMeta = {
     "Accept payments. Cash on delivery is on by default. Card payments come later via Stripe as a provider, not a second plugin.",
   icon: BanknoteIcon,
   settingsHref: "/dashboard/settings/payments",
+  category: "Payments",
+  tone: "green",
 };

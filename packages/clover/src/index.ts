@@ -183,7 +183,6 @@ export {
   setCloverConnection,
   setCloverWebOrderTypes,
   installCloverPlugin,
-  uninstallCloverPlugin,
   connectCloverWithApiToken,
   disconnectClover,
   type IntegrationsConfigStore,

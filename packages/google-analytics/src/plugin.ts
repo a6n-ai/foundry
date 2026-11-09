@@ -14,5 +14,7 @@ export const GA_PLUGIN_META: PluginMeta = {
   description: "GA4 visitors, traffic sources, and conversions, with server-side purchases.",
   icon: ChartLineIcon,
   settingsHref: GA_SETTINGS_HREF,
+  category: "Marketing",
+  tone: "orange",
   logo: LOGO,
 };

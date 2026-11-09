@@ -1,23 +1,26 @@
-import type { PluginServer, PluginStatus } from "@foundry/commons/plugin";
+import type { PluginServer } from "@foundry/commons/plugin";
+import { slicePlugin } from "@foundry/commons/plugin-kit";
+import { DEFAULT_CLOVER_CONNECTION } from "./config";
 import { CLOVER_PLUGIN, cloverNavSections } from "./plugin";
-import { getCloverConnection, installCloverPlugin, uninstallCloverPlugin } from "./store";
+import { cloverSlice } from "./store";
 import type { IntegrationsConfigStore } from "./store";
 
 export function cloverPlugin(store: IntegrationsConfigStore): PluginServer {
-  return {
+  return slicePlugin({
     id: CLOVER_PLUGIN.id,
-
-    async status(): Promise<PluginStatus> {
-      const conn = await getCloverConnection(store);
-      return {
-        installed: conn.installed,
-        statusLabel: !conn.installed ? undefined : conn.connected ? "Connected" : "Installed",
-      };
-    },
-
-    install: () => installCloverPlugin(store),
-    uninstall: () => uninstallCloverPlugin(store),
-
+    slice: cloverSlice(store),
+    statusLabel: (cfg) => (cfg.connected ? "Connected" : "Installed"),
+    // Removing the plugin clears tokens: the merchant must reconnect after reinstall.
+    onUninstall: () => ({
+      ...DEFAULT_CLOVER_CONNECTION,
+      merchantId: undefined,
+      tokens: undefined,
+      apiToken: undefined,
+      ecommercePublicKey: undefined,
+      ecommercePrivateToken: undefined,
+      webOrderTypes: undefined,
+      connectedAt: undefined,
+    }),
     nav: cloverNavSections,
-  };
+  });
 }

@@ -1,11 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { IntegrationsConfigStore } from "@foundry/commons/plugin";
-import {
-  getGoogleReviewsConfig,
-  installGoogleReviews,
-  uninstallGoogleReviews,
-  setGoogleReviewsConfig,
-} from "../store";
+import { getGoogleReviewsConfig, setGoogleReviewsConfig } from "../store";
+import { googleReviewsPlugin } from "../plugin.server";
 
 function memoryStore(initial: Record<string, unknown> = {}): IntegrationsConfigStore & {
   raw: () => Record<string, unknown>;
@@ -30,7 +26,7 @@ describe("google reviews store", () => {
 
   it("install sets installed without touching other plugin keys", async () => {
     const store = memoryStore({ clover: { installed: true, connected: true } });
-    await installGoogleReviews(store);
+    await googleReviewsPlugin(store).install();
     expect(store.raw().clover).toEqual({ installed: true, connected: true });
     expect(await getGoogleReviewsConfig(store)).toMatchObject({ installed: true });
   });
@@ -42,7 +38,7 @@ describe("google reviews store", () => {
       placeId: "ChIJabc",
       provider: "places",
     });
-    await uninstallGoogleReviews(store);
+    await googleReviewsPlugin(store).uninstall();
     expect(await getGoogleReviewsConfig(store)).toEqual({
       installed: false,
       placeId: "ChIJabc",
