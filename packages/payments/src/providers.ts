@@ -13,11 +13,7 @@ export type PaymentProviderDef = {
   label: string;
   description: string;
   icon: LucideIcon;
-  /**
-   * Plugin id that must be installed for this provider to be available,
-   * e.g. "clover" for the Clover Payment provider. Unused by the manual
-   * providers; first consumer lands with Clover Payment.
-   */
+  /** Plugin id that must be installed for this provider to be available. */
   requiresPlugin?: string;
   seed: () => PaymentMethodConfig;
 };
