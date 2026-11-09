@@ -7,8 +7,6 @@ import type { BaseRepository, UpdatableRepository } from "./repository";
 export class BaseService<TTable extends PgTable> {
   constructor(protected readonly repo: BaseRepository<TTable>) {}
 
-  // Resolves the acting user's internal bigint id for audit stamping.
-  // Returns null when there is no session (e.g. tests/scripts).
   protected async currentUserId(): Promise<bigint | null> {
     return null;
   }

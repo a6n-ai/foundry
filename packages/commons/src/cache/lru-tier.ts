@@ -2,9 +2,7 @@ import { LRUCache } from "lru-cache";
 import type { CacheEntry, CacheTier } from "./types";
 
 export interface LruTierOptions {
-  /** Max entries before LRU eviction. Default 500. */
   max?: number;
-  /** Default entry TTL in ms (0 = no expiry). Per-set ttl overrides this. */
   ttlMs?: number;
 }
 

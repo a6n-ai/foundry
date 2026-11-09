@@ -70,7 +70,6 @@ export const ADDRESS_FIELD_AUTOCOMPLETE: Partial<Record<AddressFieldKey, string>
   postalCode: "postal-code",
 };
 
-/** Uppercase Canadian postal code with a single space after the FSA (e.g. M5V 2T6). */
 export function normalizePostalCode(raw: string): string {
   const compact = raw.replace(/\s+/g, "").toUpperCase();
   if (compact.length <= 3) return compact;

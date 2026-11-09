@@ -1,7 +1,6 @@
 export interface StaffInviteDeps {
   createUser: (input: { email: string; name: string; role: string }) => Promise<{ publicId: string; email: string; id: string }>;
   markPasswordUnset: (publicId: string) => Promise<void>;
-  /** auth.api.inviteMember, bound by the caller to its own better-auth instance. */
   inviteMember: (input: {
     body: { email: string; role: string; organizationId: string };
   }) => Promise<{ id: string }>;

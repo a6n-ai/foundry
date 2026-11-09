@@ -4,13 +4,11 @@ import { APIError } from "better-auth/api";
 import { assertHierarchyDepth, type OrgParentRef } from "./organization";
 
 export interface OrganizationPluginConfig {
-  /** Drizzle db instance from the calling app — this package stays app-agnostic. */
   db: {
     select: (...args: unknown[]) => {
       from: (...args: unknown[]) => { where: (...args: unknown[]) => { limit: (n: number) => Promise<OrgParentRef[]> } };
     };
   };
-  /** The app's `organization` Drizzle table (for the id/parentOrganizationId columns). */
   organizationTable: { id: unknown; parentOrganizationId: unknown };
   /** Drizzle `eq` — passed in rather than imported, so this package never depends on a specific drizzle-orm version resolution inside node_modules. */
   eq: (a: unknown, b: unknown) => unknown;
@@ -20,9 +18,7 @@ export interface OrganizationPluginConfig {
    * the right customer marker (there isn't one today, but don't assume it forever).
    */
   allowUserToCreateOrganization: (user: { role?: string }) => boolean | Promise<boolean>;
-  /** Extra fields beyond clientCode/parentOrganizationId/region, e.g. puchkaman's future Clover-linked fields. */
   additionalOrganizationFields?: Record<string, { type: string; required?: boolean; input?: boolean }>;
-  /** Pass-through to better-auth's organization plugin — sends the branded staff-invite email. Optional: apps without staff invites yet can omit it. */
   sendInvitationEmail?: OrganizationOptions["sendInvitationEmail"];
 }
 

@@ -17,7 +17,6 @@ export interface LastUser {
   image?: string;
 }
 
-/** Which sign-in a Better Auth path is, or null for paths that are not a sign-in. */
 export function lastUserMethod(path: string): LastUserMethod | null {
   if (path === "/callback/google" || path === "/one-tap/callback") return "google";
   if (path === "/sign-in/email-otp" || path === "/magic-link/verify") return "email";
@@ -25,7 +24,6 @@ export function lastUserMethod(path: string): LastUserMethod | null {
   return null;
 }
 
-/** Cookie value for a fresh session, or null when the path is not a sign-in. */
 export function encodeLastUser(path: string, user: { name?: string | null; email: string; image?: string | null }): string | null {
   const method = lastUserMethod(path);
   if (!method) return null;
@@ -55,7 +53,6 @@ export function parseLastUser(raw: string | undefined | null): LastUser | null {
   }
 }
 
-/** "vishwas@gmail.com" -> "vi•••@gmail.com", for showing on a possibly shared screen. */
 export function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!domain) return email;

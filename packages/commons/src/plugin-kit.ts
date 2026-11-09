@@ -12,9 +12,7 @@ export const envelopeSchema = z.object({ v: z.literal(1), iv: z.string(), tag: z
 type Installable = { installed: boolean };
 
 export type SliceStores = {
-  /** Uncached store, used for every read-modify-write. */
   store: IntegrationsConfigStore;
-  /** Optional cached store for hot reads (public scripts, event sends). Defaults to `store`. */
   readStore?: IntegrationsConfigStore;
 };
 
@@ -57,9 +55,7 @@ export function integrationSlice<S extends z.ZodType<Installable>>(
 export function slicePlugin<T extends Installable>(opts: {
   id: string;
   slice: IntegrationSlice<T>;
-  /** Shown on the catalog card once installed. */
   statusLabel?: (cfg: T) => string | undefined;
-  /** Extra fields to set on install, e.g. carrying over a legacy env value. */
   onInstall?: (cfg: T) => Partial<T> | Promise<Partial<T>>;
   /** Extra fields to set on uninstall. Omit to keep the config whole; pass a reset (e.g. wipe tokens) to drop it. */
   onUninstall?: (cfg: T) => Partial<T> | Promise<Partial<T>>;
@@ -86,7 +82,6 @@ export function slicePlugin<T extends Installable>(opts: {
   };
 }
 
-/** `get`/`set` for a slice keyed in the shared config blob, bound to a store at call time. */
 export function sliceAccessors<S extends z.ZodType<Installable>>(key: string, schema: S) {
   type T = z.infer<S>;
   const slice = (store: IntegrationsConfigStore) => integrationSlice(key, schema, { store });

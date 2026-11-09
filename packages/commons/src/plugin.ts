@@ -25,11 +25,8 @@ export type PluginMeta = {
   label: string;
   description: string;
   icon: PluginIcon;
-  /** Marketplace shelf this plugin sits on. */
   category?: PluginCategory;
-  /** Icon tile color. */
   tone?: PluginTone;
-  /** Settings route revealed once installed. */
   settingsHref?: string;
   /** The vendor's brand mark, when the plugin is a third-party product. Plain data, so it crosses the RSC boundary. */
   logo?: PluginLogo;
@@ -43,7 +40,6 @@ export type PluginNavSection = { label: string; items: PluginNavItem[] };
 
 export type PluginStatus = {
   installed: boolean;
-  /** e.g. "Installed" / "Connected" — shown on the catalog card. */
   statusLabel?: string;
 };
 
@@ -62,9 +58,7 @@ export type PluginServer = {
   status(): Promise<PluginStatus>;
   install(): Promise<void>;
   uninstall(): Promise<void>;
-  /** Plugin ids that must be installed before this one can be. */
   requires?: string[];
-  /** Nav this plugin contributes when installed. */
   nav?(status: PluginStatus): PluginNavSection[];
 };
 
@@ -79,7 +73,6 @@ export async function resolveStatuses(
   return Object.fromEntries(entries);
 }
 
-/** Forward check: which of this plugin's requirements are not installed. */
 export function blockedBy(
   registry: PluginRegistry,
   id: string,

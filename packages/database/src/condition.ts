@@ -37,7 +37,6 @@ export function conditionToSql(
   return resolve(condition);
 }
 
-// Default resolver: field name → column, generic operator translation.
 export function columnResolver(map: Record<string, PgColumn>): FilterResolver {
   return (f) => {
     const col = map[f.field];
@@ -67,7 +66,6 @@ export function columnResolver(map: Record<string, PgColumn>): FilterResolver {
   };
 }
 
-// Existing single-table API, now built on the pieces above. Preserves behavior.
 export function toDrizzleWhere(table: PgTable, condition?: Condition): SQL | undefined {
   const cols = table as unknown as Record<string, PgColumn>;
   return conditionToSql(condition, columnResolver(cols));

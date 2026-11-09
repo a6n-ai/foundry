@@ -3,7 +3,6 @@ import { createLogger } from "@foundry/commons/logger";
 
 const log = createLogger("auth:password");
 
-/** better-auth scrypt output: "<salt-hex>:<hash-hex>". */
 const SCRYPT_FORMAT = /^[0-9a-f]+:[0-9a-f]+$/;
 
 /**
@@ -19,7 +18,6 @@ export function hashPassword(plain: string): Promise<string> {
   return scryptHash(plain);
 }
 
-/** What a stored hash looks like, for logging. Never returns any of the hash itself. */
 function describeHash(hash: string): string {
   if (!hash) return "empty";
   if (/^\$2[aby]\$/.test(hash)) return "bcrypt (pre-scrypt-cutover)";
@@ -54,7 +52,6 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
   try {
     return await scryptVerify({ hash, password: plain });
   } catch (err) {
-    // Well-formed but unusable (truncated, wrong scrypt parameters). Still fail closed.
     log.error(
       { err, hashFormat: describeHash(hash) },
       "scrypt rejected a well-formed password hash — the stored value is corrupt, not merely mismatched",

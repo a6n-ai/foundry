@@ -13,7 +13,6 @@
  * migration is needed to add an event.
  */
 
-/** Endpoint path → event name. Null means "not worth an audit row". */
 export function authAuditAction(path: string): string | null {
   switch (path) {
     case "/sign-up/email":
@@ -45,7 +44,6 @@ export function authAuditAction(path: string): string | null {
   }
 }
 
-/** Human labels for the admin activity log. */
 export const AUTH_AUDIT_LABELS: Record<string, string> = {
   user_signed_up: "Signed up",
   password_changed: "Changed password",

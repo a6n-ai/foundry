@@ -43,7 +43,6 @@ export interface RedisLike {
  * (and ultimately the supplier), it does not fail the request.
  */
 export class RedisTier implements CacheTier {
-  /** @param prefix the cache namespace (== TieredCache `name`), so `clear()` can SCAN just this cache's keys. */
   constructor(
     private readonly client: RedisLike,
     private readonly prefix: string,

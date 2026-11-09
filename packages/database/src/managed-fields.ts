@@ -13,10 +13,8 @@ function omit(values: Record<string, unknown>, keys: readonly string[]): Record<
   return out;
 }
 
-/** Strip every framework-managed field from arbitrary (client) input. */
 export const stripManaged = (values: Record<string, unknown>): Record<string, unknown> =>
   omit(values, MANAGED_FIELDS);
 
-/** Strip create-only audit fields from an update patch (never reassign on update). */
 export const stripCreateOnly = (values: Record<string, unknown>): Record<string, unknown> =>
   omit(values, CREATE_ONLY_FIELDS);

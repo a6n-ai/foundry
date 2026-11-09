@@ -35,7 +35,6 @@ export function googleSocialProviders(
   };
 }
 
-/** For the client: show the Google button only when the server mounted the provider. */
 export function googleSignInEnabled(env: Record<string, string | undefined> = process.env): boolean {
   return Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
 }

@@ -1,13 +1,9 @@
 import type { CacheEntry, CacheTier } from "./types";
 
 export interface TieredCacheOptions {
-  /** Namespace — prefixed onto every key, so one tier backend serves many caches. */
   name: string;
-  /** Tiers ordered near→far: [LruTier] today, [LruTier, RedisTier] once Redis lands. */
   tiers: CacheTier[];
-  /** Default ttl (ms) applied on writes when a per-call ttl isn't given. */
   defaultTtlMs?: number;
-  /** When true, a supplier returning null/undefined is cached too (negative caching). */
   negativeCache?: boolean;
 }
 
@@ -38,7 +34,6 @@ export class TieredCache {
     for (let i = 0; i < tiers.length; i++) {
       const hit = await tiers[i].get<T>(fk);
       if (hit !== undefined) {
-        // Backfill the nearer tiers that missed.
         for (let j = 0; j < i; j++) await tiers[j].set(fk, hit.value, this.opts.defaultTtlMs);
         return hit;
       }
@@ -61,11 +56,6 @@ export class TieredCache {
     await Promise.all(this.opts.tiers.map((t) => t.clear()));
   }
 
-  /**
-   * Return the cached value for `key`, or compute it via `supplier`, store it
-   * across all tiers, and return it. Concurrent callers for the same key await
-   * one supplier invocation (single-flight) to avoid a cache stampede.
-   */
   async getOrSet<T>(key: string, supplier: () => Promise<T>, ttlMs?: number): Promise<T> {
     const hit = await this.get<T>(key);
     if (hit !== undefined) return hit.value;

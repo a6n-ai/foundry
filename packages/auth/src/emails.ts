@@ -11,7 +11,6 @@ import type { Logger } from "@foundry/commons/logger";
  */
 export interface SecurityEmailContext {
   provider: EmailProvider;
-  /** Brand name woven into copy, e.g. "Tiffin Grab". */
   appName: string;
   log: Pick<Logger, "debug" | "error">;
 }
@@ -40,10 +39,8 @@ async function trySend(
   }
 }
 
-/** OTP delivered by the better-auth emailOTP plugin. */
 export type OtpType = "forget-password" | "email-verification" | "sign-in" | "change-email";
 
-/** Route an emailOTP code to the right copy by type. */
 export function sendOtpEmail(
   ctx: SecurityEmailContext,
   to: string,
@@ -66,7 +63,6 @@ export function sendOtpEmail(
   );
 }
 
-/** Link-based email verification (signup + on-demand resend). */
 export function sendWelcomeVerify(ctx: SecurityEmailContext, to: string, url: string): Promise<void> {
   return trySend(
     ctx, to,
@@ -75,7 +71,6 @@ export function sendWelcomeVerify(ctx: SecurityEmailContext, to: string, url: st
   );
 }
 
-/** Confirm-link for self-service account deletion (used for OAuth / no-password paths). */
 export function sendDeleteVerification(ctx: SecurityEmailContext, to: string, url: string): Promise<void> {
   return trySend(
     ctx, to,
@@ -84,7 +79,6 @@ export function sendDeleteVerification(ctx: SecurityEmailContext, to: string, ur
   );
 }
 
-/** Security notice after a password reset or change. */
 export function sendPasswordChanged(ctx: SecurityEmailContext, to: string): Promise<void> {
   return trySend(
     ctx, to,
@@ -99,7 +93,6 @@ export interface LoginInfo {
   when: string;
 }
 
-/** Alert on a sign-in from a device/IP not seen before. */
 export function sendNewLogin(ctx: SecurityEmailContext, to: string, info: LoginInfo): Promise<void> {
   const lines = [
     `A new sign-in to your ${ctx.appName} account was detected.`,
