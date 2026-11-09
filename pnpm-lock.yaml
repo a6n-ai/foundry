@@ -372,9 +372,6 @@ importers:
       '@foundry/commons':
         specifier: workspace:*
         version: link:../commons
-      '@foundry/realtime':
-        specifier: workspace:*
-        version: link:../realtime
       '@foundry/ui':
         specifier: workspace:*
         version: link:../ui
