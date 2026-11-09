@@ -13,8 +13,8 @@ export async function resolvePlace(
     try {
       const hit = await provider.resolve(input);
       if (hit) return hit;
-    } catch {
-      // fall through to the next provider
+    } catch (err) {
+      console.error("places: provider failed, trying the next one", err);
     }
   }
   return null;
