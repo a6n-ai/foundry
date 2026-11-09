@@ -2,6 +2,7 @@
 
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@foundry/ui/input-otp";
+import { OTP_LENGTH } from "@foundry/commons";
 
 type CodeOtpProps = {
   value: string;
@@ -14,13 +15,13 @@ type CodeOtpProps = {
   // Forwarded by FormControl's Slot (id / aria-describedby) so FormLabel/FormMessage stay wired.
   id?: string;
   "aria-describedby"?: string;
-  length?: 4 | 6;
+  length?: 4 | typeof OTP_LENGTH;
   masked?: boolean;
 };
 
 // 6-digit verification code entry, unmasked. Segmented input-otp component —
 // plain controlled <Input> here misses real keystrokes' onChange in prod.
-export function CodeOtp({ value, onChange, onComplete, autoFocus, disabled, length = 6, masked, ...rest }: CodeOtpProps) {
+export function CodeOtp({ value, onChange, onComplete, autoFocus, disabled, length = OTP_LENGTH, masked, ...rest }: CodeOtpProps) {
   return (
     <InputOTP
       maxLength={length}

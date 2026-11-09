@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { resolveUi, type AuthUi } from "./ui";
+import { OTP_CODE_REGEX, OTP_LENGTH } from "@foundry/commons";
 
 type Result = { error?: unknown };
 
@@ -25,7 +26,7 @@ export interface ChangeEmailFormProps {
 }
 
 const emailSchema = z.object({ newEmail: z.email("Enter a valid email") });
-const otpSchema = z.object({ code: z.string().regex(/^\d{6}$/, "Enter the 6-digit code") });
+const otpSchema = z.object({ code: z.string().regex(OTP_CODE_REGEX, `Enter the ${OTP_LENGTH}-digit code`) });
 
 export function ChangeEmailForm(props: ChangeEmailFormProps) {
   const { Button, Field, Code, Notice } = resolveUi(props.ui);
@@ -71,9 +72,9 @@ export function ChangeEmailForm(props: ChangeEmailFormProps) {
     cta: string;
   }) => (
     <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="grid max-w-md gap-3">
-      <Notice tone="muted">We sent a 6-digit code to {sentTo}.</Notice>
+      <Notice tone="muted">We sent a {OTP_LENGTH}-digit code to {sentTo}.</Notice>
       <Controller control={form.control} name="code" render={({ field, fieldState }) => (
-        <Code label="Verification code" length={6} value={field.value} onChange={field.onChange} error={fieldState.error?.message} />
+        <Code label="Verification code" length={OTP_LENGTH} value={field.value} onChange={field.onChange} error={fieldState.error?.message} />
       )} />
       {error ? <Notice tone="error">{error}</Notice> : null}
       <Button type="submit" variant="primary" pending={form.formState.isSubmitting} className="w-full min-w-32 sm:w-auto">{cta}</Button>

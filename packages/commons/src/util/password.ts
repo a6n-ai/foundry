@@ -1,10 +1,12 @@
 import { z } from "zod";
 
-// Must stay in step with `emailAndPassword.minPasswordLength` in each app's
-// better-auth config — this is the client/server-action gate, that is the
-// endpoint gate. Applies to new and changed passwords only; sign-in never
+// Apps feed these into better-auth `minPasswordLength`/`maxPasswordLength` too.
+// Applies to new and changed passwords only; sign-in never
 // checks length, so existing shorter passwords keep working.
+export const PASSWORD_MIN_LENGTH = 12;
+export const PASSWORD_MAX_LENGTH = 256;
+
 export const passwordSchema = z
   .string()
-  .min(12, "Password must be at least 12 characters")
-  .max(256, "Password is too long");
+  .min(PASSWORD_MIN_LENGTH, `Password must be at least ${PASSWORD_MIN_LENGTH} characters`)
+  .max(PASSWORD_MAX_LENGTH, "Password is too long");

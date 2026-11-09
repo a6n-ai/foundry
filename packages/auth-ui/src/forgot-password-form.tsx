@@ -13,6 +13,7 @@ import { CodeOtp } from "./code-otp";
 import { ResendCode } from "./resend-code";
 import { authErrorMessage, callAction, errorOf } from "./errors";
 import { resolveUi, type AuthUi } from "./ui";
+import { OTP_CODE_REGEX, OTP_LENGTH } from "@foundry/commons";
 
 type Result = { error?: unknown };
 
@@ -32,7 +33,7 @@ export interface ForgotPasswordFormProps {
 
 const requestSchema = z.object({ identifier: z.email("Enter an email address like name@example.com.") });
 const verifySchema = z.object({
-  code: z.string().regex(/^\d{6}$/, "Enter the 6-digit code"),
+  code: z.string().regex(OTP_CODE_REGEX, `Enter the ${OTP_LENGTH}-digit code`),
   newPassword: passwordSchema,
 });
 
@@ -83,7 +84,7 @@ function DefaultForgotPasswordForm(props: ForgotPasswordFormProps) {
         <form method="post" key="verify" onSubmit={verifyForm.handleSubmit(onVerify)} className="grid gap-4">
           <div className="text-center">
             <h1 className="text-2xl font-bold">Enter your code</h1>
-            <p className="text-muted-foreground text-sm">We sent a 6-digit code to {identifier}.</p>
+            <p className="text-muted-foreground text-sm">We sent a {OTP_LENGTH}-digit code to {identifier}.</p>
           </div>
           <FormField
             control={verifyForm.control}
@@ -175,12 +176,12 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
       <form method="post" key="verify" onSubmit={verifyForm.handleSubmit(onVerify)} className={props.compact ? "flex flex-1 flex-col gap-5" : "grid gap-4"}>
         {props.compact ? (
           <p className="text-[15px]">
-            If there&apos;s an account for <span className="font-medium [overflow-wrap:anywhere]">{identifier}</span>, we&apos;ve sent it a 6-digit code.
+            If there&apos;s an account for <span className="font-medium [overflow-wrap:anywhere]">{identifier}</span>, we&apos;ve sent it a {OTP_LENGTH}-digit code.
           </p>
         ) : (
           <div className="text-center">
             <h1 className="text-2xl font-bold">Enter your code</h1>
-            <p className="text-muted-foreground text-sm">If there&apos;s an account for {identifier}, we&apos;ve sent it a 6-digit code.</p>
+            <p className="text-muted-foreground text-sm">If there&apos;s an account for {identifier}, we&apos;ve sent it a {OTP_LENGTH}-digit code.</p>
           </div>
         )}
         <Controller
@@ -189,7 +190,7 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
           render={({ field }) => (
             <Code
               label="Verification code"
-              length={6}
+              length={OTP_LENGTH}
               value={field.value}
               onChange={field.onChange}
               onComplete={() => verifyForm.handleSubmit(onVerify)()}

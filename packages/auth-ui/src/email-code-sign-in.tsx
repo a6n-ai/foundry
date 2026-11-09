@@ -7,6 +7,7 @@ import { authErrorMessage, callAction, errorOf } from "./errors";
 import { ResendCode } from "./resend-code";
 import { EmailSuggestions } from "./email-suggestions";
 import { resolveUi, type AuthUi } from "./ui";
+import { OTP_CODE_REGEX, OTP_LENGTH } from "@foundry/commons";
 
 type Result = { error?: unknown } | null | undefined;
 type SendResult = { error?: { status?: number } | null } | null | undefined | unknown;
@@ -39,7 +40,6 @@ export interface EmailCodeSignInProps {
   ui?: Partial<AuthUi>;
 }
 
-const CODE = /^\d{6}$/;
 /** The one style for secondary actions under an auth screen's main button. */
 export const AUTH_LINK = "text-muted-foreground hover:text-foreground min-h-11 text-sm underline underline-offset-4 decoration-transparent transition-[color,text-decoration-color,translate] duration-200 hover:decoration-current hover:-translate-y-px";
 const LINK = AUTH_LINK;
@@ -50,7 +50,7 @@ export function EmailCodeSignIn({
   onSuccess,
   onBack,
   title = "Sign in",
-  subtitle = "We'll email you a 6-digit code.",
+  subtitle = `We'll email you a ${OTP_LENGTH}-digit code.`,
   extra,
   defaultEmail = "",
   alternatives,
@@ -97,7 +97,7 @@ export function EmailCodeSignIn({
   }
 
   async function verify(value: string = code) {
-    if (!CODE.test(value)) return setFieldError("Enter all 6 digits.");
+    if (!OTP_CODE_REGEX.test(value)) return setFieldError(`Enter all ${OTP_LENGTH} digits.`);
     setFieldError(undefined);
     setError(null);
     setPending(true);
@@ -178,12 +178,12 @@ export function EmailCodeSignIn({
             {codeStep ? (
               <>
                 <p className="text-muted-foreground pt-1 text-sm">
-                  If there&apos;s an account for this email, we&apos;ve sent it a 6-digit code.
+                  If there&apos;s an account for this email, we&apos;ve sent it a {OTP_LENGTH}-digit code.
                   {codeHint ? <> {codeHint}</> : null}
                 </p>
                 <Code
                   label="Verification code"
-                  length={6}
+                  length={OTP_LENGTH}
                   value={code}
                   onChange={(v) => { setCode(v); if (error) setError(null); }}
                   onComplete={(v) => void verify(v)}
@@ -229,7 +229,7 @@ export function EmailCodeSignIn({
         {compact ? (
           <div className="flex flex-col gap-1">
             <p className="text-[15px]">
-              If there&apos;s an account for <span className="font-medium [overflow-wrap:anywhere]">{email}</span>, we&apos;ve sent it a 6-digit code.{" "}
+              If there&apos;s an account for <span className="font-medium [overflow-wrap:anywhere]">{email}</span>, we&apos;ve sent it a {OTP_LENGTH}-digit code.{" "}
               <button type="button" onClick={changeEmail} className="text-primary font-medium underline-offset-4 hover:underline">
                 Change
               </button>
@@ -242,7 +242,7 @@ export function EmailCodeSignIn({
             <header className="flex flex-col gap-2 text-center">
               <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.022em]">Check your email</h1>
               <p className="text-muted-foreground text-balance text-[15px]">
-                If there&apos;s an account for <span className="text-foreground font-medium [overflow-wrap:anywhere]">{email}</span>, we&apos;ve sent it a 6-digit code.
+                If there&apos;s an account for <span className="text-foreground font-medium [overflow-wrap:anywhere]">{email}</span>, we&apos;ve sent it a {OTP_LENGTH}-digit code.
               </p>
               {codeHint ? <p className="text-muted-foreground text-balance text-xs">{codeHint}</p> : null}
             </header>
@@ -250,7 +250,7 @@ export function EmailCodeSignIn({
         )}
         <Code
           label="Verification code"
-          length={6}
+          length={OTP_LENGTH}
           value={code}
           onChange={(v) => { setCode(v); if (error) setError(null); }}
           onComplete={(v) => void verify(v)}

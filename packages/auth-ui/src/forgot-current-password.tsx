@@ -5,7 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { passwordSchema } from "@foundry/commons";
+import { OTP_CODE_REGEX, OTP_LENGTH, passwordSchema } from "@foundry/commons";
 import { ResendCode } from "./resend-code";
 import { resolveUi, type AuthUi } from "./ui";
 
@@ -21,7 +21,7 @@ export interface ForgotCurrentPasswordProps {
 }
 
 const verifySchema = z.object({
-  code: z.string().regex(/^\d{6}$/, "Enter the 6-digit code"),
+  code: z.string().regex(OTP_CODE_REGEX, `Enter the ${OTP_LENGTH}-digit code`),
   newPassword: passwordSchema,
 });
 
@@ -76,7 +76,7 @@ export function ForgotCurrentPassword(props: ForgotCurrentPasswordProps) {
     return (
       <div className="grid max-w-md gap-3">
         <p className="text-muted-foreground text-sm">
-          We&apos;ll email a 6-digit code to <span className="font-medium">{props.email}</span>. Enter
+          We&apos;ll email a {OTP_LENGTH}-digit code to <span className="font-medium">{props.email}</span>. Enter
           it here with your new password — you&apos;ll stay signed in on this device.
         </p>
         <div className="flex flex-wrap gap-2">
@@ -97,10 +97,10 @@ export function ForgotCurrentPassword(props: ForgotCurrentPasswordProps) {
     // value-tracker can desync from the segmented OTP field's controlled value.
     <form method="post" key="verify" onSubmit={form.handleSubmit(onVerify)} className="grid max-w-md gap-3">
       <p className="text-muted-foreground text-sm">
-        We sent a 6-digit code to <span className="font-medium">{props.email}</span>.
+        We sent a {OTP_LENGTH}-digit code to <span className="font-medium">{props.email}</span>.
       </p>
       <Controller control={form.control} name="code" render={({ field }) => (
-        <Code label="Verification code" length={6} value={field.value} onChange={field.onChange} error={errors.code?.message} />
+        <Code label="Verification code" length={OTP_LENGTH} value={field.value} onChange={field.onChange} error={errors.code?.message} />
       )} />
       <Field label="New password" type="password" autoComplete="new-password" error={errors.newPassword?.message} {...form.register("newPassword")} />
       {error ? <Notice tone="error">{error}</Notice> : null}

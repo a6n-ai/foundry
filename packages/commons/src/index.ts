@@ -10,6 +10,7 @@ export * from "./util/contact";
 export * from "./util/csv";
 export * from "./util/address";
 export * from "./util/password";
+export * from "./util/otp";
 export * from "./util/pin";
 export * from "./util/rate-limit";
 export * from "./util/client-ip";

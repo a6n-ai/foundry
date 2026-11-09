@@ -1,5 +1,6 @@
 import { renderEmailTemplate, type EmailProvider } from "@foundry/email";
 import type { Logger } from "@foundry/commons/logger";
+import { OTP_TTL_MINUTES } from "@foundry/commons";
 
 /**
  * Shared security/account email senders — the single source of truth for every
@@ -52,14 +53,14 @@ export function sendOtpEmail(
     return trySend(
       ctx, to,
       `Your ${appName} password reset code`,
-      `Your password reset code is **${otp}**.\n\nIt expires in 10 minutes. If you didn't request this, ignore this email — your password is unchanged.`,
+      `Your password reset code is **${otp}**.\n\nIt expires in ${OTP_TTL_MINUTES} minutes. If you didn't request this, ignore this email — your password is unchanged.`,
     );
   }
   // email-verification also carries change-email confirmation codes.
   return trySend(
     ctx, to,
     `Your ${appName} verification code`,
-    `Your verification code is **${otp}**.\n\nIt expires in 10 minutes. If you didn't request this, ignore this email.`,
+    `Your verification code is **${otp}**.\n\nIt expires in ${OTP_TTL_MINUTES} minutes. If you didn't request this, ignore this email.`,
   );
 }
 
