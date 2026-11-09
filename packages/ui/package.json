@@ -7,6 +7,10 @@
   "exports": {
     "./cn": "./src/cn.ts",
     "./use-mobile": "./src/use-mobile.ts",
+    "./safe-storage": "./src/safe-storage.ts",
+    "./initials": "./src/initials.ts",
+    "./use-debounced-async": "./src/use-debounced-async.ts",
+    "./stale-deploy": "./src/stale-deploy.ts",
     "./*": "./src/*.tsx"
   },
   "scripts": {
