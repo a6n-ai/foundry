@@ -12,5 +12,6 @@ export function surchargeCents(i: {
   if (!i.cfg.enabled || i.funding !== "credit" || !i.province) return 0;
   if (i.cfg.excludeProvinces.includes(i.province.toUpperCase())) return 0;
   const rate = Math.min(i.cfg.ratePct, SURCHARGE_MAX_PCT);
-  return Math.round((i.baseCents * rate) / 100);
+  // Floor: rounding up would charge past the cap, which Stripe rejects against surcharge.maximum_amount.
+  return Math.floor((i.baseCents * rate) / 100);
 }

@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const STRIPE_API_VERSION = "2026-09-30.endive" as const;
 export const SURCHARGE_MAX_PCT = 2.4;
+// amount_details.surcharge exists only on preview versions; sent on surcharged PaymentIntent creates alone.
+export const STRIPE_SURCHARGE_API_VERSION = "2026-10-28.preview" as const;
 
 const envelope = z.object({ v: z.literal(1), iv: z.string(), tag: z.string(), ct: z.string() });
 

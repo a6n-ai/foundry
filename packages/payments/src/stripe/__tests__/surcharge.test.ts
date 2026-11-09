@@ -18,8 +18,8 @@ describe("surchargeCents", () => {
   it("is zero when disabled", () => {
     expect(surchargeCents({ funding: "credit", province: "ON", baseCents: 20000, cfg: { ...cfg, enabled: false } })).toBe(0);
   });
-  it("rounds half-up to the cent", () => {
-    expect(surchargeCents({ funding: "credit", province: "ON", baseCents: 1021, cfg })).toBe(25); // 24.504
+  it("rounds down to the cent so it never passes the cap", () => {
+    expect(surchargeCents({ funding: "credit", province: "ON", baseCents: 1021, cfg })).toBe(24); // 24.504
   });
   it("never exceeds the cap even if config is corrupted", () => {
     expect(surchargeCents({ funding: "credit", province: "ON", baseCents: 10000, cfg: { ...cfg, ratePct: 9 } })).toBe(240);

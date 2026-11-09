@@ -27,6 +27,22 @@ describe("intents", () => {
     });
     expect(params).not.toHaveProperty("payment_method_types");
     expect(opts.idempotencyKey).toBe("pi:p1:20480:taxcalc_1:ctoken_1");
+    expect(params).not.toHaveProperty("amount_details");
+    expect(opts).not.toHaveProperty("apiVersion");
+  });
+
+  it("declares a fee as amount_details.surcharge on the preview version, total unchanged", async () => {
+    const s = fake();
+    await createAndConfirmIntent(s, { amountCents: 10240, surchargeCents: 240, customerId: "c", confirmationTokenId: "t", paymentRef: "p", returnUrl: "u" });
+    const [params, opts] = (s.paymentIntents.create as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    expect(params).toMatchObject({ amount: 10240, amount_details: { surcharge: { amount: 240, enforce_validation: "enabled" } } });
+    expect(opts.apiVersion).toMatch(/\.preview$/);
+  });
+
+  it("tags off-session charges so the no-fee check skips them", async () => {
+    const s = fake();
+    await chargeSavedCard(s, { amountCents: 500, customerId: "c", paymentMethodId: "pm", paymentRef: "p", attempt: "0" });
+    expect((s.paymentIntents.create as ReturnType<typeof vi.fn>).mock.calls[0]![0]).toMatchObject({ metadata: { offSession: "1" } });
   });
 
   it("maps a card decline to failed without throwing", async () => {

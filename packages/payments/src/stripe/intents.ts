@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { STRIPE_SURCHARGE_API_VERSION } from "./config";
 import type { CardFunding } from "./surcharge";
 import type { CardPreview, IntentResult, IntentStatus, SavedCard } from "./types";
 
@@ -13,6 +14,18 @@ function toResult(pi: Pick<Stripe.PaymentIntent, "id" | "status" | "client_secre
   return {
     status, piId: pi.id, clientSecret: pi.client_secret ?? null,
     ...(status === "failed" ? { reason: pi.last_payment_error?.message ?? "Payment failed" } : {}),
+  };
+}
+
+/**
+ * Declares the fee to Stripe as a surcharge (amount stays the full total). The field is preview-only and absent
+ * from the GA types, so it rides on a per-request preview version and is cast in. No fee = plain GA request.
+ */
+function surcharge(cents: number | undefined): { params: object; opts: Stripe.RequestOptions } {
+  if (!cents) return { params: {}, opts: {} };
+  return {
+    params: { amount_details: { surcharge: { amount: cents, enforce_validation: "enabled" } } },
+    opts: { apiVersion: STRIPE_SURCHARGE_API_VERSION },
   };
 }
 
@@ -40,11 +53,14 @@ export async function previewConfirmationToken(stripe: Stripe, tokenId: string):
 
 export async function createAndConfirmIntent(stripe: Stripe, i: {
   amountCents: number; customerId: string; paymentRef: string;
+  /** Card fee already inside amountCents (pre-tax), declared to Stripe as amount_details.surcharge. */
+  surchargeCents?: number;
   orgRef?: string | null; taxCalculationId?: string | null; returnUrl: string; description?: string;
   /** Retry counter for saved-card (paymentMethodId) charges: a new value gives a fresh idempotency key after a decline or abandoned 3DS. */
   attempt?: string;
 } & ({ confirmationTokenId: string; paymentMethodId?: never } | { paymentMethodId: string; confirmationTokenId?: never })): Promise<IntentResult> {
   const source = i.confirmationTokenId ? { confirmation_token: i.confirmationTokenId } : { payment_method: i.paymentMethodId };
+  const sur = surcharge(i.surchargeCents);
   try {
     const pi = await stripe.paymentIntents.create(
       {
@@ -58,8 +74,9 @@ export async function createAndConfirmIntent(stripe: Stripe, i: {
         description: i.description,
         metadata: { paymentRef: i.paymentRef, ...(i.orgRef ? { orgRef: i.orgRef } : {}) },
         ...(i.taxCalculationId ? { hooks: { inputs: { tax: { calculation: i.taxCalculationId } } } } : {}),
+        ...sur.params,
       },
-      { idempotencyKey: `pi:${i.paymentRef}:${i.amountCents}:${i.taxCalculationId ?? "none"}:${i.confirmationTokenId ?? i.paymentMethodId}${i.attempt ? `:${i.attempt}` : ""}` },
+      { ...sur.opts, idempotencyKey: `pi:${i.paymentRef}:${i.amountCents}:${i.taxCalculationId ?? "none"}:${i.confirmationTokenId ?? i.paymentMethodId}${i.attempt ? `:${i.attempt}` : ""}` },
     );
     return toResult(pi);
   } catch (e) {
@@ -103,7 +120,8 @@ export async function chargeSavedCard(stripe: Stripe, i: {
         payment_method: i.paymentMethodId,
         off_session: true,
         confirm: true,
-        metadata: { paymentRef: i.paymentRef, ...(i.orgRef ? { orgRef: i.orgRef } : {}) },
+        // The customer never sees an off-session charge before it runs, so it carries no surcharge; this tag says so.
+        metadata: { paymentRef: i.paymentRef, offSession: "1", ...(i.orgRef ? { orgRef: i.orgRef } : {}) },
         ...(i.taxCalculationId ? { hooks: { inputs: { tax: { calculation: i.taxCalculationId } } } } : {}),
       },
       { idempotencyKey: `charge:${i.paymentRef}:${i.amountCents}:${i.taxCalculationId ?? "none"}:${i.paymentMethodId}:${i.attempt}` },
