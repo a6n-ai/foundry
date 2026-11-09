@@ -9,6 +9,7 @@
     "./logger": "./src/logger.ts",
     "./model/*": "./src/model/*.ts",
     "./util/*": "./src/util/*.ts",
+    "./runtime/*": "./src/runtime/*.ts",
     "./cache": "./src/cache/index.ts",
     "./errors": "./src/errors.ts",
     "./enums": "./src/enums.ts",
