@@ -17,12 +17,7 @@ export function useTyping(channel: string | null, peerRole: RealtimeRole): {
   const lastSent = useRef(0);
   const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handler = useRef((e: RealtimeEvent) => {
-    if (e.type !== "typing" || e.role !== peerRole || !e.typing) return;
-    setPeerTyping(true);
-    if (peerTimer.current) clearTimeout(peerTimer.current);
-    peerTimer.current = setTimeout(() => setPeerTyping(false), 4000);
-  });
+  const handler = useRef<(e: RealtimeEvent) => void>(() => {});
   handler.current = (e: RealtimeEvent) => {
     if (e.type !== "typing" || e.role !== peerRole) return;
     if (e.typing) {
