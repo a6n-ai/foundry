@@ -37,7 +37,10 @@ export function ThemeProvider({
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(resolve(defaultTheme));
 
   useEffect(() => {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem(THEME_STORAGE_KEY);
+    } catch {}
     if (stored === "light" || stored === "dark" || stored === "system") {
       setThemeState(stored);
     }
@@ -58,7 +61,9 @@ export function ThemeProvider({
   }, [theme]);
 
   const setTheme = useCallback((next: Theme) => {
-    localStorage.setItem(THEME_STORAGE_KEY, next);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, next);
+    } catch {}
     setThemeState(next);
   }, []);
 
