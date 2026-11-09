@@ -5,7 +5,7 @@ import { PencilIcon, PlusIcon, StarIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import type { AddressValues } from "@foundry/commons";
 import { SectionCard } from "@foundry/design-system";
-import { AddressFields } from "@foundry/ui/address-fields";
+import { AddressFields } from "./address-fields";
 import { Button } from "@foundry/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@foundry/ui/dialog";
 import { Input } from "@foundry/ui/input";

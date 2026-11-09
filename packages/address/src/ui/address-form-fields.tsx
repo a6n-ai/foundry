@@ -13,22 +13,22 @@ import {
   type AddressFieldPreset,
 } from "@foundry/commons";
 import { AddressLineAutocomplete, deriveSuggestUrl } from "./address-fields";
-import { cn } from "./cn";
+import { cn } from "@foundry/ui/cn";
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "./form";
-import { Input } from "./input";
+} from "@foundry/ui/form";
+import { Input } from "@foundry/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./select";
+} from "@foundry/ui/select";
 
 const FULL_WIDTH_FIELDS = new Set<AddressFieldKey>(["addressLine", "fullName"]);
 

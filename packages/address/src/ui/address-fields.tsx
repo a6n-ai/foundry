@@ -12,16 +12,16 @@ import {
   type AddressFieldPreset,
   type AddressValues,
 } from "@foundry/commons";
-import { cn } from "./cn";
-import { Input } from "./input";
-import { Label } from "./label";
+import { cn } from "@foundry/ui/cn";
+import { Input } from "@foundry/ui/input";
+import { Label } from "@foundry/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./select";
+} from "@foundry/ui/select";
 
 const FULL_WIDTH_FIELDS = new Set<AddressFieldKey>(["addressLine", "fullName", "deliveryInstructions"]);
 
