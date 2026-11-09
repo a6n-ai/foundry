@@ -3,6 +3,8 @@
  * OR a circle measured from the store (`radiusKm` set, no prefixes). The DB enforces
  * that with a CHECK; numerics arrive as strings there and are converted on read.
  */
+import { round2 } from "@foundry/commons/util/money";
+
 export type Zone = {
   /** DB row id when read from a query — apps stamp it on orders. Absent on test fixtures. */
   id?: bigint;
@@ -174,10 +176,8 @@ export function chooseDelivery(input: {
   return { ok: true, type, zone };
 }
 
-const money = (n: number): number => Math.round(n * 100) / 100;
-
 export function applyTypeDiscount(input: { subtotal: number; type: Pick<DeliveryType, "discountPct"> }): { discountAmount: number } {
-  return { discountAmount: money(input.subtotal * (input.type.discountPct / 100)) };
+  return { discountAmount: round2(input.subtotal * (input.type.discountPct / 100)) };
 }
 
 /** Minimum gap kept between circle radii so rings never share or cross a boundary. */

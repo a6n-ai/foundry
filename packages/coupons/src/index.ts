@@ -11,6 +11,8 @@
  * negative amounts; normalising the sign is the caller's job before building
  * a CouponCandidate, not this module's.
  */
+import { round2 } from "@foundry/commons/util/money";
+
 
 export type CouponCandidate = {
   id: string;
@@ -49,12 +51,6 @@ export type IneligibleReason =
   | "redemption_limit"
   | "user_limit"
   | "payment_method";
-
-// Same approach as tiffin-grab's coupons.service.ts round2: Math.round with an
-// EPSILON nudge, more robust than toFixed(2) against float noise like 1.005.
-function round2(n: number): number {
-  return Math.round((n + Number.EPSILON) * 100) / 100;
-}
 
 export function ineligibleReason(c: CouponCandidate, ctx: CouponContext): IneligibleReason | null {
   if (!c.active) return "inactive";

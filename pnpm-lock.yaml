@@ -235,6 +235,10 @@ importers:
         version: 5.0.5(@types/node@26.6.5)(jsdom@30.1.3(@noble/hashes@2.4.0))(vite@8.2.2(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.6.1))
 
   packages/coupons:
+    dependencies:
+      '@foundry/commons':
+        specifier: workspace:*
+        version: link:../commons
     devDependencies:
       typescript:
         specifier: ^7.0.2

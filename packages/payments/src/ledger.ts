@@ -4,6 +4,8 @@
  * in app SQL) and map the payable — booking, order, etc. — onto `reference`.
  * Corrections are new `adjustment` rows, never edits.
  */
+import { round2 } from "@foundry/commons/util/money";
+
 
 export const LEDGER_DIRECTIONS = ["debit", "credit"] as const;
 export type LedgerDirection = (typeof LEDGER_DIRECTIONS)[number];
@@ -26,10 +28,6 @@ export type MoneyLedgerWrite = {
 };
 
 const ZERO_DECIMAL = new Set(["BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF"]);
-
-function round2(n: number): number {
-  return Math.round((n + Number.EPSILON) * 100) / 100;
-}
 
 export function formatMajorAmount(amount: number): string {
   return round2(amount).toFixed(2);

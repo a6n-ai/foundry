@@ -1,4 +1,4 @@
-import { coinsFor } from "@foundry/commons/util/money";
+import { coinsFor, round2 } from "@foundry/commons/util/money";
 /**
  * Catalog discounts ADD UP as percents of the pre-discount subtotal, capped by
  * maxDiscountPct. Pure: no I/O, no clock. The caller pre-filters applicability.
@@ -21,9 +21,7 @@ export type CatalogResolution = {
   capped: boolean;
 };
 
-export function round2(n: number): number {
-  return Math.round((n + Number.EPSILON) * 100) / 100;
-}
+export { round2 };
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 

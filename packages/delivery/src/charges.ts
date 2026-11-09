@@ -1,3 +1,4 @@
+import { round2 } from "@foundry/commons/util/money";
 export type DeliveryChargeType = "none" | "fixed" | "percent";
 export type DeliveryChargeBasis = "once" | "per_delivery";
 export const DELIVERY_CHARGE_BASES: readonly DeliveryChargeBasis[] = ["once", "per_delivery"];
@@ -32,8 +33,6 @@ export interface DeliveryChargeCalculationResult {
   totalDeliveryCharge: number;
   lines: { label: string; amount: number }[];
 }
-
-const round2 = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 100;
 
 function priceItem(item: DeliveryChargeItemLike, planBasis: number, deliveryCount: number): DeliveryChargeItemResult {
   const chargeValue = Math.max(0, Number(item.chargeValue) || 0);
