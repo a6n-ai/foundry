@@ -3,7 +3,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { ChevronLeft } from "lucide-react";
 import { emailSchema } from "@foundry/commons";
-import { authErrorMessage, errorOf } from "./errors";
+import { authErrorMessage, callAction, errorOf } from "./errors";
 import { ResendCode } from "./resend-code";
 import { EmailSuggestions } from "./email-suggestions";
 import { resolveUi, type AuthUi } from "./ui";
@@ -98,12 +98,7 @@ export function EmailCodeSignIn({
    * never reveals whether an account exists.
    */
   async function send(to: string): Promise<string | null> {
-    let err: ReturnType<typeof errorOf>;
-    try {
-      err = errorOf(await onSendCode(to));
-    } catch {
-      return null;
-    }
+    const err = errorOf(await callAction(() => onSendCode(to)));
     return err?.status === 429 ? authErrorMessage(err, "send") : null;
   }
 
@@ -112,12 +107,7 @@ export function EmailCodeSignIn({
     setFieldError(undefined);
     setError(null);
     setPending(true);
-    let res: Result;
-    try {
-      res = await onVerify(email, value);
-    } catch {
-      res = { error: {} };
-    }
+    const res = await callAction(() => onVerify(email, value));
     if (res?.error) {
       setPending(false);
       setCode("");

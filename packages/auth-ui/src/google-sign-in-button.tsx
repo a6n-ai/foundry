@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { authErrorMessage, errorOf } from "./errors";
+import { authErrorMessage, callAction, errorOf } from "./errors";
 import { resolveUi, type AuthUi } from "./ui";
 
 export interface GoogleSignInButtonProps {
@@ -24,12 +24,7 @@ export function GoogleSignInButton({ onSignIn, label = "Continue with Google", u
   async function start() {
     setError(null);
     setPending(true);
-    let err: ReturnType<typeof errorOf>;
-    try {
-      err = errorOf(await onSignIn());
-    } catch {
-      err = {};
-    }
+    const err = errorOf(await callAction(onSignIn));
     if (err) {
       setPending(false);
       setError(authErrorMessage(err, "send"));

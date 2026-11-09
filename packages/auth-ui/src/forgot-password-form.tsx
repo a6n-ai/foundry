@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@foundry/ui/input";
 import { CodeOtp } from "./code-otp";
 import { ResendCode } from "./resend-code";
-import { authErrorMessage, errorOf } from "./errors";
+import { authErrorMessage, callAction, errorOf } from "./errors";
 import { resolveUi, type AuthUi } from "./ui";
 
 type Result = { error?: unknown };
@@ -158,7 +158,7 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
     const email = values.identifier.trim();
     // Only a rate limit holds the user here; anything else advances, so the
     // screen never reveals whether an account exists.
-    const err = errorOf(await props.onSendEmailOtp(email).catch(() => null));
+    const err = errorOf(await callAction(() => props.onSendEmailOtp(email)));
     if (err?.status === 429) return setError(authErrorMessage(err, "send"));
     setIdentifier(email);
     setStep("verify");

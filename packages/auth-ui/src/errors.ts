@@ -18,6 +18,16 @@ export function authErrorMessage(err: AuthClientError | unknown, during: "send" 
   return "Something went wrong on our side. Try again in a moment.";
 }
 
+/** Runs an auth server action; a throw is logged and becomes an empty error, so the caller shows the generic message. */
+export async function callAction<T>(fn: () => Promise<T>): Promise<T | { error: object }> {
+  try {
+    return await fn();
+  } catch (e) {
+    console.error(e);
+    return { error: {} };
+  }
+}
+
 /** Thrown-or-returned helper: null when the call succeeded. */
 export function errorOf(res: unknown): AuthClientError {
   return (res as { error?: AuthClientError } | null | undefined)?.error ?? null;

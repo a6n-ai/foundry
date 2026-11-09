@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { authErrorMessage, errorOf } from "./errors";
+import { authErrorMessage, callAction, errorOf } from "./errors";
 import { resolveUi, type AuthUi } from "./ui";
 
 export interface GoogleConnectionProps {
@@ -28,12 +28,7 @@ export function GoogleConnection({ connected, onConnect, onDisconnect, ui }: Goo
   async function run(action: () => Promise<unknown>) {
     setError(null);
     setPending(true);
-    let err: ReturnType<typeof errorOf>;
-    try {
-      err = errorOf(await action());
-    } catch {
-      err = {};
-    }
+    const err = errorOf(await callAction(action));
     setPending(false);
     setConfirming(false);
     if (err) setError(authErrorMessage(err, "send"));
