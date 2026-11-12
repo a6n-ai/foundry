@@ -22,6 +22,11 @@ export type MetaUserDataInput = {
   clientUserAgent?: string | null;
   fbp?: string | null;
   fbc?: string | null;
+  /**
+   * Meta Lead Ads lead id (15–17 digits). Sent raw as `user_data.lead_id` — never hashed.
+   * Highest-priority match key for CRM → Qualified Leads Conversions API events.
+   */
+  leadId?: string | number | null;
 };
 
 export type MetaCustomData = {
@@ -34,6 +39,10 @@ export type MetaCustomData = {
   order_id?: string;
   /** Hashed postal is built server-side; this is the raw postal for FindLocation zp. */
   postalCode?: string;
+  /** CRM Conversions API: always `"crm"` for Qualified Leads stage events. */
+  event_source?: string;
+  /** CRM Conversions API: CRM product name (e.g. `"TiffinGrab"`). */
+  lead_event_source?: string;
 };
 
 export type MetaEventName =
@@ -47,11 +56,21 @@ export type MetaEventName =
   | "FindLocation"
   | "Purchase";
 
+/** Standard Pixel events, plus free-form CRM stage names (e.g. QualifiedLead). */
+export type MetaCapiEventName = MetaEventName | (string & {});
+
+export type MetaActionSource = "website" | "system_generated";
+
 export type SendMetaEventArgs = {
-  eventName: MetaEventName;
+  eventName: MetaCapiEventName;
   eventId: string;
   eventSourceUrl?: string | null;
   eventTime?: number;
   userData: MetaUserDataInput;
   customData?: MetaCustomData;
+  /**
+   * Override inferred action_source. CRM Qualified Leads must send
+   * `system_generated` even when browser signals are attached.
+   */
+  actionSource?: MetaActionSource;
 };

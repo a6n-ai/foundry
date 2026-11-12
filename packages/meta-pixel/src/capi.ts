@@ -6,7 +6,7 @@ import { buildMetaUserData } from "./user-data";
 const log = createLogger("meta-capi");
 
 /** Confirmed current stable from https://developers.facebook.com/docs/graph-api/changelog/versions/ */
-export const META_GRAPH_API_VERSION = "v26.0";
+export const META_GRAPH_API_VERSION = "v27.0";
 
 const TIMEOUT_MS = 5_000;
 
@@ -20,6 +20,8 @@ function customPayload(data: MetaCustomData | undefined): Record<string, unknown
   if (data.content_name) out.content_name = data.content_name;
   if (data.num_items != null && Number.isFinite(data.num_items)) out.num_items = data.num_items;
   if (data.order_id) out.order_id = data.order_id;
+  if (data.event_source?.trim()) out.event_source = data.event_source.trim();
+  if (data.lead_event_source?.trim()) out.lead_event_source = data.lead_event_source.trim();
   return Object.keys(out).length ? out : undefined;
 }
 
@@ -34,7 +36,10 @@ export function buildMetaCapiBody(args: SendMetaEventArgs, testEventCode?: strin
     event_id: eventId,
     // Meta requires client_user_agent on website events. A send with no customer browser
     // (staff verify, a webhook) goes out as system_generated and matches on em/ph.
-    action_source: args.userData.clientUserAgent?.trim() ? "website" : "system_generated",
+    // CRM Qualified Leads must always be system_generated — callers pass actionSource.
+    action_source:
+      args.actionSource ??
+      (args.userData.clientUserAgent?.trim() ? "website" : "system_generated"),
     user_data: buildMetaUserData(args.userData),
   };
   const url = args.eventSourceUrl?.trim();

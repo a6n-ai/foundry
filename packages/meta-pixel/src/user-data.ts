@@ -9,7 +9,7 @@ import {
 } from "./hash";
 import type { MetaUserDataInput } from "./types";
 
-type MetaUserData = Record<string, string | string[]>;
+type MetaUserData = Record<string, string | string[] | number>;
 
 export function buildMetaUserData(input: MetaUserDataInput): MetaUserData {
   const { fn, ln } = splitPersonName(input.fullName);
@@ -56,6 +56,10 @@ export function buildMetaUserData(input: MetaUserDataInput): MetaUserData {
 
   const fbc = input.fbc?.trim();
   if (fbc) out.fbc = fbc;
+
+  // Lead Ads id is a Meta-generated integer — never hash it.
+  const leadRaw = input.leadId != null ? String(input.leadId).trim() : "";
+  if (/^\d{15,17}$/.test(leadRaw)) out.lead_id = Number(leadRaw);
 
   return out;
 }

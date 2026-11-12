@@ -10,7 +10,7 @@ export const META_PIXEL_SETTINGS_HREF = "/dashboard/settings/meta-pixel";
 export const META_PIXEL_PLUGIN_META: PluginMeta = {
   id: META_PIXEL_PLUGIN_ID,
   label: "Meta Pixel",
-  description: "Facebook and Instagram ad tracking: browser pixel plus Conversions API.",
+  description: "Facebook and Instagram ad tracking: browser pixel, Conversions API, and Instant Forms leadgen.",
   icon: MegaphoneIcon,
   settingsHref: META_PIXEL_SETTINGS_HREF,
   category: "Marketing",

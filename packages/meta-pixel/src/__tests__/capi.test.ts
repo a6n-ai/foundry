@@ -4,8 +4,8 @@ import { buildMetaUserData } from "../user-data";
 import { fbcFromFbclid } from "../ids";
 
 describe("meta capi", () => {
-  it("uses Graph API v26.0", () => {
-    expect(META_GRAPH_API_VERSION).toBe("v26.0");
+  it("uses Graph API v27.0", () => {
+    expect(META_GRAPH_API_VERSION).toBe("v27.0");
   });
 
   it("returns null body without an event id", () => {
@@ -64,8 +64,41 @@ describe("meta capi", () => {
     expect(Object.keys(ud).every((k) => k.length > 0)).toBe(true);
   });
 
-  it("omits empty hashed fields", () => {
-    expect(buildMetaUserData({ email: "  ", phone: null, fullName: "" })).toEqual({});
+  it("builds CRM Qualified Leads payload with lead_id and forced system_generated", () => {
+    const body = buildMetaCapiBody({
+      eventName: "QualifiedLead",
+      eventId: "crm:inq_1:converted",
+      eventTime: 1_700_000_001,
+      actionSource: "system_generated",
+      userData: {
+        email: "lead@example.com",
+        phone: "4165559999",
+        leadId: "1234567890123456",
+        // UA present must not override actionSource
+        clientUserAgent: "should-not-force-website",
+      },
+      customData: { event_source: "crm", lead_event_source: "TiffinGrab" },
+    });
+
+    expect(body).toMatchObject({
+      data: [
+        {
+          event_name: "QualifiedLead",
+          event_time: 1_700_000_001,
+          event_id: "crm:inq_1:converted",
+          action_source: "system_generated",
+          custom_data: { event_source: "crm", lead_event_source: "TiffinGrab" },
+        },
+      ],
+    });
+    const ud = (body!.data as { user_data: Record<string, unknown> }[])[0]!.user_data;
+    expect(ud.lead_id).toBe(1234567890123456);
+    expect(ud.em).toBeTruthy();
+    expect(ud.ph).toBeTruthy();
+  });
+
+  it("omits empty hashed fields and invalid lead ids", () => {
+    expect(buildMetaUserData({ email: "  ", phone: null, fullName: "", leadId: "abc" })).toEqual({});
   });
 
   it("builds fbc from fbclid", () => {
