@@ -1,5 +1,6 @@
 export * from "./model/dto";
 export * from "./model/condition";
+export * from "./model/query";
 export * from "./errors";
 export * from "./enums";
 export * from "./util/pagination";
