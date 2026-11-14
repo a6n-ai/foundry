@@ -39,7 +39,7 @@ function mergeActions(base: ActionMap, extra: ActionMap): ActionMap {
 }
 
 export function createOrgStatement<const S extends ActionMap>(app: S) {
-  return { ...baseStatement, ...orgDefaultStatements, ...app } as typeof baseStatement &
+  return mergeActions(mergeActions(baseStatement, orgDefaultStatements), app) as typeof baseStatement &
     typeof orgDefaultStatements &
     S;
 }
