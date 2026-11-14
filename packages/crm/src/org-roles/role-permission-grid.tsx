@@ -41,7 +41,7 @@ export function RolePermissionGrid({ resources, value, grantable, onChange, read
                 return (
                   <Tooltip key={a.action}>
                     <TooltipTrigger asChild>
-                      <span tabIndex={0} aria-label={`${a.label} — You don't have this permission`}>
+                      <span tabIndex={0} role="img" aria-label={`${a.label} — You don't have this permission`}>
                         {box}
                       </span>
                     </TooltipTrigger>
