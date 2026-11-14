@@ -20,6 +20,9 @@ export interface OrganizationPluginConfig {
   allowUserToCreateOrganization: (user: { role?: string }) => boolean | Promise<boolean>;
   additionalOrganizationFields?: Record<string, { type: string; required?: boolean; input?: boolean }>;
   sendInvitationEmail?: OrganizationOptions["sendInvitationEmail"];
+  ac?: OrganizationOptions["ac"];
+  roles?: OrganizationOptions["roles"];
+  dynamicAccessControl?: OrganizationOptions["dynamicAccessControl"];
 }
 
 /**
@@ -29,10 +32,23 @@ export interface OrganizationPluginConfig {
  * shared config, parameterized only on the app's db handle and creation gate.
  */
 export function createOrganizationPlugin(config: OrganizationPluginConfig) {
-  const { db, organizationTable, eq, allowUserToCreateOrganization, additionalOrganizationFields, sendInvitationEmail } = config;
+  const {
+    db,
+    organizationTable,
+    eq,
+    allowUserToCreateOrganization,
+    additionalOrganizationFields,
+    sendInvitationEmail,
+    ac,
+    roles,
+    dynamicAccessControl,
+  } = config;
   return organizationPlugin({
     allowUserToCreateOrganization: async (user) => allowUserToCreateOrganization(user as { role?: string }),
     ...(sendInvitationEmail ? { sendInvitationEmail } : {}),
+    ...(ac ? { ac } : {}),
+    ...(roles ? { roles } : {}),
+    ...(dynamicAccessControl ? { dynamicAccessControl } : {}),
     // Every app's invite email promises 7 days; better-auth's default is 48h.
     invitationExpiresIn: 7 * 24 * 60 * 60,
     schema: {
@@ -50,6 +66,7 @@ export function createOrganizationPlugin(config: OrganizationPluginConfig) {
       },
       member: { modelName: "member" },
       invitation: { modelName: "invitation" },
+      ...(dynamicAccessControl?.enabled ? { organizationRole: { modelName: "organizationRole" } } : {}),
     },
     organizationHooks: {
       beforeCreateOrganization: async ({ organization: newOrg }) => {

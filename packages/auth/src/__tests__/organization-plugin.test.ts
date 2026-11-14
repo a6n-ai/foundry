@@ -1,5 +1,41 @@
 import { describe, expect, it, vi } from "vitest";
 import { createOrganizationPlugin } from "../organization-plugin";
+import { createAccessControl, createOrgRoles, createOrgStatement } from "../access";
+
+const minimal = {
+  db: { select: vi.fn() },
+  organizationTable: { id: {}, parentOrganizationId: {} },
+  eq: () => ({}),
+  allowUserToCreateOrganization: () => true,
+};
+
+const app = { order: ["read", "write"] } as const;
+const statement = createOrgStatement(app);
+const ac = createAccessControl(statement);
+const roles = createOrgRoles(ac, app, { order: ["read"] });
+
+describe("createOrganizationPlugin access control passthrough", () => {
+  it("forwards ac, roles and dynamicAccessControl to better-auth", () => {
+    const plugin = createOrganizationPlugin({
+      ...minimal,
+      ac,
+      roles,
+      dynamicAccessControl: { enabled: true, maximumRolesPerOrganization: 20 },
+    });
+    expect(plugin.options.ac).toBe(ac);
+    expect(plugin.options.roles).toBe(roles);
+    expect(plugin.options.dynamicAccessControl?.enabled).toBe(true);
+    expect(plugin.options.schema?.organizationRole).toEqual({ modelName: "organizationRole" });
+  });
+
+  it("leaves access control unset when the app passes nothing", () => {
+    const plugin = createOrganizationPlugin(minimal);
+    expect(plugin.options.ac).toBeUndefined();
+    expect(plugin.options.roles).toBeUndefined();
+    expect(plugin.options.dynamicAccessControl).toBeUndefined();
+    expect(plugin.options.schema?.organizationRole).toBeUndefined();
+  });
+});
 
 describe("createOrganizationPlugin", () => {
   it("rejects creating a child under a parent that already has a parent", async () => {
