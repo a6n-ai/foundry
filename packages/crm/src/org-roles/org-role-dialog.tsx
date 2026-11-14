@@ -52,7 +52,12 @@ export function OrgRoleDialog({ resources, grantable, initial, trigger, onSave }
     const invalid = validateRoleName(trimmed);
     if (invalid) return setError(invalid);
     start(async () => {
-      const res = await onSave({ name: trimmed, permission });
+      let res: { error?: string };
+      try {
+        res = await onSave({ name: trimmed, permission });
+      } catch (err) {
+        res = { error: err instanceof Error && err.message ? err.message : "Something went wrong. Try again." };
+      }
       if (res.error) {
         setError(res.error);
         toast.error(res.error);

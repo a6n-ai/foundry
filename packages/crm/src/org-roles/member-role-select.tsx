@@ -13,15 +13,26 @@ export type MemberRoleSelectProps = {
 
 export function MemberRoleSelect({ value, options, disabled, onChange }: MemberRoleSelectProps) {
   const [current, setCurrent] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
+
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setCurrent(value);
+  }
 
   function change(role: string) {
     const prev = current;
     setCurrent(role);
     setError(undefined);
     start(async () => {
-      const res = await onChange(role);
+      let res: { error?: string };
+      try {
+        res = await onChange(role);
+      } catch (err) {
+        res = { error: err instanceof Error && err.message ? err.message : "Something went wrong. Try again." };
+      }
       if (res.error) {
         setCurrent(prev);
         setError(res.error);
