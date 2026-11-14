@@ -26,3 +26,7 @@ export {
   type WalletLedgerColumn,
   type WalletLedgerRow,
 } from "./wallet/wallet-ledger-table";
+export { RolePermissionGrid, type RolePermissionGridProps } from "./org-roles/role-permission-grid";
+export { OrgRoleDialog, type OrgRoleDialogProps } from "./org-roles/org-role-dialog";
+export { MemberRoleSelect, type MemberRoleSelectProps } from "./org-roles/member-role-select";
+export type { PermissionMap, ResourceLabel } from "./org-roles/permission-map";
