@@ -35,3 +35,4 @@ export { LAST_USER_COOKIE, LAST_USER_MAX_AGE_S, lastUserCookieOptions, encodeLas
 export type { LastUser, LastUserMethod } from "./last-user";
 export { resolveOrgAccess, accessAllows, createOrgPermissionGuards } from "./org-permissions";
 export type { OrgAccess, Permissions } from "./org-permissions";
+export { ensureActiveOrganization } from "./active-org";
