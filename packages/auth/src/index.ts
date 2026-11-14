@@ -33,3 +33,5 @@ export { googleSocialProviders, googleSignInEnabled, googleOneTapPlugins } from 
 export { googleAccountHooks, googlePicture, SIGN_IN_METHOD, signInPath } from "./google-account";
 export { LAST_USER_COOKIE, LAST_USER_MAX_AGE_S, lastUserCookieOptions, encodeLastUser, parseLastUser, maskEmail, lastUserMethod } from "./last-user";
 export type { LastUser, LastUserMethod } from "./last-user";
+export { resolveOrgAccess, accessAllows, createOrgPermissionGuards } from "./org-permissions";
+export type { OrgAccess, Permissions } from "./org-permissions";
