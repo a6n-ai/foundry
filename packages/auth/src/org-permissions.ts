@@ -43,13 +43,14 @@ export function createOrgPermissionGuards(deps: {
 }) {
   async function can(perms: Permissions): Promise<boolean> {
     const access = await deps.getAccess();
-    const allowed = accessAllows(access, perms);
-    if (allowed && access.kind === "platform") await deps.onPlatformBypass?.(access.userId, perms);
-    return allowed;
+    return accessAllows(access, perms);
   }
 
+  // Only the gate audits: can() also drives nav/UI, which would write a row per menu item.
   async function requirePermission(perms: Permissions): Promise<void> {
-    if (!(await can(perms))) throw new ForbiddenError();
+    const access = await deps.getAccess();
+    if (!accessAllows(access, perms)) throw new ForbiddenError();
+    if (access.kind === "platform") await deps.onPlatformBypass?.(access.userId, perms);
   }
 
   return { can, requirePermission };

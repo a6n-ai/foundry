@@ -8,15 +8,23 @@ const roles = { admin: ac.newRole({ order: ["read", "cancel"] }) };
 const base = { platformRole: null, userId: "u1", organizationId: "o1", customRoles: {}, roles, ac };
 
 describe("org permissions", () => {
-  it("super_admin -> platform, allows anything, calls onPlatformBypass once per allowed check", async () => {
+  it("super_admin -> platform, allows anything, audits only requirePermission (not can)", async () => {
     const access = resolveOrgAccess({ ...base, platformRole: "super_admin", organizationId: null, memberRole: null });
     expect(access).toEqual({ kind: "platform", userId: "u1" });
     const onPlatformBypass = vi.fn(async () => {});
     const g = createOrgPermissionGuards({ getAccess: async () => access, onPlatformBypass });
     expect(await g.can({ menu: ["write"] })).toBe(true);
     await g.requirePermission({ order: ["cancel"] });
-    expect(onPlatformBypass).toHaveBeenCalledTimes(2);
+    expect(onPlatformBypass).toHaveBeenCalledTimes(1);
     expect(onPlatformBypass).toHaveBeenCalledWith("u1", { order: ["cancel"] });
+  });
+
+  it("member checks never call onPlatformBypass", async () => {
+    const onPlatformBypass = vi.fn(async () => {});
+    const access = resolveOrgAccess({ ...base, platformRole: null, organizationId: "o1", memberRole: "admin" });
+    const g = createOrgPermissionGuards({ getAccess: async () => access, onPlatformBypass });
+    await g.requirePermission({ order: ["read"] });
+    expect(onPlatformBypass).not.toHaveBeenCalled();
   });
 
   it('member "admin,kitchen" -> union: allows kitchen-only menu:write and admin-only order:cancel', () => {
