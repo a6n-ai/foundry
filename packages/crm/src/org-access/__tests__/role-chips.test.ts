@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { chipState, type ChipContext } from "../role-chips";
 
-const base: ChipContext = { self: false, roleCount: 2, lastOwnerRole: "owner", aboveViewer: ["admin"] };
+const base: ChipContext = {
+  self: false,
+  targetAboveViewer: false,
+  roleCount: 2,
+  lastOwnerRole: "owner",
+  aboveViewer: ["admin"],
+};
 
 describe("chipState", () => {
   it("allows an ordinary add or remove", () => {
@@ -27,5 +33,11 @@ describe("chipState", () => {
   it("blocks adding or removing a role above the viewer", () => {
     expect(chipState("admin", "add", base)).toMatch(/above yours/);
     expect(chipState("admin", "remove", base)).toMatch(/above yours/);
+  });
+
+  it("blocks changes to a person above the viewer, even with an ordinary role", () => {
+    const above = { ...base, targetAboveViewer: true };
+    expect(chipState("cashier", "add", above)).toMatch(/above you/);
+    expect(chipState("cashier", "remove", above)).toMatch(/above you/);
   });
 });

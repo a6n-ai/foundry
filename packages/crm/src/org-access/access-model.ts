@@ -21,6 +21,7 @@ export type AccessRow = {
 
 export type WhoCanHit = {
   resource: string;
+  resourceLabel: string;
   action: string;
   label: string;
   holders: { rowId: string; roles: string[] }[];
@@ -41,7 +42,7 @@ export function whoCan(rows: AccessRow[], resources: ResourceLabel[], query: str
           const granting = row.grants[r.resource]?.[a.action] ?? [];
           return { rowId: row.id, roles: row.roles.filter((role) => granting.includes(role)) };
         });
-      hits.push({ resource: r.resource, action: a.action, label: a.label, holders });
+      hits.push({ resource: r.resource, resourceLabel: r.label, action: a.action, label: a.label, holders });
     }
   }
   return hits;

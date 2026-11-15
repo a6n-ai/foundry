@@ -7,11 +7,11 @@ export type WhoCanSearchProps = {
   value: string;
   onChange: (value: string) => void;
   results: WhoCanHit[];
-  /** Maps a row id to a display name; defaults to the id. */
-  nameOf?: (rowId: string) => string;
+  /** Maps a row id to a display name, since hits carry only row ids. */
+  nameOf: (rowId: string) => string;
 };
 
-export function WhoCanSearch({ value, onChange, results, nameOf = (id) => id }: WhoCanSearchProps) {
+export function WhoCanSearch({ value, onChange, results, nameOf }: WhoCanSearchProps) {
   return (
     <div className="grid gap-3">
       <Input
@@ -26,7 +26,9 @@ export function WhoCanSearch({ value, onChange, results, nameOf = (id) => id }: 
         <ul className="grid gap-3">
           {results.map((hit) => (
             <li key={`${hit.resource}/${hit.action}`} className="grid gap-1">
-              <p className="text-sm font-medium">{hit.label}</p>
+              <p className="text-sm font-medium">
+                {hit.resourceLabel} · {hit.label}
+              </p>
               {hit.holders.length === 0 ? (
                 <p className="text-xs text-muted-foreground">Nobody has this.</p>
               ) : (

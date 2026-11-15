@@ -13,14 +13,17 @@ export type ChipContext = {
   self: boolean;
   /** Roles the row holds now. */
   roleCount: number;
+  /** The row's person ranks above the viewer; their roles cannot be changed. */
+  targetAboveViewer: boolean;
   /** Role whose removal would leave the org with no owner, if any. */
   lastOwnerRole?: string;
-  /** Roles ranked at or above the viewer's own. */
+  /** Roles the viewer cannot grant, mirroring the server's requireCanAssignRole. */
   aboveViewer: string[];
 };
 
 export function chipState(role: string, op: ChipOp, ctx: ChipContext): string | null {
   if (ctx.self) return "You can't change your own roles";
+  if (ctx.targetAboveViewer) return "This person is above you";
   if (op === "remove" && ctx.roleCount <= 1) return "A person needs at least one role";
   if (op === "remove" && role === ctx.lastOwnerRole) return "This is the last owner role";
   if (ctx.aboveViewer.includes(role)) return "This role is above yours";
@@ -99,6 +102,7 @@ export function RoleChips({ roles, options, onAdd, onRemove, disabledReason }: R
               {addable.map((o) => (
                 <SelectItem key={o.value} value={o.value} disabled={disabledReason(o.value, "add") !== null}>
                   {o.label}
+                  {disabledReason(o.value, "add") && ` · ${disabledReason(o.value, "add")}`}
                 </SelectItem>
               ))}
             </SelectContent>

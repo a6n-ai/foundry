@@ -1,8 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Badge } from "@foundry/ui/badge";
-import { Button } from "@foundry/ui/button";
 import { cn } from "@foundry/ui/cn";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@foundry/ui/table";
 import type { ResourceLabel } from "../org-roles/permission-map";
@@ -12,24 +10,25 @@ import { AccessLevelCell } from "./access-level-cell";
 export type AccessMatrixProps = {
   rows: AccessRow[];
   resources: ResourceLabel[];
-  /** Row ids of platform admins; they show a badge and cannot be restricted here. */
-  platformAdmins: readonly string[];
+  /** Super admins with full access. They are not org rows, so they are listed above the table. */
+  platformAdmins: { name: string; email: string | null }[];
   highlight?: string;
   onRowOpen: (rowId: string) => void;
-  /** Editing surface for a row, rendered in the mobile card list. */
+  /** Editing surface for a row. Rendered only in the mobile card list; desktop edits go through onRowOpen. */
   renderChips: (row: AccessRow) => ReactNode;
-  emptyState?: ReactNode;
+  emptyState: ReactNode;
 };
 
-function NameButton({ row, isAdmin, onOpen }: { row: AccessRow; isAdmin: boolean; onOpen: () => void }) {
+function NameButton({ row, onOpen }: { row: AccessRow; onOpen: () => void }) {
   return (
     <div className="grid gap-0.5">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="link" className="h-auto p-0 text-sm font-medium" onClick={onOpen}>
-          {row.name}
-        </Button>
-        {isAdmin && <Badge variant="secondary">Platform admin</Badge>}
-      </div>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="justify-self-start text-left text-sm font-medium text-primary underline-offset-4 transition-colors hover:underline"
+      >
+        {row.name}
+      </button>
       {row.email && <span className="text-xs text-muted-foreground">{row.email}</span>}
     </div>
   );
@@ -44,13 +43,24 @@ export function AccessMatrix({
   renderChips,
   emptyState,
 }: AccessMatrixProps) {
-  if (rows.length === 0) return <>{emptyState ?? <p className="text-sm text-muted-foreground">No members yet.</p>}</>;
-
-  const admins = new Set(platformAdmins);
+  if (rows.length === 0) return <>{emptyState}</>;
 
   return (
     <div className="grid gap-4">
-      <div className="hidden overflow-x-auto md:block">
+      {platformAdmins.length > 0 && (
+        <section className="grid gap-2">
+          <p className="text-sm font-medium">Platform admins (full access)</p>
+          <ul className="grid gap-0.5">
+            {platformAdmins.map((a) => (
+              <li key={`${a.name}-${a.email}`} className="text-sm text-muted-foreground">
+                {a.name}
+                {a.email && ` · ${a.email}`}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <div className="hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -62,9 +72,13 @@ export function AccessMatrix({
           </TableHeader>
           <TableBody>
             {rows.map((row) => (
-              <TableRow key={row.id} className={cn(highlight === row.id && "bg-muted")}>
-                <TableCell className="sticky left-0 z-10 bg-background">
-                  <NameButton row={row} isAdmin={admins.has(row.id)} onOpen={() => onRowOpen(row.id)} />
+              <TableRow
+                key={row.id}
+                aria-current={highlight === row.id || undefined}
+                className={cn(highlight === row.id && "bg-muted")}
+              >
+                <TableCell className={cn("sticky left-0 z-10", highlight === row.id ? "bg-muted" : "bg-background")}>
+                  <NameButton row={row} onOpen={() => onRowOpen(row.id)} />
                 </TableCell>
                 {resources.map((r) => {
                   const held = row.permissions[r.resource] ?? [];
@@ -89,9 +103,10 @@ export function AccessMatrix({
         {rows.map((row) => (
           <li
             key={row.id}
+            aria-current={highlight === row.id || undefined}
             className={cn("grid gap-3 rounded-lg border p-4", highlight === row.id && "bg-muted")}
           >
-            <NameButton row={row} isAdmin={admins.has(row.id)} onOpen={() => onRowOpen(row.id)} />
+            <NameButton row={row} onOpen={() => onRowOpen(row.id)} />
             <ul className="grid gap-1">
               {resources.map((r) => {
                 const held = row.permissions[r.resource] ?? [];

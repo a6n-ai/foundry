@@ -62,11 +62,17 @@ describe("whoCan", () => {
     expect(hits).toEqual([
       {
         resource: "finance",
+        resourceLabel: "Finance",
         action: "refund",
         label: "Refund",
         holders: [{ rowId: "a", roles: ["manager"] }],
       },
     ]);
+  });
+
+  it("labels each hit with its resource so same-named actions stay distinct", () => {
+    const hits = whoCan(rows, resources, "view");
+    expect(hits.map((h) => `${h.resourceLabel} · ${h.label}`)).toEqual(["Finance · View", "Orders · View"]);
   });
 
   it("matches several actions by label and lists each one's holders", () => {

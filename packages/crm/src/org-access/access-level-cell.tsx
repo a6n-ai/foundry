@@ -26,7 +26,7 @@ export function AccessLevelCell({ level, actions, grants, resourceLabel }: Acces
           {LEVEL_TEXT[level]}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="grid w-64 gap-2">
+      <PopoverContent align="start" className="grid gap-2">
         <p className="text-sm font-medium">{resourceLabel}</p>
         <ul className="grid gap-2">
           {actions.map((a) => (
