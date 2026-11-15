@@ -37,3 +37,8 @@ export {
   type AccessRow,
   type WhoCanHit,
 } from "./org-access/access-model";
+export { AccessMatrix, type AccessMatrixProps } from "./org-access/access-matrix";
+export { AccessLevelCell, type AccessLevelCellProps } from "./org-access/access-level-cell";
+export { WhoCanSearch, type WhoCanSearchProps } from "./org-access/who-can-search";
+export { RoleChips, chipState, type RoleChipsProps, type ChipContext, type ChipOp } from "./org-access/role-chips";
+export { RoleMasterDetail, type RoleMasterDetailProps } from "./org-access/role-master-detail";
