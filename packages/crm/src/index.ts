@@ -30,3 +30,10 @@ export { RolePermissionGrid, type RolePermissionGridProps } from "./org-roles/ro
 export { OrgRoleDialog, type OrgRoleDialogProps } from "./org-roles/org-role-dialog";
 export { MemberRoleSelect, type MemberRoleSelectProps } from "./org-roles/member-role-select";
 export type { PermissionMap, ResourceLabel } from "./org-roles/permission-map";
+export {
+  accessLevel,
+  whoCan,
+  type AccessLevel,
+  type AccessRow,
+  type WhoCanHit,
+} from "./org-access/access-model";
