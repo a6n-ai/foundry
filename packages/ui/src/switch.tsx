@@ -29,7 +29,7 @@ function SwitchThumb({ className, ...props }: React.ComponentProps<typeof SdkSwi
   return (
     <SdkSwitchThumb
       className={cn(
-        "pointer-events-none block rounded-full bg-background shadow-[0_1px_2px_rgb(0_0_0/0.2)] transition-transform duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3 data-checked:translate-x-[calc(100%-2px)] data-unchecked:translate-x-0 rtl:data-checked:-translate-x-[calc(100%-2px)]",
+        "pointer-events-none block rounded-full bg-background shadow-xs dark:data-checked:bg-primary-foreground dark:data-unchecked:bg-foreground transition-transform duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3 data-checked:translate-x-[calc(100%-2px)] data-unchecked:translate-x-0 rtl:data-checked:-translate-x-[calc(100%-2px)]",
         className
       )}
       {...props}

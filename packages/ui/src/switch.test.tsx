@@ -65,6 +65,13 @@ describe("Switch", () => {
     expect(new FormData(container.querySelector("form")!).get("notify")).toBeNull()
   })
 
+  it("styles the thumb with theme tokens only, including dark mode", () => {
+    render(<Switch aria-label="a" />)
+    const thumb = screen.getByRole("switch").querySelector('[data-slot="switch-thumb"]')!
+    expect(thumb.className).not.toMatch(/rgb\(|#[0-9a-f]{3,8}\b/i)
+    expect(thumb).toHaveClass("dark:data-checked:bg-primary-foreground", "dark:data-unchecked:bg-foreground")
+  })
+
   it("uses custom children instead of the default thumb", () => {
     render(
       <Switch aria-label="a" size="sm">
