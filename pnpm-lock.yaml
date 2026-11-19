@@ -784,6 +784,12 @@ importers:
       '@foundry/themes':
         specifier: workspace:*
         version: link:../themes
+      '@ui-sdk/core':
+        specifier: 0.1.0-beta.10
+        version: 0.1.0-beta.10
+      '@ui-sdk/react':
+        specifier: 0.1.0-beta.10
+        version: 0.1.0-beta.10(@types/react@19.3.0)(@ui-sdk/core@0.1.0-beta.10)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -3350,6 +3356,20 @@ packages:
     engines: {node: '>=16.20.0'}
     cpu: [x64]
     os: [win32]
+
+  '@ui-sdk/core@0.1.0-beta.10':
+    resolution: {integrity: sha512-Rtm3QtuRT9U5nAlhIwKf2TzNIDZeOq3VmPzIiy55K3nFGeZokpPmHdF5ryaZmsByImNhOdRv5P7TOMro48NB+Q==}
+
+  '@ui-sdk/react@0.1.0-beta.10':
+    resolution: {integrity: sha512-iObTzV2owJmF6GNVIiudpunoPlQ7mnDezdXc7XVajkmBpAzwq6gMuT0xLesWH71ct9wKcWRPkxbWC+E3ahOUPA==}
+    peerDependencies:
+      '@types/react': '>=19.2.10'
+      '@ui-sdk/core': ^0.1.0-beta.10
+      react: '>=19'
+      react-dom: '>=19'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   '@unrs/resolver-binding-android-arm-eabi@1.12.2':
     resolution: {integrity: sha512-g5T90pqg1bo/7mytQx6F4iBNC0Wsh9cu+z9veDbFjc7HjpesJFWD7QMS0NGStXM075+7dJPPVvBbpZlnrdpi/w==}
@@ -8603,6 +8623,16 @@ snapshots:
 
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
+
+  '@ui-sdk/core@0.1.0-beta.10': {}
+
+  '@ui-sdk/react@0.1.0-beta.10(@types/react@19.3.0)(@ui-sdk/core@0.1.0-beta.10)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@ui-sdk/core': 0.1.0-beta.10
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+    optionalDependencies:
+      '@types/react': 19.3.0
 
   '@unrs/resolver-binding-android-arm-eabi@1.12.2':
     optional: true

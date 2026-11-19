@@ -20,6 +20,8 @@
   "dependencies": {
     "@foundry/commons": "workspace:*",
     "@foundry/themes": "workspace:*",
+    "@ui-sdk/core": "0.1.0-beta.10",
+    "@ui-sdk/react": "0.1.0-beta.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
