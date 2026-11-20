@@ -26,7 +26,7 @@ beforeAll(() => {
   }
   document.head.append(
     Object.assign(document.createElement("style"), {
-      textContent: "[popover] { display: block !important }",
+      textContent: "[popover][data-open] { display: block !important }",
     })
   )
 })

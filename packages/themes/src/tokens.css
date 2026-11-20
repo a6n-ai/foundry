@@ -65,8 +65,9 @@
   --ui-radius-modal: var(--radius-xl);
   --ui-shadow-modal: 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent);
   --ui-modal-backdrop: rgb(0 0 0 / 0.1);
-  --ui-modal-blur: var(--blur-xs);
+  --ui-modal-blur: var(--blur-xs, 4px);
   --ui-modal-title-weight: 500;
+  --ui-modal-heading-size: 1.125rem;
   --ui-modal-description-size: 0.875rem;
   --ui-modal-duration: 100ms;
   --ui-modal-scale: 0.95;
@@ -115,6 +116,7 @@
   --ui-modal-backdrop: rgb(0 0 0 / .4);
   --ui-modal-blur: 0px;
   --ui-modal-title-weight: 600;
+  --ui-modal-heading-size: 16px;
   --ui-modal-description-size: 13px;
   --ui-modal-duration: 150ms;
   --ui-modal-scale: .96;

@@ -1,8 +1,41 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+import "@testing-library/jest-dom/vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
+
+vi.mock("@foundry/ui/use-mobile", () => ({ useIsMobile: () => false }));
+
 import { ResponsiveDialog } from "./responsive-dialog";
+
+// jsdom lacks the top-layer APIs ui-sdk dialogs call.
+beforeAll(() => {
+  HTMLElement.prototype.showPopover = function () {}
+  HTMLElement.prototype.hidePopover = function () {}
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "")
+  }
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open")
+  }
+  Element.prototype.getAnimations = () => []
+  Element.prototype.scrollIntoView = function () {}
+  Element.prototype.checkVisibility = () => true
+  Element.prototype.getClientRects = () => [] as unknown as DOMRectList
+  document.elementFromPoint = () => null
+  document.elementsFromPoint = () => []
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  document.head.append(
+    Object.assign(document.createElement("style"), {
+      textContent: "[popover][data-open] { display: block !important }",
+    })
+  )
+})
+
 
 // A row action opens the dialog by state, with no Trigger, like RowActionButton callers do.
 function RowAction() {
@@ -37,3 +70,16 @@ describe("ResponsiveDialog focus return", () => {
     expect(document.activeElement).toBe(opener);
   });
 });
+
+describe("ResponsiveDialog desktop title", () => {
+  it("takes its size and weight from the modal tokens", () => {
+    render(
+      <ResponsiveDialog open title="Edit member" onOpenChange={() => {}}>
+        <p>Body</p>
+      </ResponsiveDialog>
+    )
+    const title = screen.getByText("Edit member")
+    expect(title).toHaveClass("text-(length:--ui-modal-heading-size)", "font-(weight:--ui-modal-title-weight)")
+    expect(title).not.toHaveClass("text-lg", "font-semibold")
+  })
+})

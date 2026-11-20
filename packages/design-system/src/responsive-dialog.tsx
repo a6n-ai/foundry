@@ -89,7 +89,7 @@ export function ResponsiveDialog({
       >
         {/* pr-12 keeps the title clear of the close button. */}
         <DialogHeader className="shrink-0 gap-1 px-6 pt-6 pr-12 pb-4 text-left">
-          <DialogTitle className="text-lg font-semibold tracking-[-0.01em]">{title}</DialogTitle>
+          <DialogTitle className="text-(length:--ui-modal-heading-size) font-(weight:--ui-modal-title-weight) tracking-[-0.01em]">{title}</DialogTitle>
           {description && <DialogDescription className="text-pretty">{description}</DialogDescription>}
         </DialogHeader>
         {children != null ? (
