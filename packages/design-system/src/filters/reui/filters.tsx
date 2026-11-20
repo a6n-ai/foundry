@@ -133,8 +133,8 @@ export interface FilterI18nConfig {
 // Default English i18n configuration
 export const DEFAULT_I18N: FilterI18nConfig = {
   // UI Labels
-  addFilter: "Filter",
-  searchFields: "Filter...",
+  addFilter: "Add Filter",
+  searchFields: "Filter by…",
   noFieldsFound: "No filters found.",
   noResultsFound: "No results found.",
   select: "Select...",
@@ -1656,7 +1656,7 @@ export function Filters<T = unknown>({
           >
             <DropdownMenuTrigger asChild>
               {(trigger as React.ReactElement) ?? (
-                <Button variant="outline" size={size}>
+                <Button variant="outline" size={size} data-slot="filter-add">
                   {mergedI18n.addFilter}
                 </Button>
               )}
@@ -1924,17 +1924,19 @@ export function Filters<T = unknown>({
           const field = fieldsMap[filter.field]
           if (!field) return null
           return (
-            <ButtonGroup key={filter.id}>
-              <ButtonGroupText className="bg-background dark:bg-input/30">
+            <ButtonGroup key={filter.id} data-slot="filter-chip">
+              <ButtonGroupText data-slot="filter-chip-key" className="bg-background dark:bg-input/30">
                 {field.icon && field.icon}
                 {field.label}
               </ButtonGroupText>
-              <FilterOperatorDropdown<T>
-                field={field}
-                operator={filter.operator}
-                values={filter.values}
-                onChange={(operator) => updateFilter(filter.id, { operator })}
-              />
+              {getOperatorsForField(field, filter.values, mergedI18n).length > 1 && (
+                <FilterOperatorDropdown<T>
+                  field={field}
+                  operator={filter.operator}
+                  values={filter.values}
+                  onChange={(operator) => updateFilter(filter.id, { operator })}
+                />
+              )}
               <FilterValueSelector<T>
                 field={field}
                 values={filter.values}
@@ -1942,7 +1944,7 @@ export function Filters<T = unknown>({
                 onChange={(values) => updateFilter(filter.id, { values })}
                 autoFocus={filter.id === lastAddedFilterId}
               />
-              <FilterRemoveButton onClick={() => removeFilter(filter.id)} />
+              <FilterRemoveButton aria-label={`Remove ${field.label}`} onClick={() => removeFilter(filter.id)} />
             </ButtonGroup>
           )
         })}

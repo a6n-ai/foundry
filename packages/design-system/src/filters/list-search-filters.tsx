@@ -172,7 +172,7 @@ export function ListSearchFilters({
         onValueChange={pickPreset}
       >
         {presets.map((p) => (
-          <ToggleGroupItem key={p.key} value={p.key}>
+          <ToggleGroupItem key={p.key} value={p.key} data-slot="filter-suggestion">
             {p.label}
           </ToggleGroupItem>
         ))}

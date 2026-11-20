@@ -232,7 +232,6 @@ export function ReuiFacetFilters({
       fields={fields}
       onChange={onChange}
       size="sm"
-      showSearchInput={false}
       allowMultiple={!oneChipPerField}
       i18n={pinned.length ? { addFilter: "More filters" } : undefined}
     />

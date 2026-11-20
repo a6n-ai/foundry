@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 const replace = vi.fn();
 let search = "";
@@ -91,5 +91,48 @@ describe("ListSearchFilters", () => {
     render(<ListSearchFilters spec={spec} recommendations={recommendations} />);
     await waitFor(() => expect(recommendations.load).toHaveBeenCalled());
     expect(screen.queryByLabelText("Recommended filters")).not.toBeInTheDocument();
+  });
+
+  it("Add Filter opens a searchable list of fields", async () => {
+    render(<ListSearchFilters spec={spec} />);
+    fireEvent.pointerDown(screen.getByRole("button", { name: "Add Filter" }), { button: 0, ctrlKey: false });
+    expect(await screen.findByPlaceholderText("Filter by…")).toBeInTheDocument();
+  });
+
+  it("picking a value in a chip writes the same ?param as before", async () => {
+    render(<ListSearchFilters spec={spec} pinned={["status"]} />);
+    fireEvent.pointerDown(screen.getByRole("button", { name: "Select..." }), { button: 0, ctrlKey: false });
+    fireEvent.click(await screen.findByRole("option", { name: "Late" }));
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    const url = new URL(replace.mock.calls[0]![0] as string, "http://x");
+    expect(Object.fromEntries(url.searchParams)).toEqual({ status: "late" });
+  });
+
+  it("an active chip reads Key Value with no operator and × removes it", async () => {
+    search = "status=late";
+    render(<ListSearchFilters spec={spec} />);
+    const chip = screen.getByText("Status").closest('[data-slot="filter-chip"]') as HTMLElement;
+    expect(chip).toHaveTextContent("StatusLate");
+    expect(within(chip).queryByRole("button", { name: "is" })).not.toBeInTheDocument();
+    fireEvent.click(within(chip).getByRole("button", { name: "Remove Status" }));
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    expect(new URL(replace.mock.calls[0]![0] as string, "http://x").search).toBe("");
+  });
+
+  it("a recommended preset is a dashed suggestion pill", async () => {
+    const recommendations = {
+      load: vi.fn(async () => [{ key: "late", label: "Late orders", params: { status: "late" } }]),
+      record: vi.fn(async () => undefined),
+    };
+    render(<ListSearchFilters spec={spec} recommendations={recommendations} />);
+    expect(await screen.findByRole("radio", { name: "Late orders" })).toHaveAttribute("data-slot", "filter-suggestion");
+  });
+
+  it("the date range is still its own chip", () => {
+    search = "from=100&to=200";
+    const DateField = () => <i data-testid="menu-date" />;
+    render(<ListSearchFilters spec={spec} DateField={DateField} />);
+    const chip = screen.getByText("Created").closest('[data-slot="filter-chip"]');
+    expect(chip).toContainElement(screen.getByTestId("menu-date"));
   });
 });
