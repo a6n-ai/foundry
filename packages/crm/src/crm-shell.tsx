@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@foundry/ui/cn";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@foundry/ui/sidebar";
 import { Separator } from "@foundry/ui/separator";
@@ -18,6 +18,7 @@ export function CrmShell({
   footer,
   bottomNav,
   hideSidebarOnMobile = false,
+  sidebarWidth,
   chrome = "crm",
   children,
 }: {
@@ -29,6 +30,8 @@ export function CrmShell({
   footer?: ReactNode;
   bottomNav?: ReactNode;
   hideSidebarOnMobile?: boolean;
+  /** CSS length for the sidebar column, e.g. "264px". Set on the server so SSR matches the saved width. */
+  sidebarWidth?: string;
   /** Customer mobile uses floating glass chrome; admin stays a solid CRM bar. */
   chrome?: "crm" | "glass";
   children: ReactNode;
@@ -37,7 +40,9 @@ export function CrmShell({
   const glass = chrome === "glass";
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={sidebarWidth ? ({ "--sidebar-width": sidebarWidth } as CSSProperties) : undefined}
+    >
       {hideSidebarOnMobile ? (
         <DesktopOnlySidebar>{sidebar}</DesktopOnlySidebar>
       ) : (
