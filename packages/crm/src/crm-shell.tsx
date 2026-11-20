@@ -51,7 +51,7 @@ export function CrmShell({
       <SidebarInset>
         <header
           className={cn(
-            "flex shrink-0 items-center gap-2 px-4",
+            "flex shrink-0 items-center gap-2 px-4 md:grid md:grid-cols-[1fr_auto_1fr]",
             glass ? "h-16 md:h-14" : "h-14",
             glass
               ? cn(
@@ -68,31 +68,29 @@ export function CrmShell({
           {mobileBrand ? (
             <div className="min-w-0 flex-1 md:hidden">{brand}</div>
           ) : null}
-          <SidebarTrigger
-            className={hideSidebarOnMobile ? "max-md:hidden -ml-1" : "-ml-1"}
-          />
-          <Separator
-            orientation="vertical"
-            className={
-              mobileBrand
-                ? "mr-2 hidden h-4 md:block"
-                : "mr-2 hidden h-4 sm:block"
-            }
-          />
-          <div className={mobileBrand ? "hidden md:block" : "hidden sm:block"}>
+          <div className="flex items-center gap-2 md:col-start-1 md:justify-self-start">
+            <SidebarTrigger
+              className={hideSidebarOnMobile ? "max-md:hidden -ml-1" : "-ml-1"}
+            />
+            <Separator
+              orientation="vertical"
+              className={
+                mobileBrand
+                  ? "mr-2 hidden h-4 md:block"
+                  : "mr-2 hidden h-4 sm:block"
+              }
+            />
+          </div>
+          <div
+            className={cn(
+              mobileBrand ? "hidden md:block" : "hidden sm:block",
+              "md:col-start-2 md:max-w-[50vw] md:justify-self-center md:truncate",
+            )}
+          >
             {breadcrumbs}
           </div>
-          {center ? (
-            <div className="hidden flex-1 justify-center px-4 md:flex">{center}</div>
-          ) : null}
           {actions ? (
-            <div
-              className={
-                center
-                  ? "ml-auto flex shrink-0 items-center gap-1 md:ml-0"
-                  : "ml-auto flex shrink-0 items-center gap-1"
-              }
-            >
+            <div className="ml-auto flex shrink-0 items-center gap-1 md:col-start-3 md:ml-0 md:justify-self-end">
               {actions}
             </div>
           ) : null}
