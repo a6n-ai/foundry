@@ -1,7 +1,7 @@
 import { cn } from "./cn"
 
 const radius = {
-  rounded: "rounded-(--ui-radius-control)",
+  rounded: "rounded-(--ui-radius-skeleton)",
   pill: "rounded-full",
   squared: "rounded-none",
 } as const

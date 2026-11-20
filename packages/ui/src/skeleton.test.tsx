@@ -21,14 +21,14 @@ describe("Skeleton", () => {
     expect(skeleton()).toHaveAttribute("aria-hidden", "true")
   })
 
-  it("defaults to the control radius and the animated shimmer", () => {
-    expect(skeleton()).toHaveClass("rounded-(--ui-radius-control)", "animate-pulse", "skeleton-shimmer", "bg-muted")
+  it("defaults to the skeleton radius and the animated shimmer", () => {
+    expect(skeleton()).toHaveClass("rounded-(--ui-radius-skeleton)", "animate-pulse", "skeleton-shimmer", "bg-muted")
   })
 
   it("maps shape to radius", () => {
     expect(skeleton({ shape: "pill" })).toHaveClass("rounded-full")
     expect(skeleton({ shape: "squared" })).toHaveClass("rounded-none")
-    expect(skeleton({ shape: "squared" })).not.toHaveClass("rounded-(--ui-radius-control)")
+    expect(skeleton({ shape: "squared" })).not.toHaveClass("rounded-(--ui-radius-skeleton)")
   })
 
   it("drops the animation classes when animated is false", () => {
@@ -41,10 +41,15 @@ describe("Skeleton", () => {
     expect(skeleton({ className: "h-9 w-48" })).toHaveClass("h-9", "w-48")
   })
 
-  it("admin shimmer is scoped out of :root and off under reduced motion", () => {
+  it("admin shimmer is scoped out of :root, reaches portals, and is off under reduced motion", () => {
     expect(tokens).toMatch(/@keyframes skeleton-shimmer\s*{/)
-    expect(tokens).toMatch(/\.crm-app:not\(\.customer-app\) \.skeleton-shimmer\s*{[^}]*animation:/)
-    expect(tokens).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*{[\s\S]*\.skeleton-shimmer/)
-    expect(tokens).not.toMatch(/:root\s*{[^}]*skeleton/)
+    expect(tokens).toMatch(/\.crm-app:not\(\.customer-app\) \.skeleton-shimmer, body:has\(\.crm-app:not\(\.customer-app\)\) \.skeleton-shimmer\s*{[^}]*animation:/)
+    expect(tokens).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*{[\s\S]*body:has\(\.crm-app:not\(\.customer-app\)\) \.skeleton-shimmer/)
+    expect(tokens).not.toMatch(/:root\s*{[^}]*skeleton-shimmer/)
+  })
+
+  it("keeps the customer skeleton corner and takes the admin 6px", () => {
+    expect(tokens).toMatch(/:root\s*{[^}]*--ui-radius-skeleton: var\(--radius-md\);/)
+    expect(tokens).toMatch(/\.crm-app:not\(\.customer-app\), body:has\(\.crm-app:not\(\.customer-app\)\)\s*{[^}]*--ui-radius-skeleton: 6px;/)
   })
 })

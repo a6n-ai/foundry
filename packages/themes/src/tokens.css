@@ -43,6 +43,7 @@
   --ui-radius-control: var(--radius-lg);
   --ui-radius-control-sm: min(var(--radius-md), 12px);
   --ui-radius-control-xs: min(var(--radius-md), 10px);
+  --ui-radius-skeleton: var(--radius-md);
   --ui-radius-badge: var(--radius-4xl);
   --ui-press-shift: 1px;
   --ui-press-scale: 0.97;
@@ -60,13 +61,13 @@
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
 }
-.crm-app:not(.customer-app) .skeleton-shimmer {
+.crm-app:not(.customer-app) .skeleton-shimmer, body:has(.crm-app:not(.customer-app)) .skeleton-shimmer {
   background: linear-gradient(90deg, var(--muted) 0%, color-mix(in oklch, var(--muted), var(--foreground) 6%) 50%, var(--muted) 100%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.6s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .crm-app:not(.customer-app) .skeleton-shimmer {
+  .crm-app:not(.customer-app) .skeleton-shimmer, body:has(.crm-app:not(.customer-app)) .skeleton-shimmer {
     background: var(--muted);
     animation: none;
   }
@@ -75,6 +76,7 @@
   --ui-radius-control: 6px;
   --ui-radius-control-sm: 5px;
   --ui-radius-control-xs: 4px;
+  --ui-radius-skeleton: 6px;
   --ui-radius-badge: 9999px;
   --ui-press-shift: 0px;
   --ui-press-scale: 1;
