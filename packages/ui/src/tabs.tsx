@@ -15,14 +15,14 @@ import { cn } from "./cn"
 function Tabs({ className, ...props }: React.ComponentProps<typeof SdkTabs>) {
   return (
     <SdkTabs
-      className={cn("group/tabs flex gap-2 data-horizontal:flex-col", className)}
+      className={cn("group/tabs flex gap-2", className)}
       {...props}
     />
   )
 }
 
 const tabsListVariants = cva(
-  "group/tabs-list inline-flex w-fit items-center justify-center text-muted-foreground group-data-horizontal/tabs:h-8 data-[variant=line]:rounded-none max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+  "group/tabs-list inline-flex w-fit items-center justify-center text-muted-foreground data-[variant=line]:rounded-none max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
   {
     variants: {
       variant: {

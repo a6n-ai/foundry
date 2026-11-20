@@ -33,7 +33,7 @@ export function RoutedTabNav({ tabs, ariaLabel }: { tabs: readonly RoutedTabNavI
   const active = activeTabHref(tabs, pathname);
 
   return (
-    <Tabs value={active}>
+    <Tabs value={active} activation="manual">
       <TabsList variant="line" aria-label={ariaLabel} className="h-auto flex-wrap">
         {tabs.map((t) => (
           <TabsTrigger key={t.href} value={t.href} render={<Link href={t.href} prefetch={false} />}>
