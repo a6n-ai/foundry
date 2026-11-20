@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState, type ComponentType } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useListNav } from "../use-list-nav";
+import { dateParamRange } from "./date-param";
 import type { FacetDef, Option } from "./facet";
 import { DateRangePicker } from "@foundry/ui/date-range-picker";
 import {
@@ -23,9 +24,6 @@ const DATE_OP = "between";
 
 const csv = (raw: string | null): string[] =>
   raw ? raw.split(",").filter(Boolean) : [];
-
-const num = (v: string | null): number | undefined =>
-  v ? Number(v) : undefined;
 
 function mapOptions(options: Option[]) {
   return options.map((o) => ({ value: String(o.value), label: o.label, icon: o.icon }));
@@ -174,8 +172,7 @@ export function ReuiFacetFilters({
     for (const f of view) {
       if (f.kind === "search") continue;
       if (f.kind === "dateRange") {
-        const from = num(params.get("from"));
-        const to = num(params.get("to"));
+        const { from, to } = dateParamRange(params.get("from"), params.get("to"), timeZone);
         if (from != null || to != null) push(f.field, DATE_OP, [from, to].filter((v): v is number => v != null));
         continue;
       }
@@ -189,7 +186,7 @@ export function ReuiFacetFilters({
     }
     for (const p of pending) if (!out.some((x) => x.field === p.field)) out.push(p);
     return out;
-  }, [view, params, clearValues, pending, ids]);
+  }, [view, params, clearValues, pending, ids, timeZone]);
 
   const filters = withPinned(optimistic?.key === urlKey ? optimistic.filters : derived);
 
@@ -203,6 +200,7 @@ export function ReuiFacetFilters({
     for (const f of view) {
       if (f.kind === "search") continue;
       if (f.kind === "dateRange") {
+        sp.delete("range"); // a preset would override the picked days
         const hit = byField.get(f.field);
         const from = hit && typeof hit.values[0] === "number" ? hit.values[0] : undefined;
         const to = hit && typeof hit.values[1] === "number" ? hit.values[1] : undefined;

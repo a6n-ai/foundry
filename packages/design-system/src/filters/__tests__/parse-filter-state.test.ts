@@ -59,3 +59,25 @@ describe("parseFilterState", () => {
     expect(s.condition).toBeUndefined();
   });
 });
+
+describe("parseFilterState date bounds", () => {
+  const date: FacetDef[] = [{ kind: "dateRange", field: "createdAt", label: "Created" }];
+  const between = (sp: Record<string, string>, timeZone?: string) =>
+    (parseFilterState(date, sp, { timeZone }).condition as any)?.conditions[0].value;
+
+  it("reads ISO days as the inclusive zoned window", () => {
+    expect(between({ from: "2026-11-14", to: "2026-11-20" }, "America/Toronto")).toEqual([
+      Date.parse("2026-11-14T05:00:00Z"),
+      Date.parse("2026-11-21T05:00:00Z") - 1,
+    ]);
+  });
+
+  it("swaps a reversed ISO pair and keeps epoch as is", () => {
+    expect(between({ from: "2026-11-20", to: "2026-11-14" }, "UTC")).toEqual([Date.parse("2026-11-14T00:00:00Z"), Date.parse("2026-11-21T00:00:00Z") - 1]);
+    expect(between({ from: "100", to: "200" })).toEqual([100, 200]);
+  });
+
+  it("ignores huge digits and impossible dates", () => {
+    expect(parseFilterState(date, { from: "9".repeat(400), to: "2026-02-30" }).condition).toBeUndefined();
+  });
+});

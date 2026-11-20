@@ -238,4 +238,27 @@ describe("ListSearchFilters", () => {
     const chip = screen.getByText("Created").closest('[data-slot="filter-chip"]');
     expect(chip).toContainElement(screen.getByTestId("menu-date"));
   });
+
+  it("reads ISO from/to as a chip in the given zone", () => {
+    search = "from=2026-11-14&to=2026-11-20";
+    const seen: { from?: number; to?: number }[] = [];
+    const DateField = (p: { from?: number; to?: number }) => {
+      seen.push({ from: p.from, to: p.to });
+      return <i data-testid="menu-date" />;
+    };
+    render(<ListSearchFilters spec={spec} DateField={DateField} timeZone="America/Toronto" />);
+    expect(seen.at(-1)).toEqual({ from: Date.parse("2026-11-14T05:00:00Z"), to: Date.parse("2026-11-21T05:00:00Z") - 1 });
+  });
+
+  it("a chip edit drops range= so the preset cannot override it", async () => {
+    search = "range=last-7&from=100&to=200&status=late";
+    const DateField = ({ onChange }: { onChange: (r: { from?: number; to?: number }) => void }) => (
+      <button onClick={() => onChange({ from: 300, to: 400 })}>pick</button>
+    );
+    render(<ListSearchFilters spec={spec} DateField={DateField} />);
+    fireEvent.click(screen.getByRole("button", { name: "pick" }));
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    const url = new URL(replace.mock.calls[0]![0] as string, "http://x");
+    expect(Object.fromEntries(url.searchParams)).toEqual({ from: "300", to: "400", status: "late" });
+  });
 });

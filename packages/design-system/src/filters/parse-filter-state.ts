@@ -5,6 +5,7 @@ import {
 import type { PageRequest } from "@foundry/commons/util/pagination";
 export type { FacetDef, Option } from "./facet";
 import type { FacetDef } from "./facet";
+import { dateParamRange } from "./date-param";
 
 export const PAGE_SIZES = [10, 25, 50, 100] as const;
 export const DEFAULT_SIZE = 25;
@@ -26,7 +27,7 @@ function clampSize(v: string | undefined, sizes: readonly number[], dflt: number
 export function parseFilterState(
   spec: FacetDef[],
   sp: Record<string, string | undefined>,
-  opts?: { sizes?: readonly number[]; defaultSize?: number },
+  opts?: { sizes?: readonly number[]; defaultSize?: number; /** Zone ISO `from`/`to` days are read in. */ timeZone?: string },
 ): FilterState {
   const sizes = opts?.sizes ?? PAGE_SIZES;
   const defaultSize = opts?.defaultSize ?? DEFAULT_SIZE;
@@ -44,8 +45,7 @@ export function parseFilterState(
       continue;
     }
     if (f.kind === "dateRange") {
-      const a = num(sp.from);
-      const b = num(sp.to);
+      const { from: a, to: b } = dateParamRange(sp.from, sp.to, opts?.timeZone);
       if (a != null && b != null) parts.push(between(f.field, Math.min(a, b), Math.max(a, b)));
       else if (a != null) parts.push(gte(f.field, a));
       else if (b != null) parts.push(lte(f.field, b));
