@@ -156,6 +156,27 @@ describe("ListSearchFilters", () => {
     expect(await screen.findByRole("radio", { name: "Late orders" })).toHaveAttribute("data-slot", "filter-suggestion");
   });
 
+  it("× on a pinned chip with a value clears it back to the empty pinned chip", async () => {
+    search = "status=late";
+    render(<ListSearchFilters spec={spec} pinned={["status"]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Remove Status" }));
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    expect(new URL(replace.mock.calls[0]![0] as string, "http://x").search).toBe("");
+    const chip = screen.getByText("Status").closest('[data-slot="filter-chip"]') as HTMLElement;
+    expect(chip).toHaveAttribute("data-empty");
+    expect(within(chip).queryByRole("button", { name: "Remove Status" })).not.toBeInTheDocument();
+  });
+
+  it("an empty unpinned chip keeps its × and removing it drops the chip", async () => {
+    const DateField = () => <i data-testid="menu-date" />;
+    render(<ListSearchFilters spec={spec} DateField={DateField} />);
+    fireEvent.pointerDown(screen.getByRole("button", { name: "Add Filter" }), { button: 0, ctrlKey: false });
+    fireEvent.click(await screen.findByRole("option", { name: "Created" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Remove Created" }));
+    expect(screen.queryByRole("button", { name: "Remove Created" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("menu-date")).not.toBeInTheDocument();
+  });
+
   it("the date range is still its own chip", () => {
     search = "from=100&to=200";
     const DateField = () => <i data-testid="menu-date" />;

@@ -160,7 +160,9 @@ export function ReuiFacetFilters({
         const i = pinned.indexOf(x.field);
         return i >= 0 ? i : pinned.length;
       };
-      return out.sort((a, b) => order(a) - order(b));
+      return out
+        .map((x) => (pinnedSet.has(x.field) ? { ...x, pinned: true } : x))
+        .sort((a, b) => order(a) - order(b));
     },
     [view, pinned, pinnedSet, ids],
   );

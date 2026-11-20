@@ -1103,6 +1103,7 @@ export interface Filter<T = unknown> {
   field: string
   operator: string
   values: T[]
+  pinned?: boolean
 }
 
 export interface FilterGroup<T = unknown> {
@@ -1955,7 +1956,7 @@ export function Filters<T = unknown>({
                 autoFocus={filter.id === lastAddedFilterId}
                 emptyLabel={empty ? field.label : undefined}
               />
-              {!empty && (
+              {(!empty || !filter.pinned) && (
                 <FilterRemoveButton
                   aria-label={`Remove ${field.label}`}
                   onClick={() => {
