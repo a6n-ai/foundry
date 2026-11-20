@@ -1,8 +1,37 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { SavedAddress } from "../rules";
 import { CustomerAddressesCard } from "../ui/customer-addresses-card";
+
+// jsdom lacks the top-layer APIs ui-sdk dialogs call.
+beforeAll(() => {
+  HTMLElement.prototype.showPopover = function () {}
+  HTMLElement.prototype.hidePopover = function () {}
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "")
+  }
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open")
+  }
+  Element.prototype.getAnimations = () => []
+  Element.prototype.scrollIntoView = function () {}
+  Element.prototype.checkVisibility = () => true
+  Element.prototype.getClientRects = () => [] as unknown as DOMRectList
+  document.elementFromPoint = () => null
+  document.elementsFromPoint = () => []
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  document.head.append(
+    Object.assign(document.createElement("style"), {
+      textContent: "[popover][data-open] { display: block !important }",
+    })
+  )
+})
+
 
 globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver;
 
