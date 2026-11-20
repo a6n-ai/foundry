@@ -77,9 +77,9 @@ describe("Card token values", () => {
 
   it("admin takes the Geist card values", () => {
     expect(adminBlock).toContain("--ui-card-title-size: 0.875rem;")
-    expect(adminBlock).toContain("--ui-card-title-weight: 600;")
+    expect(adminBlock).toContain("--ui-card-title-weight: 500;")
     expect(adminBlock).toContain("--ui-card-description-size: 0.8125rem;")
     expect(adminBlock).toContain("--ui-card-ring: var(--border);")
-    expect(adminBlock).toContain("--ui-radius-card: 6px;")
+    expect(adminBlock).toContain("--ui-radius-card: 10px;")
   })
 })

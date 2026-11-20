@@ -121,7 +121,7 @@
   --ui-press-shift: 0px;
   --ui-press-scale: 1;
   --ui-press-scale-nav: 1;
-  --ui-radius-card: 6px;
+  --ui-radius-card: 10px;
   --ui-table-radius: var(--ui-radius-card);
   --ui-table-frame-radius: var(--ui-radius-card);
   --ui-table-surface: var(--card);
@@ -133,7 +133,7 @@
   --ui-table-row-height: 2.75rem;
   --ui-table-row-hover: transparent;
   --ui-card-title-size: 0.875rem;
-  --ui-card-title-weight: 600;
+  --ui-card-title-weight: 500;
   --ui-card-description-size: 0.8125rem;
   --ui-card-ring: var(--border);
   --ui-radius-popup: 12px;
