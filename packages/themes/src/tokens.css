@@ -49,6 +49,10 @@
   --ui-press-scale: 0.97;
   --ui-press-scale-nav: 0.96;
   --ui-radius-card: var(--radius-xl);
+  --ui-card-title-size: 1rem;
+  --ui-card-title-weight: 500;
+  --ui-card-description-size: 0.875rem;
+  --ui-card-ring: color-mix(in oklab, var(--foreground) 10%, transparent);
   --ui-radius-popup: var(--radius-lg);
   --ui-shadow-popup: var(--shadow-md), 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent);
   --ui-popup-padding: 0.625rem;
@@ -109,6 +113,10 @@
   --ui-press-scale: 1;
   --ui-press-scale-nav: 1;
   --ui-radius-card: 6px;
+  --ui-card-title-size: 0.875rem;
+  --ui-card-title-weight: 600;
+  --ui-card-description-size: 0.8125rem;
+  --ui-card-ring: var(--border);
   --ui-radius-popup: 12px;
   --ui-shadow-popup: 0 4px 12px rgb(0 0 0 / .08), 0 0 0 1px var(--border);
   --ui-popup-padding: 0.75rem;
@@ -142,6 +150,13 @@
   --ui-tabs-rule-width: 1px;
   --ui-tabs-indicator-offset: -2px;
   --ui-tabs-indicator-height: 2px;
+}
+/* Admin badges are one pill: tone fill and tone text, no border. Badges set --ui-badge-tone; unset means neutral. */
+:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) [data-slot="badge"]:not([data-variant="link"]) {
+  border-width: 0;
+  border-radius: var(--ui-radius-badge);
+  background-color: color-mix(in oklch, var(--ui-badge-tone, var(--muted-foreground)) 14%, transparent);
+  color: var(--ui-badge-tone, var(--muted-foreground));
 }
 /* Admin hover and press change colour at once: no transition on clickable elements. */
 :is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) :is(button, a, [role="button"], [role="row"], [role="menuitem"], tr) {
