@@ -73,6 +73,13 @@
   --ui-modal-duration: 100ms;
   --ui-modal-scale: 0.95;
   --ui-modal-ease: ease;
+  --ui-tabs-size: 0.875rem;
+  --ui-tabs-weight: 500;
+  --ui-tabs-list-inset: 3px;
+  --ui-tabs-line-inset: 3px;
+  --ui-tabs-rule-width: 0px;
+  --ui-tabs-indicator-offset: 3px;
+  --ui-tabs-indicator-height: 2px;
 }
 @keyframes skeleton-shimmer {
   from { background-position: 100% 0; }
@@ -123,6 +130,13 @@
   --ui-modal-duration: 150ms;
   --ui-modal-scale: .96;
   --ui-modal-ease: var(--ease-soft);
+  --ui-tabs-size: 13px;
+  --ui-tabs-weight: 500;
+  --ui-tabs-list-inset: 2px;
+  --ui-tabs-line-inset: 0px;
+  --ui-tabs-rule-width: 1px;
+  --ui-tabs-indicator-offset: -2px;
+  --ui-tabs-indicator-height: 2px;
 }
 /* Admin hover and press change colour at once: no transition on clickable elements. */
 :is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) :is(button, a, [role="button"], [role="row"], [role="menuitem"], tr) {
