@@ -54,7 +54,9 @@
   --ui-popup-padding: 0.625rem;
   --ui-select-item-height: auto;
   --ui-select-item-size: 0.875rem;
+  --ui-select-padding: 0;
   --ui-select-highlight: var(--accent);
+  --ui-select-highlight-fg: var(--accent-foreground);
   --ui-shadow-card: var(--shadow-xs);
   --ui-primary-hover: color-mix(in oklch, var(--primary) 80%, transparent);
   --ui-focus-ring: 3px;
@@ -91,7 +93,9 @@
   --ui-popup-padding: 0.75rem;
   --ui-select-item-height: 2rem;
   --ui-select-item-size: 0.8125rem;
+  --ui-select-padding: 0.25rem;
   --ui-select-highlight: var(--muted);
+  --ui-select-highlight-fg: var(--foreground);
   --ui-shadow-card: none;
   --ui-primary-hover: color-mix(in oklch, var(--primary), black 8%);
   --ui-focus-ring: 2px;

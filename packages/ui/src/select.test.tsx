@@ -160,7 +160,24 @@ describe("Select", () => {
       </Select>
     )
     fireEvent.click(screen.getByRole("combobox", { name: "Dish" }))
-    expect(await screen.findByRole("group", { name: "Mains" })).toBeInTheDocument()
+    expect(await screen.findByRole("group", { name: "Mains" })).toHaveClass("scroll-my-1", "p-1")
+  })
+
+  it("keeps the list closed when an option is picked inside a label", () => {
+    const onValueChange = vi.fn()
+    render(
+      <label>
+        <Roles onValueChange={onValueChange} />
+      </label>
+    )
+    const trigger = screen.getByRole("combobox", { name: "Role" })
+    fireEvent.click(trigger)
+    const notForwarded = fireEvent.click(screen.getByRole("option", { name: "Editor" }))
+    act(() => {})
+    expect(notForwarded).toBe(false)
+    expect(onValueChange.mock.calls[0][0]).toBe("editor")
+    expect(trigger).toHaveTextContent("Editor")
+    expect(trigger).not.toHaveAttribute("data-open")
   })
 
   it("styles the content and items with theme tokens and state attributes only", () => {
@@ -172,7 +189,8 @@ describe("Select", () => {
     expect(list.className).not.toMatch(/radix|rgb\(|#[0-9a-f]{3,8}\b|transition-all/i)
     expect(list).toHaveClass(
       "rounded-(--ui-radius-popup)",
-      "p-1",
+      "p-(--ui-select-padding)",
+      "min-w-[max(9rem,var(--anchor-width))]",
       "shadow-(--ui-shadow-popup)",
       "bg-popover",
       "max-h-(--available-height)",
@@ -180,11 +198,14 @@ describe("Select", () => {
       "ease-soft",
       "motion-reduce:transition-none"
     )
+    expect(list).not.toHaveClass("min-w-36")
     const item = screen.getByRole("option", { name: "Viewer" })
     expect(item).toHaveClass(
       "h-(--ui-select-item-height)",
       "text-(length:--ui-select-item-size)",
-      "data-highlighted:bg-(--ui-select-highlight)"
+      "leading-5",
+      "data-highlighted:bg-(--ui-select-highlight)",
+      "data-highlighted:text-(color:--ui-select-highlight-fg)"
     )
     expect(trigger).toHaveClass("rounded-(--ui-radius-control)", "focus-visible:ring-(length:--ui-focus-ring)")
     expect(trigger.className).not.toMatch(/radix|transition-all/)

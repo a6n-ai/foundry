@@ -4,7 +4,7 @@ import * as React from "react"
 import {
   Select as SdkSelect,
   SelectContent as SdkSelectContent,
-  SelectGroup,
+  SelectGroup as SdkSelectGroup,
   SelectGroupLabel as SdkSelectGroupLabel,
   SelectItem as SdkSelectItem,
   SelectItemIndicator,
@@ -66,6 +66,11 @@ function SelectTrigger({
 
 // Popups render in place and their clicks bubble, so a row or card around a select would also get them.
 // The closed list stays mounted so the trigger can show the label of a value set before the first open, as Radix did.
+// A click inside a label is forwarded to the label's control, which is the trigger: cancel it so the list stays closed.
+function SelectGroup({ className, ...props }: React.ComponentProps<typeof SdkSelectGroup>) {
+  return <SdkSelectGroup className={cn("scroll-my-1 p-1", className)} {...props} />
+}
+
 function SelectContent({
   className,
   onClick,
@@ -78,11 +83,12 @@ function SelectContent({
       alignItemWithTrigger={alignItemWithTrigger}
       keepMounted={keepMounted}
       className={cn(
-        "max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-(--ui-radius-popup) bg-popover p-1 text-popover-foreground shadow-(--ui-shadow-popup) outline-hidden transition-[opacity,scale] duration-150 ease-soft motion-reduce:transition-none data-ending-style:scale-[.96] data-ending-style:opacity-0 data-starting-style:scale-[.96] data-starting-style:opacity-0",
+        "max-h-(--available-height) min-w-[max(9rem,var(--anchor-width))] origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-(--ui-radius-popup) bg-popover p-(--ui-select-padding) text-popover-foreground shadow-(--ui-shadow-popup) outline-hidden transition-[opacity,scale] duration-150 ease-soft motion-reduce:transition-none data-ending-style:scale-[.96] data-ending-style:opacity-0 data-starting-style:scale-[.96] data-starting-style:opacity-0",
         className
       )}
       onClick={(event) => {
         onClick?.(event)
+        event.preventDefault()
         event.stopPropagation()
       }}
       {...props}
@@ -100,7 +106,7 @@ function SelectItem({
   return (
     <SdkSelectItem
       className={cn(
-        "relative flex h-(--ui-select-item-height) w-full cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-(length:--ui-select-item-size) outline-hidden select-none data-highlighted:bg-(--ui-select-highlight) data-highlighted:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex h-(--ui-select-item-height) w-full cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-(length:--ui-select-item-size) leading-5 outline-hidden select-none data-highlighted:bg-(--ui-select-highlight) data-highlighted:text-(color:--ui-select-highlight-fg) data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
