@@ -20,3 +20,24 @@
   --text-title-1: 28px;
   --text-large-title: 34px;
 }
+
+/* Component shape tokens read by @foundry/ui. :root keeps today's look; admin takes the Vercel/Geist shape.
+   Customer layouts also carry .crm-app (as "crm-app customer-app"), so admin is .crm-app without .customer-app. */
+:root {
+  --ui-radius-control: var(--radius-lg);
+  --ui-radius-control-sm: min(var(--radius-md), 12px);
+  --ui-radius-control-xs: min(var(--radius-md), 10px);
+  --ui-radius-badge: var(--radius-4xl);
+  --ui-press-shift: 1px;
+  --ui-primary-hover: color-mix(in oklch, var(--primary) 80%, transparent);
+  --ui-focus-ring: 3px;
+}
+.crm-app:not(.customer-app) {
+  --ui-radius-control: 6px;
+  --ui-radius-control-sm: 5px;
+  --ui-radius-control-xs: 4px;
+  --ui-radius-badge: 9999px;
+  --ui-press-shift: 0px;
+  --ui-primary-hover: color-mix(in oklch, var(--primary), black 8%);
+  --ui-focus-ring: 2px;
+}
