@@ -416,7 +416,7 @@ export function DataTable<Row, K extends string>({
         aria-busy={loading}
         className={cn("hidden overflow-hidden rounded-lg border transition-opacity md:block", loading && "opacity-60")}
       >
-        <Table className={TABLE_FIXED} style={layout.tableStyle}>
+        <Table variant={idHref || onRowClick ? "interactive" : "default"} className={TABLE_FIXED} style={layout.tableStyle}>
           <TableHeader className={HEAD_STICKY}>
             <HeaderRow
               columns={columns}
