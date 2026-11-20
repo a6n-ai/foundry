@@ -703,14 +703,16 @@ function FilterOperatorDropdown<T = unknown>({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size={context.size}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          {operatorLabel}
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="outline"
+            size={context.size}
+            className="text-muted-foreground hover:text-foreground"
+          />
+        }
+      >
+        {operatorLabel}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-fit min-w-fit">
         {operators.map((op) => (
@@ -910,6 +912,7 @@ function SelectOptionsPopover<T = unknown>({
                   return (
                     <DropdownMenuCheckboxItem
                       key={String(option.value)}
+                      value={String(option.value)}
                       id={itemId}
                       role="option"
                       aria-selected={isHighlighted}
@@ -920,9 +923,6 @@ function SelectOptionsPopover<T = unknown>({
                         "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
                         option.className
                       )}
-                      onSelect={(e) => {
-                        if (isMultiSelect) e.preventDefault()
-                      }}
                       onCheckedChange={() => {
                         const next = effectiveValues.filter(
                           (v) => v !== option.value
@@ -960,6 +960,7 @@ function SelectOptionsPopover<T = unknown>({
                   return (
                     <DropdownMenuCheckboxItem
                       key={String(option.value)}
+                      value={String(option.value)}
                       id={itemId}
                       role="option"
                       aria-selected={isHighlighted}
@@ -970,9 +971,6 @@ function SelectOptionsPopover<T = unknown>({
                         "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
                         option.className
                       )}
-                      onSelect={(e) => {
-                        if (isMultiSelect) e.preventDefault()
-                      }}
                       onCheckedChange={() => {
                         const next = isMultiSelect
                           ? ([...effectiveValues, option.value] as T[])
@@ -1019,8 +1017,7 @@ function SelectOptionsPopover<T = unknown>({
         }
       }}
     >
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size={context.size}>
+      <DropdownMenuTrigger render={<Button variant="outline" size={context.size} />}>
           <div className="flex items-center gap-1.5">
               {field.customValueRenderer ? (
                 field.customValueRenderer(values, field.options || [])
@@ -1041,7 +1038,6 @@ function SelectOptionsPopover<T = unknown>({
                 </>
               )}
             </div>
-          </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
@@ -1420,6 +1416,7 @@ function FilterSubmenuContent<T = unknown>({
                   return (
                     <DropdownMenuCheckboxItem
                       key={String(option.value)}
+                      value={String(option.value)}
                       id={itemId}
                       role="option"
                       aria-selected={isHighlighted}
@@ -1430,9 +1427,6 @@ function FilterSubmenuContent<T = unknown>({
                         "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
                         option.className
                       )}
-                      onSelect={(e) => {
-                        if (isMultiSelect) e.preventDefault()
-                      }}
                       onCheckedChange={() =>
                         onToggle(option.value as T, isSelected)
                       }
@@ -1660,14 +1654,16 @@ export function Filters<T = unknown>({
               }
             }}
           >
-            <DropdownMenuTrigger asChild>
-              {(trigger as React.ReactElement) ?? (
-                <Button ref={addButtonRef} variant="outline" size={size} data-slot="filter-add">
-                  <ListFilterIcon size={16} strokeWidth={1.5} />
-                  {mergedI18n.addFilter}
-                </Button>
-              )}
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                (trigger as React.ReactElement) ?? (
+                  <Button ref={addButtonRef} variant="outline" size={size} data-slot="filter-add">
+                    <ListFilterIcon size={16} strokeWidth={1.5} />
+                    {mergedI18n.addFilter}
+                  </Button>
+                )
+              }
+            />
             <DropdownMenuContent
               className={cn("w-[220px]", menuPopupClassName)}
               align="start"

@@ -328,11 +328,9 @@ function MobileSort<K extends string>({ columns, sort }: { columns: readonly Col
   return (
     <div className="md:hidden">
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-11 gap-1.5 sm:h-9">
-            <ArrowUpDownIcon className="size-4" />
-            Sort
-          </Button>
+        <DropdownMenuTrigger render={<Button variant="outline" size="sm" className="h-11 gap-1.5 sm:h-9" />}>
+          <ArrowUpDownIcon className="size-4" />
+          Sort
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {sortable.map((c) => {

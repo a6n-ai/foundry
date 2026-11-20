@@ -322,30 +322,33 @@ function EventCalendarViewSwitcher({
           setTipOpen(next)
         }}
       >
-        <DropdownMenuTrigger asChild {...props}>
-          {/* opens are hover-only; the trigger-focus open that follows a
-              menu close is canceled, closes always land */}
-          <TooltipTrigger
-            render={
-              <Button
-                variant={nav.variant}
-                size={nav.size}
-                data-slot="event-calendar-view-switcher"
-                aria-label={labels.selectView}
-                className={cn("gap-1", nav.className, className)}
-                asChild={asChild}
-              >
-                {children ?? (
-                  <>
-                    {viewLabel(view)}
-                    <ChevronDownIcon className="size-4 opacity-60"
-                      aria-hidden="true" />
-                  </>
-                )}
-              </Button>
-            }
-          />
-        </DropdownMenuTrigger>
+        {/* opens are hover-only; the trigger-focus open that follows a
+            menu close is canceled, closes always land */}
+        <DropdownMenuTrigger
+          {...props}
+          render={
+            <TooltipTrigger
+              render={
+                <Button
+                  variant={nav.variant}
+                  size={nav.size}
+                  data-slot="event-calendar-view-switcher"
+                  aria-label={labels.selectView}
+                  className={cn("gap-1", nav.className, className)}
+                  asChild={asChild}
+                >
+                  {children ?? (
+                    <>
+                      {viewLabel(view)}
+                      <ChevronDownIcon className="size-4 opacity-60"
+                        aria-hidden="true" />
+                    </>
+                  )}
+                </Button>
+              }
+            />
+          }
+        />
         {tipOpen && !open && tooltip !== null && !tooltips.disabled && (
           <TooltipContent side={tooltips.side} className={tooltips.className}>
             {tooltip ?? labels.selectView}

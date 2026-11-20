@@ -1,7 +1,17 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+
+beforeAll(() => {
+  Element.prototype.getAnimations = () => [];
+  Element.prototype.scrollIntoView = function () {};
+  document.head.append(
+    Object.assign(document.createElement("style"), {
+      textContent: "[popover][data-open] { display: block !important }",
+    })
+  );
+});
 
 const replace = vi.fn();
 let search = "";
@@ -128,8 +138,8 @@ describe("ListSearchFilters", () => {
 
   it("picking a value in an empty pinned chip writes the same ?param and shows the remove button", async () => {
     render(<ListSearchFilters spec={spec} pinned={["status"]} />);
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Status" }), { button: 0, ctrlKey: false });
-    fireEvent.click(await screen.findByRole("option", { name: "Late" }));
+    fireEvent.click(screen.getByRole("button", { name: "Status" }));
+    fireEvent.click(await screen.findByRole("menuitemcheckbox", { name: "Late" }));
     await waitFor(() => expect(replace).toHaveBeenCalled());
     const url = new URL(replace.mock.calls[0]![0] as string, "http://x");
     expect(Object.fromEntries(url.searchParams)).toEqual({ status: "late" });
@@ -170,8 +180,8 @@ describe("ListSearchFilters", () => {
   it("an empty unpinned chip keeps its × and removing it drops the chip", async () => {
     const DateField = () => <i data-testid="menu-date" />;
     render(<ListSearchFilters spec={spec} DateField={DateField} />);
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Add Filter" }), { button: 0, ctrlKey: false });
-    fireEvent.click(await screen.findByRole("option", { name: "Created" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add Filter" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Created" }));
     fireEvent.click(await screen.findByRole("button", { name: "Remove Created" }));
     expect(screen.queryByRole("button", { name: "Remove Created" })).not.toBeInTheDocument();
     expect(screen.queryByTestId("menu-date")).not.toBeInTheDocument();

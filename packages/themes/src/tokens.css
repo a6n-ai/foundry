@@ -57,6 +57,9 @@
   --ui-select-padding: 0;
   --ui-select-highlight: var(--accent);
   --ui-select-highlight-fg: var(--accent-foreground);
+  --ui-menu-padding: 0.25rem;
+  --ui-menu-item-radius: var(--radius-md);
+  --ui-menu-shortcut-font: var(--font-sans);
   --ui-shadow-card: var(--shadow-xs);
   --ui-primary-hover: color-mix(in oklch, var(--primary) 80%, transparent);
   --ui-focus-ring: 3px;
@@ -114,6 +117,8 @@
   --ui-select-padding: 0.25rem;
   --ui-select-highlight: var(--muted);
   --ui-select-highlight-fg: var(--foreground);
+  --ui-menu-item-radius: 4px;
+  --ui-menu-shortcut-font: var(--font-mono);
   --ui-shadow-card: none;
   --ui-primary-hover: color-mix(in oklch, var(--primary), black 8%);
   --ui-focus-ring: 2px;
