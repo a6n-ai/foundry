@@ -121,7 +121,7 @@
   --ui-press-shift: 0px;
   --ui-press-scale: 1;
   --ui-press-scale-nav: 1;
-  --ui-radius-card: 10px;
+  --ui-radius-card: 6px;
   --ui-table-radius: var(--ui-radius-card);
   --ui-table-frame-radius: var(--ui-radius-card);
   --ui-table-surface: var(--card);
@@ -144,7 +144,7 @@
   --ui-select-padding: 0.25rem;
   --ui-select-highlight: var(--muted);
   --ui-select-highlight-fg: var(--foreground);
-  --ui-menu-item-radius: 4px;
+  --ui-menu-item-radius: 5px;
   --ui-menu-shortcut-font: var(--font-mono);
   --ui-shadow-card: none;
   --ui-primary-hover: color-mix(in oklch, var(--primary), black 8%);

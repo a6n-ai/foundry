@@ -80,6 +80,6 @@ describe("Card token values", () => {
     expect(adminBlock).toContain("--ui-card-title-weight: 500;")
     expect(adminBlock).toContain("--ui-card-description-size: 0.8125rem;")
     expect(adminBlock).toContain("--ui-card-ring: var(--border);")
-    expect(adminBlock).toContain("--ui-radius-card: 10px;")
+    expect(adminBlock).toContain("--ui-radius-card: 6px;")
   })
 })
