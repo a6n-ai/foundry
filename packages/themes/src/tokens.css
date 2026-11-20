@@ -156,13 +156,13 @@
   --ui-modal-backdrop: rgb(0 0 0 / .4);
   --ui-modal-blur: 0px;
   --ui-modal-title-weight: 600;
-  --ui-modal-heading-size: 16px;
+  --ui-modal-heading-size: var(--text-callout);
   --ui-modal-heading-weight: 600;
-  --ui-modal-description-size: 13px;
+  --ui-modal-description-size: var(--text-footnote);
   --ui-modal-duration: 150ms;
   --ui-modal-scale: .96;
   --ui-modal-ease: var(--ease-soft);
-  --ui-tabs-size: 13px;
+  --ui-tabs-size: var(--text-footnote);
   --ui-tabs-weight: 500;
   --ui-tabs-list-inset: 2px;
   --ui-tabs-line-inset: 0px;
@@ -185,7 +185,7 @@
   height: 1.25rem;
   padding-block: 0;
   padding-inline: 0.5rem;
-  font-size: 11px;
+  font-size: var(--text-caption-2);
   font-weight: 500;
   letter-spacing: 0.2px;
   font-variant-numeric: tabular-nums;

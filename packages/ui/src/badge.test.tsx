@@ -95,7 +95,7 @@ describe("Badge admin rule in tokens.css", () => {
 
   it("every admin badge is Vercel's pill: 20px, 11px / 500, 0.2px tracking; ReUI sm is 18px", () => {
     expect(rule).toContain("height: 1.25rem;")
-    expect(rule).toContain("font-size: 11px;")
+    expect(rule).toContain("font-size: var(--text-caption-2);")
     expect(rule).toContain("letter-spacing: 0.2px;")
     expect(tokens).toContain('[data-slot="badge"][data-size="sm"]')
   })
