@@ -50,6 +50,8 @@
   --ui-shadow-card: var(--shadow-xs);
   --ui-primary-hover: color-mix(in oklch, var(--primary) 80%, transparent);
   --ui-focus-ring: 3px;
+  --ui-tooltip-radius: var(--radius-md);
+  --ui-tooltip-padding: 0.375rem 0.75rem;
 }
 .crm-app:not(.customer-app) {
   --ui-radius-control: 6px;
@@ -63,4 +65,9 @@
   --ui-shadow-card: none;
   --ui-primary-hover: color-mix(in oklch, var(--primary), black 8%);
   --ui-focus-ring: 2px;
+  --ui-tooltip-radius: 6px;
+  --ui-tooltip-padding: 4px 8px;
+}
+.crm-app:not(.customer-app) [data-slot="tooltip-arrow"] {
+  display: none;
 }

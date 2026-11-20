@@ -136,6 +136,17 @@ describe("Tooltip", () => {
     expect(screen.getByRole("tooltip")).toHaveAttribute("data-open")
   })
 
+  it("draws an arrow inside the content that points at the trigger", () => {
+    render(
+      <Tooltip defaultOpen>
+        <TooltipTrigger aria-label="Save">S</TooltipTrigger>
+        <TooltipContent>Save</TooltipContent>
+      </Tooltip>
+    )
+    const content = screen.getByRole("tooltip")
+    expect(content.querySelector('[data-slot="tooltip-arrow"]')).toHaveAttribute("data-side")
+  })
+
   it("renders the trigger as the element passed to render", () => {
     render(
       <Tooltip>
@@ -156,6 +167,8 @@ describe("Tooltip", () => {
     const content = screen.getByRole("tooltip", { hidden: true })
     expect(content.className).not.toMatch(/rgb\(|#[0-9a-f]{3,8}\b|transition-all/i)
     expect(content).toHaveClass(
+      "rounded-(--ui-tooltip-radius)",
+      "p-(--ui-tooltip-padding)",
       "bg-foreground",
       "text-background",
       "duration-150",
