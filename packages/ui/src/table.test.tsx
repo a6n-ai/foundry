@@ -41,7 +41,9 @@ describe("Table variants", () => {
 
   it("striped shades even body rows", () => {
     renderTable("striped")
-    expect(screen.getByRole("table")).toHaveClass("[&_tbody_tr:nth-child(even)]:bg-muted/30")
+    expect(screen.getByRole("table")).toHaveClass(
+      "[&_tbody_tr:nth-child(even):not(:hover):not([data-state=selected])]:bg-muted/30"
+    )
   })
 
   it("bordered draws vertical cell rules and none after the last column", () => {
@@ -59,6 +61,60 @@ describe("Table variants", () => {
     const table = screen.getByRole("table")
     expect(table).toHaveClass("[&_tbody_tr:not([data-table-empty]):hover]:bg-muted/60", "[&_tbody_tr]:transition-none")
     expect(table.className).not.toContain("transition-colors")
+  })
+})
+
+describe("Table numeric and mono cells", () => {
+  it("numeric cells and heads take tabular figures without a font swap", () => {
+    render(
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead numeric>Amount</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell numeric>£12.00</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    )
+    const head = screen.getByText("Amount")
+    const cell = screen.getByText("£12.00")
+    expect(head).toHaveClass("tabular-nums")
+    expect(cell).toHaveClass("tabular-nums")
+    expect(cell.className).not.toContain("font-mono")
+    expect(cell).not.toHaveAttribute("numeric")
+    expect(head).not.toHaveAttribute("numeric")
+  })
+
+  it("mono cells take the Geist Mono face", () => {
+    render(
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell mono>ORD-1042</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    )
+    const cell = screen.getByText("ORD-1042")
+    expect(cell).toHaveClass("font-mono")
+    expect(cell).not.toHaveAttribute("mono")
+  })
+
+  it("plain cells and heads take neither class", () => {
+    render(
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell>Plain</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    )
+    expect(screen.getByText("Plain").className).not.toMatch(/tabular-nums|font-mono/)
   })
 })
 
@@ -99,6 +155,7 @@ describe("Table reads the --ui-table-* tokens", () => {
 describe("Table token values", () => {
   it("customer :root keeps today's table look", () => {
     expect(rootBlock).toContain("--ui-table-radius: 0px;")
+    expect(rootBlock).toContain("--ui-table-frame-radius: var(--radius-lg);")
     expect(rootBlock).toContain("--ui-table-surface: transparent;")
     expect(rootBlock).toContain("--ui-table-ring: transparent;")
     expect(rootBlock).toContain("--ui-table-font-size: 0.875rem;")
@@ -111,6 +168,7 @@ describe("Table token values", () => {
 
   it("admin takes the Geist table values", () => {
     expect(adminBlock).toContain("--ui-table-radius: var(--ui-radius-card);")
+    expect(adminBlock).toContain("--ui-table-frame-radius: var(--ui-radius-card);")
     expect(adminBlock).toContain("--ui-table-surface: var(--card);")
     expect(adminBlock).toContain("--ui-table-ring: var(--border);")
     expect(adminBlock).toContain("--ui-table-font-size: 0.8125rem;")

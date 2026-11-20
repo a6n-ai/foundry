@@ -414,7 +414,7 @@ export function DataTable<Row, K extends string>({
       />
       <div
         aria-busy={loading}
-        className={cn("hidden overflow-hidden rounded-lg border transition-opacity md:block", loading && "opacity-60")}
+        className={cn("hidden overflow-hidden rounded-(--ui-table-frame-radius) border transition-opacity md:block [&_[data-slot=table-container]]:ring-transparent", loading && "opacity-60")}
       >
         <Table variant={idHref || onRowClick ? "interactive" : "default"} className={TABLE_FIXED} style={layout.tableStyle}>
           <TableHeader className={HEAD_STICKY}>
@@ -572,7 +572,7 @@ export function DataTableSkeleton<K extends string>({
   const skelMin = (serial ? 48 : 0) + (hasId ? 144 : 0) + columns.reduce((n, c) => n + defaultColumnPx(c, KIND_WIDTH), 0);
   return (
     <div className="space-y-4">
-      <div className="hidden overflow-hidden rounded-lg border md:block">
+      <div className="hidden overflow-hidden rounded-(--ui-table-frame-radius) border md:block [&_[data-slot=table-container]]:ring-transparent">
         <Table className={TABLE_FIXED} style={{ width: "100%", minWidth: skelMin }}>
           <TableHeader className={HEAD_STICKY}>
             <TableRow>

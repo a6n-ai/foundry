@@ -50,6 +50,7 @@
   --ui-press-scale-nav: 0.96;
   --ui-radius-card: var(--radius-xl);
   --ui-table-radius: 0px;
+  --ui-table-frame-radius: var(--radius-lg);
   --ui-table-surface: transparent;
   --ui-table-ring: transparent;
   --ui-table-font-size: 0.875rem;
@@ -122,6 +123,7 @@
   --ui-press-scale-nav: 1;
   --ui-radius-card: 6px;
   --ui-table-radius: var(--ui-radius-card);
+  --ui-table-frame-radius: var(--ui-radius-card);
   --ui-table-surface: var(--card);
   --ui-table-ring: var(--border);
   --ui-table-font-size: 0.8125rem;

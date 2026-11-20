@@ -5,10 +5,11 @@ import * as React from "react"
 import { cn } from "./cn"
 
 type TableVariant = "default" | "striped" | "bordered" | "interactive"
+type TableCellFlags = { numeric?: boolean; mono?: boolean }
 
 const tableVariants: Record<TableVariant, string> = {
   default: "",
-  striped: "[&_tbody_tr:nth-child(even)]:bg-muted/30",
+  striped: "[&_tbody_tr:nth-child(even):not(:hover):not([data-state=selected])]:bg-muted/30",
   bordered:
     "[&_th]:border-r [&_td]:border-r [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0",
   // shortcut: no transition on the row so the hover shade lands instantly, matching admin's no-transition rule
@@ -88,12 +89,19 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   )
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+function TableHead({
+  className,
+  numeric,
+  mono,
+  ...props
+}: React.ComponentProps<"th"> & TableCellFlags) {
   return (
     <th
       data-slot="table-head"
       className={cn(
         "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-(length:--ui-table-head-size) text-[color:var(--ui-table-head-color)] [&:has([role=checkbox])]:pr-0",
+        numeric && "tabular-nums",
+        mono && "font-mono",
         className
       )}
       {...props}
@@ -101,12 +109,19 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   )
 }
 
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+function TableCell({
+  className,
+  numeric,
+  mono,
+  ...props
+}: React.ComponentProps<"td"> & TableCellFlags) {
   return (
     <td
       data-slot="table-cell"
       className={cn(
         "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        numeric && "tabular-nums",
+        mono && "font-mono",
         className
       )}
       {...props}
