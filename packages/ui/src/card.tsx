@@ -20,12 +20,17 @@ function Card({
   )
 }
 
-function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+function CardHeader({
+  className,
+  divided = false,
+  ...props
+}: React.ComponentProps<"div"> & { divided?: boolean }) {
   return (
     <div
       data-slot="card-header"
       className={cn(
         "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-(--ui-radius-card) px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
+        divided && "border-b border-border pb-(--card-spacing)",
         className
       )}
       {...props}

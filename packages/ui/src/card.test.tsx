@@ -4,7 +4,7 @@ import { cleanup, render, screen } from "@testing-library/react"
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
-import { Card, CardAction, CardContent, CardDescription, CardTitle } from "./card"
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "./card"
 
 afterEach(cleanup)
 
@@ -51,6 +51,18 @@ describe("Card reads the --ui-* tokens", () => {
     expect(screen.getByText("act")).toHaveClass("justify-self-end")
     expect(screen.getByText("content")).toHaveClass("px-(--card-spacing)")
     expect(screen.getByText("content").parentElement).toHaveClass("[--card-spacing:--spacing(4)]")
+  })
+})
+
+describe("CardHeader divided", () => {
+  it("draws a hairline under the header and keeps the card padding under it", () => {
+    render(<CardHeader divided>head</CardHeader>)
+    expect(screen.getByText("head")).toHaveClass("border-b", "border-border", "pb-(--card-spacing)")
+  })
+
+  it("draws no divider by default", () => {
+    render(<CardHeader>plain</CardHeader>)
+    expect(screen.getByText("plain")).not.toHaveClass("border-b")
   })
 })
 
