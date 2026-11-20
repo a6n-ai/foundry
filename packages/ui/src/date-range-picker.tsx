@@ -64,7 +64,7 @@ export function DateRangePicker({
         <Button
           variant="outline"
           className={cn(
-            "justify-start gap-2 font-normal tabular-nums transition-transform active:scale-[0.97]",
+            "justify-start gap-2 font-normal tabular-nums transition-transform active:scale-(--ui-press-scale)",
             from == null && "text-muted-foreground",
           )}
         >

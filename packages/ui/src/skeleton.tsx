@@ -1,10 +1,22 @@
 import { cn } from "./cn"
 
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
+const radius = {
+  rounded: "rounded-(--ui-radius-control)",
+  pill: "rounded-full",
+  squared: "rounded-none",
+} as const
+
+type SkeletonProps = React.ComponentProps<"div"> & {
+  shape?: keyof typeof radius
+  animated?: boolean
+}
+
+function Skeleton({ className, shape = "rounded", animated = true, ...props }: SkeletonProps) {
   return (
     <div
       data-slot="skeleton"
-      className={cn("animate-pulse rounded-md bg-muted", className)}
+      aria-hidden="true"
+      className={cn(radius[shape], animated && "animate-pulse skeleton-shimmer", "bg-muted", className)}
       {...props}
     />
   )

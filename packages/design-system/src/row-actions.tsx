@@ -4,12 +4,12 @@ import { cn } from "@foundry/ui/cn";
 
 const BTN = cn(
   "inline-flex size-8 items-center justify-center rounded-md text-muted-foreground",
-  "transition-[transform,color,background-color] hover:bg-accent hover:text-foreground active:scale-[0.96]",
+  "hover:bg-accent hover:text-foreground",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 );
 
 /**
- * Consistent table row action: an icon button with a subtle press/hover motion.
+ * Consistent table row action: an icon button with a hover colour change.
  * Use in the LAST column of any table. `stopPropagation` so it doesn't trigger
  * a clickable row's navigation. Renders a Link (href) or a button (onClick).
  */
@@ -24,7 +24,7 @@ export function RowActionButton({
   href?: string;
   onClick?: () => void;
 }) {
-  const inner = <Icon className="size-4 transition-transform duration-200 group-hover/row:scale-110" />;
+  const inner = <Icon className="size-4" />;
   if (href) {
     return (
       <Link href={href} aria-label={label} title={label} className={BTN} onClick={(e) => e.stopPropagation()}>

@@ -45,6 +45,8 @@
   --ui-radius-control-xs: min(var(--radius-md), 10px);
   --ui-radius-badge: var(--radius-4xl);
   --ui-press-shift: 1px;
+  --ui-press-scale: 0.97;
+  --ui-press-scale-nav: 0.96;
   --ui-radius-card: var(--radius-xl);
   --ui-radius-popup: var(--radius-lg);
   --ui-shadow-popup: var(--shadow-md);
@@ -54,12 +56,29 @@
   --ui-tooltip-radius: var(--radius-md);
   --ui-tooltip-padding: 0.375rem 0.75rem;
 }
+@keyframes skeleton-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+.crm-app:not(.customer-app) .skeleton-shimmer {
+  background: linear-gradient(90deg, var(--muted) 0%, color-mix(in oklch, var(--muted), var(--foreground) 6%) 50%, var(--muted) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .crm-app:not(.customer-app) .skeleton-shimmer {
+    background: var(--muted);
+    animation: none;
+  }
+}
 .crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app)) {
   --ui-radius-control: 6px;
   --ui-radius-control-sm: 5px;
   --ui-radius-control-xs: 4px;
   --ui-radius-badge: 9999px;
   --ui-press-shift: 0px;
+  --ui-press-scale: 1;
+  --ui-press-scale-nav: 1;
   --ui-radius-card: 6px;
   --ui-radius-popup: 12px;
   --ui-shadow-popup: 0 4px 12px rgb(0 0 0 / .08), 0 0 0 1px var(--border);
@@ -68,4 +87,8 @@
   --ui-focus-ring: 2px;
   --ui-tooltip-radius: 6px;
   --ui-tooltip-padding: 4px 8px;
+}
+/* Admin hover and press change colour at once: no transition on clickable elements. */
+:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) :is(button, a, [role="button"], [role="row"], [role="menuitem"], tr) {
+  transition-property: none;
 }

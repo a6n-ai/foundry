@@ -116,7 +116,7 @@ export function FacetFilters({ spec }: { spec: FacetDef[] }) {
 
 function triggerCn(active: boolean) {
   return cn(
-    "h-8 gap-1.5 rounded-full border px-3 font-normal transition-transform active:scale-[0.97]",
+    "h-8 gap-1.5 rounded-full border px-3 font-normal transition-transform active:scale-(--ui-press-scale)",
     active
       ? "border-primary/40 bg-primary/10 text-foreground"
       : "border-border text-muted-foreground",

@@ -39,7 +39,7 @@ export function BottomNav({
     cn(
       "flex flex-1 flex-col items-center justify-center gap-1 tracking-wide",
       "transition-[transform,color,background-color] duration-150 ease-out",
-      "active:scale-[0.96]",
+      "active:scale-(--ui-press-scale-nav)",
       glass
         ? cn(
             "relative z-10 mx-0.5 my-1.5 min-h-16 rounded-[22px] px-1 text-xs",
@@ -120,7 +120,7 @@ export function BottomNav({
               className={cn(
                 "flex shrink-0 items-center justify-center rounded-full",
                 "bg-primary text-primary-foreground",
-                "transition-transform duration-150 ease-out active:scale-[0.96]",
+                "transition-transform duration-150 ease-out active:scale-(--ui-press-scale-nav)",
                 glass
                   ? "size-12 shadow-[0_8px_20px_color-mix(in_oklab,var(--primary)_45%,transparent)]"
                   : "-mt-6 size-14 shadow-lg",
