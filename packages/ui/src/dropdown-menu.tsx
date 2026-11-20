@@ -139,6 +139,23 @@ function MenuGroupLabel({
   )
 }
 
+// Standalone label: ui-sdk's group label throws outside a MenuGroup, so a bare label is plain text.
+function DropdownMenuLabel({
+  className,
+  inset,
+  ...props
+}: React.ComponentProps<"div"> & {
+  inset?: boolean
+}) {
+  return (
+    <div
+      data-inset={inset}
+      className={cn("px-1.5 py-1 text-xs font-medium text-muted-foreground data-inset:pl-7", className)}
+      {...props}
+    />
+  )
+}
+
 function MenuSeparator({ className, ...props }: React.ComponentProps<typeof SdkMenuSeparator>) {
   return <SdkMenuSeparator className={cn("-mx-1 my-1 h-px bg-border", className)} {...props} />
 }
@@ -180,7 +197,6 @@ const DropdownMenu = Menu
 const DropdownMenuTrigger = MenuTrigger
 const DropdownMenuContent = MenuContent
 const DropdownMenuGroup = MenuGroup
-const DropdownMenuLabel = MenuGroupLabel
 const DropdownMenuItem = MenuItem
 const DropdownMenuCheckboxItem = MenuCheckboxItem
 const DropdownMenuRadioGroup = MenuRadioGroup

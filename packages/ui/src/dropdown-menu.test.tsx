@@ -90,6 +90,21 @@ describe("DropdownMenu", () => {
     expect(container).toContainElement(screen.getByRole("menu"))
   })
 
+  it("renders a label outside a group without throwing", async () => {
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>Actions</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuLabel>Member</DropdownMenuLabel>
+          <DropdownMenuItem>Rename</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+    await open(screen.getByRole("button", { name: "Actions" }))
+    expect(screen.getByText("Member")).toBeInTheDocument()
+    expect(screen.getByRole("menuitem", { name: "Rename" })).toBeInTheDocument()
+  })
+
   it("moves focus through items with the arrow keys", async () => {
     render(<Actions />)
     const trigger = screen.getByRole("button", { name: "Actions" })

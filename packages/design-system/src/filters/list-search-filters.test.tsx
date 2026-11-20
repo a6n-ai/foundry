@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 beforeAll(() => {
   Element.prototype.getAnimations = () => [];
@@ -12,6 +12,15 @@ beforeAll(() => {
     })
   );
 });
+
+async function typeInAddFilter(query: string) {
+  fireEvent.pointerDown(screen.getByRole("button", { name: "Add Filter" }), { button: 0, ctrlKey: false });
+  await waitFor(() => expect(screen.getByRole("menu")).toHaveFocus());
+  const input = screen.getByPlaceholderText("Filter by…");
+  act(() => input.focus());
+  fireEvent.change(input, { target: { value: query } });
+  return input;
+}
 
 const replace = vi.fn();
 let search = "";
@@ -134,6 +143,41 @@ describe("ListSearchFilters", () => {
     render(<ListSearchFilters spec={spec} />);
     fireEvent.pointerDown(screen.getByRole("button", { name: "Add Filter" }), { button: 0, ctrlKey: false });
     expect(await screen.findByPlaceholderText("Filter by…")).toBeInTheDocument();
+  });
+
+  it("filter-then-pick: ArrowDown from the search box focuses the first match, ArrowUp returns to the box", async () => {
+    render(<ListSearchFilters spec={spec} />);
+    const input = await typeInAddFilter("sou");
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    const source = await screen.findByRole("menuitem", { name: "Source" });
+    await waitFor(() => expect(source).toHaveFocus());
+    fireEvent.keyDown(source, { key: "ArrowUp" });
+    await waitFor(() => expect(input).toHaveFocus());
+  });
+
+  it("filter-then-pick: Enter on a matched field opens its values, Enter on a value writes its ?param", async () => {
+    render(<ListSearchFilters spec={spec} />);
+    const input = await typeInAddFilter("sou");
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    const source = await screen.findByRole("menuitem", { name: "Source" });
+    await waitFor(() => expect(source).toHaveFocus());
+    fireEvent.keyDown(source, { key: "Enter" });
+    const web = await screen.findByRole("menuitemcheckbox", { name: "Web" });
+    await waitFor(() => expect(web).toHaveFocus());
+    fireEvent.keyDown(web, { key: "Enter" });
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    expect(new URL(replace.mock.calls[0]![0] as string, "http://x").search).toContain("source=web");
+  });
+
+  it("filter-then-pick: Enter on a matched plain field adds its chip", async () => {
+    const DateField = () => <i data-testid="menu-date" />;
+    render(<ListSearchFilters spec={spec} DateField={DateField} />);
+    const input = await typeInAddFilter("cre");
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    const created = await screen.findByRole("menuitem", { name: "Created" });
+    await waitFor(() => expect(created).toHaveFocus());
+    fireEvent.keyDown(created, { key: "Enter" });
+    expect(await screen.findByRole("button", { name: "Remove Created" })).toBeInTheDocument();
   });
 
   it("picking a value in an empty pinned chip writes the same ?param and shows the remove button", async () => {

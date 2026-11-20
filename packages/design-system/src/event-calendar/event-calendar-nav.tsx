@@ -288,8 +288,8 @@ function EventCalendarViewSwitcher({
   // Controlled open: selecting a view swaps the whole content subtree in the
   // same click, so closing must not depend on the menu's internal handler.
   const [open, setOpen] = useState(false)
-  // Hover-only tooltip: when the menu closes, Radix focuses the trigger
-  // again and a focus-opened tooltip would flash - ignore focus opens.
+  // Hover-only tooltip: when the menu closes, focus returns to the trigger
+  // and a focus-opened tooltip would flash - ignore focus opens.
   const [tipOpen, setTipOpen] = useState(false)
 
   const selectView = (v: CalendarView, opts?: { dayCount?: number }) => {

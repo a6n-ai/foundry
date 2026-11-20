@@ -14,7 +14,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
@@ -236,6 +235,23 @@ const useFilterContext = () => useContext(FilterContext)
 const SCROLL_AREA_CLASS =
   "size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 [&_[data-slot=scroll-area-viewport]]:h-full [&_[data-slot=scroll-area-viewport]]:overscroll-contain"
 
+const MENU_ITEM_SELECTOR =
+  '[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]'
+
+function focusFirstMenuItem(from: HTMLElement) {
+  from.closest('[role="menu"]')?.querySelector<HTMLElement>(MENU_ITEM_SELECTOR)?.focus()
+}
+
+function leaveFirstMenuItemUp(
+  e: React.KeyboardEvent<HTMLElement>,
+  search: HTMLInputElement | null
+) {
+  if (e.key === "ArrowUp" && e.target === e.currentTarget.querySelector(MENU_ITEM_SELECTOR)) {
+    e.preventDefault()
+    search?.focus()
+  }
+}
+
 // "plain": Radix ScrollArea's viewport child is display:table, so a max-height on it never becomes a scrollport
 // and a long list can paint over the page. A real overflow box caps at 24rem instead.
 function FilterMenuList({
@@ -248,7 +264,6 @@ function FilterMenuList({
   if (menuList === "plain") {
     return (
       <div
-        role="listbox"
         className={cn(
           "max-h-96 min-h-0 w-full scroll-pt-2 scroll-pb-2 overflow-y-auto overscroll-contain",
           className
@@ -262,7 +277,6 @@ function FilterMenuList({
   return (
     <div className="relative flex max-h-full">
       <div
-        role="listbox"
         className={cn(
           "flex max-h-[min(var(--available-height),24rem)] w-full scroll-pt-2 scroll-pb-2 flex-col overscroll-contain",
           className
@@ -763,29 +777,14 @@ function SelectOptionsPopover<T = unknown>({
 }: SelectOptionsPopoverProps<T>) {
   const [open, setOpen] = useState(false)
   const [searchInput, setSearchInput] = useState("")
-  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const context = useFilterContext()
-  const baseId = useId()
 
   useEffect(() => {
     if (open) {
       inputRef.current?.focus()
     }
   }, [open])
-
-  useEffect(() => {
-    setHighlightedIndex(-1)
-  }, [searchInput, open])
-
-  useEffect(() => {
-    if (highlightedIndex >= 0 && open) {
-      const element = document.getElementById(
-        `${baseId}-item-${highlightedIndex}`
-      )
-      element?.scrollIntoView({ block: "nearest" })
-    }
-  }, [highlightedIndex, open, baseId])
 
   const isMultiSelect = field.type === "multiselect" || values.length > 1
   const effectiveValues =
@@ -802,11 +801,6 @@ function SelectOptionsPopover<T = unknown>({
     opt.label.toLowerCase().includes(searchInput.toLowerCase())
   )
 
-  const allFilteredOptions = useMemo(
-    () => [...filteredSelectedOptions, ...filteredUnselectedOptions],
-    [filteredSelectedOptions, filteredUnselectedOptions]
-  )
-
   const handleClose = () => {
     setOpen(false)
     onClose?.()
@@ -818,16 +812,6 @@ function SelectOptionsPopover<T = unknown>({
         <>
           <Input
             ref={inputRef}
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded={true}
-            aria-haspopup="listbox"
-            aria-controls={`${baseId}-listbox`}
-            aria-activedescendant={
-              highlightedIndex >= 0
-                ? `${baseId}-item-${highlightedIndex}`
-                : undefined
-            }
             placeholder={context.i18n.placeholders.searchField(
               field.label || ""
             )}
@@ -838,53 +822,14 @@ function SelectOptionsPopover<T = unknown>({
             )}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            onBlur={() => open && inputRef.current?.focus()}
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") {
                 e.preventDefault()
-                if (allFilteredOptions.length > 0) {
-                  setHighlightedIndex((prev) =>
-                    prev < allFilteredOptions.length - 1 ? prev + 1 : 0
-                  )
-                }
-              } else if (e.key === "ArrowUp") {
-                e.preventDefault()
-                if (allFilteredOptions.length > 0) {
-                  setHighlightedIndex((prev) =>
-                    prev > 0 ? prev - 1 : allFilteredOptions.length - 1
-                  )
-                }
+                focusFirstMenuItem(e.currentTarget)
               } else if (e.key === "ArrowLeft") {
                 e.preventDefault()
                 setOpen(false)
-              } else if (e.key === "Enter" && highlightedIndex >= 0) {
-                e.preventDefault()
-                const option = allFilteredOptions[highlightedIndex]
-                if (option) {
-                  const isSelected = effectiveValues.includes(option.value as T)
-                  const next = isSelected
-                    ? (effectiveValues.filter((v) => v !== option.value) as T[])
-                    : isMultiSelect
-                      ? ([...effectiveValues, option.value] as T[])
-                      : ([option.value] as T[])
-
-                  if (
-                    !isSelected &&
-                    isMultiSelect &&
-                    field.maxSelections &&
-                    next.length > field.maxSelections
-                  ) {
-                    return
-                  }
-
-                  if (field.onValueChange) {
-                    field.onValueChange(next)
-                  } else {
-                    onChange(next)
-                  }
-                  if (!isMultiSelect) handleClose()
-                }
               }
               e.stopPropagation()
             }}
@@ -894,9 +839,9 @@ function SelectOptionsPopover<T = unknown>({
       )}
       <FilterMenuList
         scrollAreaClassName={SCROLL_AREA_CLASS}
-        id={`${baseId}-listbox`}
+        onKeyDown={(e) => leaveFirstMenuItemUp(e, inputRef.current)}
       >
-            {allFilteredOptions.length === 0 && (
+            {filteredSelectedOptions.length === 0 && filteredUnselectedOptions.length === 0 && (
               <div className="text-muted-foreground py-2 text-center text-sm">
                 {context.i18n.noResultsFound}
               </div>
@@ -905,19 +850,11 @@ function SelectOptionsPopover<T = unknown>({
             {/* Selected items */}
             {filteredSelectedOptions.length > 0 && (
               <DropdownMenuGroup className="px-1">
-                {filteredSelectedOptions.map((option, index) => {
-                  const isHighlighted = highlightedIndex === index
-                  const itemId = `${baseId}-item-${index}`
-
+                {filteredSelectedOptions.map((option) => {
                   return (
                     <DropdownMenuCheckboxItem
                       key={String(option.value)}
                       value={String(option.value)}
-                      id={itemId}
-                      role="option"
-                      aria-selected={isHighlighted}
-                      data-highlighted={isHighlighted || undefined}
-                      onMouseEnter={() => setHighlightedIndex(index)}
                       checked={true}
                       className={cn(
                         "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
@@ -952,20 +889,11 @@ function SelectOptionsPopover<T = unknown>({
             {/* Available items */}
             {filteredUnselectedOptions.length > 0 && (
               <DropdownMenuGroup className="px-1">
-                {filteredUnselectedOptions.map((option, index) => {
-                  const overallIndex = index + filteredSelectedOptions.length
-                  const isHighlighted = highlightedIndex === overallIndex
-                  const itemId = `${baseId}-item-${overallIndex}`
-
+                {filteredUnselectedOptions.map((option) => {
                   return (
                     <DropdownMenuCheckboxItem
                       key={String(option.value)}
                       value={String(option.value)}
-                      id={itemId}
-                      role="option"
-                      aria-selected={isHighlighted}
-                      data-highlighted={isHighlighted || undefined}
-                      onMouseEnter={() => setHighlightedIndex(overallIndex)}
                       checked={false}
                       className={cn(
                         "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
@@ -1242,33 +1170,13 @@ function FilterSubmenuContent<T = unknown>({
   onClose,
 }: FilterSubmenuContentProps<T>) {
   const [searchInput, setSearchInput] = useState("")
-  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
-  const baseId = useId()
 
   useEffect(() => {
     if (isActive) {
-      if (field.searchable !== false) {
-        inputRef.current?.focus()
-      } else {
-        const listbox = document.getElementById(`${baseId}-listbox`)
-        listbox?.focus()
-      }
+      inputRef.current?.focus()
     }
-  }, [isActive, field.searchable, baseId])
-
-  useEffect(() => {
-    setHighlightedIndex(-1)
-  }, [searchInput])
-
-  useEffect(() => {
-    if (highlightedIndex >= 0 && isActive) {
-      const element = document.getElementById(
-        `${baseId}-item-${highlightedIndex}`
-      )
-      element?.scrollIntoView({ block: "nearest" })
-    }
-  }, [highlightedIndex, isActive, baseId])
+  }, [isActive])
 
   const filteredOptions = useMemo(() => {
     return (
@@ -1281,28 +1189,12 @@ function FilterSubmenuContent<T = unknown>({
     )
   }, [field.options, searchInput, currentValues])
 
-  useEffect(() => {
-    if (isActive && filteredOptions.length > 0) {
-      setHighlightedIndex(0)
-    }
-  }, [isActive, filteredOptions.length])
-
   return (
     <div className="flex flex-col" onMouseEnter={onActive}>
       {field.searchable !== false && (
         <>
           <Input
             ref={inputRef}
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded={true}
-            aria-haspopup="listbox"
-            aria-controls={`${baseId}-listbox`}
-            aria-activedescendant={
-              highlightedIndex >= 0
-                ? `${baseId}-item-${highlightedIndex}`
-                : undefined
-            }
             placeholder={i18n.placeholders.searchField(field.label || "")}
             className={cn(
               "h-8 rounded-none border-0 bg-transparent! px-2 text-sm shadow-none",
@@ -1310,7 +1202,6 @@ function FilterSubmenuContent<T = unknown>({
               isActive && "placeholder:text-foreground"
             )}
             value={searchInput}
-            onBlur={() => isActive && inputRef.current?.focus()}
             onChange={(e) => setSearchInput(e.target.value)}
             onFocus={() => onActive?.()}
             onMouseEnter={(e) => {
@@ -1321,33 +1212,10 @@ function FilterSubmenuContent<T = unknown>({
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") {
                 e.preventDefault()
-                if (filteredOptions.length > 0) {
-                  setHighlightedIndex((prev) =>
-                    prev < filteredOptions.length - 1 ? prev + 1 : 0
-                  )
-                }
-              } else if (e.key === "ArrowUp") {
-                e.preventDefault()
-                if (filteredOptions.length > 0) {
-                  setHighlightedIndex((prev) =>
-                    prev > 0 ? prev - 1 : filteredOptions.length - 1
-                  )
-                }
+                focusFirstMenuItem(e.currentTarget)
               } else if (e.key === "ArrowLeft") {
                 e.preventDefault()
                 onBack?.()
-              } else if (e.key === "Enter" && highlightedIndex >= 0) {
-                e.preventDefault()
-                const option = filteredOptions[highlightedIndex]
-                if (option) {
-                  onToggle(
-                    option.value as T,
-                    currentValues.includes(option.value)
-                  )
-                  if (!isMultiSelect) {
-                    onBack?.()
-                  }
-                }
               } else if (e.key === "Escape") {
                 e.preventDefault()
                 onClose?.()
@@ -1361,46 +1229,7 @@ function FilterSubmenuContent<T = unknown>({
       <FilterMenuList
         className="outline-hidden"
         scrollAreaClassName={SCROLL_AREA_CLASS}
-        id={`${baseId}-listbox`}
-        tabIndex={field.searchable === false ? 0 : -1}
-          onKeyDown={(e) => {
-            if (field.searchable === false) {
-              if (e.key === "ArrowDown") {
-                e.preventDefault()
-                if (filteredOptions.length > 0) {
-                  setHighlightedIndex((prev) =>
-                    prev < filteredOptions.length - 1 ? prev + 1 : 0
-                  )
-                }
-              } else if (e.key === "ArrowUp") {
-                e.preventDefault()
-                if (filteredOptions.length > 0) {
-                  setHighlightedIndex((prev) =>
-                    prev > 0 ? prev - 1 : filteredOptions.length - 1
-                  )
-                }
-              } else if (e.key === "ArrowLeft") {
-                e.preventDefault()
-                onBack?.()
-              } else if (e.key === "Enter" && highlightedIndex >= 0) {
-                e.preventDefault()
-                const option = filteredOptions[highlightedIndex]
-                if (option) {
-                  onToggle(
-                    option.value as T,
-                    currentValues.includes(option.value)
-                  )
-                  if (!isMultiSelect) {
-                    onBack?.()
-                  }
-                }
-              } else if (e.key === "Escape") {
-                e.preventDefault()
-                onClose?.()
-              }
-              e.stopPropagation()
-            }
-          }}
+        onKeyDown={(e) => leaveFirstMenuItemUp(e, inputRef.current)}
         >
             {filteredOptions.length === 0 ? (
               <div className="text-muted-foreground py-2 text-center text-sm">
@@ -1408,20 +1237,13 @@ function FilterSubmenuContent<T = unknown>({
               </div>
             ) : (
               <DropdownMenuGroup>
-                {filteredOptions.map((option, index) => {
+                {filteredOptions.map((option) => {
                   const isSelected = currentValues.includes(option.value)
-                  const isHighlighted = highlightedIndex === index
-                  const itemId = `${baseId}-item-${index}`
 
                   return (
                     <DropdownMenuCheckboxItem
                       key={String(option.value)}
                       value={String(option.value)}
-                      id={itemId}
-                      role="option"
-                      aria-selected={isHighlighted}
-                      data-highlighted={isHighlighted || undefined}
-                      onMouseEnter={() => setHighlightedIndex(index)}
                       checked={isSelected}
                       className={cn(
                         "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
@@ -1467,12 +1289,10 @@ export function Filters<T = unknown>({
   const [menuSearchInput, setMenuSearchInput] = useState("")
   const [activeMenu, setActiveMenu] = useState<string>("root")
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null)
-  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [lastAddedFilterId, setLastAddedFilterId] = useState<string | null>(
     null
   )
   const rootInputRef = useRef<HTMLInputElement>(null)
-  const rootId = useId()
 
   useEffect(() => {
     if (!enableShortcut) return
@@ -1500,19 +1320,6 @@ export function Filters<T = unknown>({
       rootInputRef.current?.focus()
     }
   }, [addFilterOpen, activeMenu])
-
-  useEffect(() => {
-    setHighlightedIndex(-1)
-  }, [menuSearchInput])
-
-  useEffect(() => {
-    if (highlightedIndex >= 0 && addFilterOpen) {
-      const element = document.getElementById(
-        `${rootId}-item-${highlightedIndex}`
-      )
-      element?.scrollIntoView({ block: "nearest" })
-    }
-  }, [highlightedIndex, addFilterOpen, rootId])
 
   useEffect(() => {
     if (!addFilterOpen) {
@@ -1618,12 +1425,6 @@ export function Filters<T = unknown>({
     )
   }, [selectableFields, menuSearchInput])
 
-  useEffect(() => {
-    if (addFilterOpen && filteredFields.length > 0) {
-      setHighlightedIndex(0)
-    }
-  }, [addFilterOpen, filteredFields.length])
-
   return (
     <FilterContext.Provider
       value={{
@@ -1673,13 +1474,6 @@ export function Filters<T = unknown>({
                   <div className="relative">
                     <Input
                       ref={rootInputRef}
-                      role="combobox"
-                      aria-controls={`${rootId}-listbox`}
-                      aria-activedescendant={
-                        highlightedIndex >= 0
-                          ? `${rootId}-item-${highlightedIndex}`
-                          : undefined
-                      }
                       placeholder={mergedI18n.searchFields}
                       className={cn(
                         "h-8 rounded-none border-0 bg-transparent! px-2 text-sm shadow-none",
@@ -1689,68 +1483,12 @@ export function Filters<T = unknown>({
                       value={menuSearchInput}
                       onFocus={() => setActiveMenu("root")}
                       onMouseEnter={() => setActiveMenu("root")}
-                      onBlur={() =>
-                        activeMenu === "root" && rootInputRef.current?.focus()
-                      }
                       onChange={(e) => setMenuSearchInput(e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                       onKeyDown={(e) => {
                         if (e.key === "ArrowDown") {
                           e.preventDefault()
-                          if (filteredFields.length > 0) {
-                            setHighlightedIndex((prev) =>
-                              prev < filteredFields.length - 1 ? prev + 1 : 0
-                            )
-                          }
-                        } else if (e.key === "ArrowUp") {
-                          e.preventDefault()
-                          if (filteredFields.length > 0) {
-                            setHighlightedIndex((prev) =>
-                              prev > 0 ? prev - 1 : filteredFields.length - 1
-                            )
-                          }
-                        } else if (
-                          (e.key === "ArrowRight" || e.key === "ArrowLeft") &&
-                          highlightedIndex >= 0
-                        ) {
-                          const field = filteredFields[highlightedIndex]
-                          const hasSubMenu =
-                            field &&
-                            (field.type === "select" ||
-                              field.type === "multiselect") &&
-                            field.options?.length
-
-                          if (e.key === "ArrowRight" && hasSubMenu) {
-                            e.preventDefault()
-                            setOpenSubMenu(field.key || null)
-                            setActiveMenu(field.key || "root")
-                          } else if (e.key === "ArrowLeft") {
-                            e.preventDefault()
-                            if (openSubMenu) {
-                              setOpenSubMenu(null)
-                              setActiveMenu("root")
-                            }
-                          }
-                        } else if (e.key === "Enter" && highlightedIndex >= 0) {
-                          e.preventDefault()
-                          const field = filteredFields[highlightedIndex]
-                          if (field.key) {
-                            const hasSubMenu =
-                              (field.type === "select" ||
-                                field.type === "multiselect") &&
-                              field.options?.length
-                            if (!hasSubMenu) {
-                              addFilter(field.key)
-                            } else {
-                              if (openSubMenu === field.key) {
-                                setOpenSubMenu(null)
-                                setActiveMenu("root")
-                              } else {
-                                setOpenSubMenu(field.key)
-                                setActiveMenu(field.key)
-                              }
-                            }
-                          }
+                          focusFirstMenuItem(e.currentTarget)
                         } else if (e.key === "Escape") {
                           setAddFilterOpen(false)
                         }
@@ -1769,8 +1507,8 @@ export function Filters<T = unknown>({
 
               <FilterMenuList
                 scrollAreaClassName="**:data-[slot=scroll-area-scrollbar]:m-0"
-                id={`${rootId}-listbox`}
                 onMouseEnter={() => setActiveMenu("root")}
+                onKeyDown={(e) => leaveFirstMenuItemUp(e, rootInputRef.current)}
               >
                     {(() => {
                       if (filteredFields.length === 0) {
@@ -1781,9 +1519,7 @@ export function Filters<T = unknown>({
                         )
                       }
 
-                      return filteredFields.map((field, index) => {
-                        const isHighlighted = highlightedIndex === index
-                        const itemId = `${rootId}-item-${index}`
+                      return filteredFields.map((field) => {
                         const hasSubMenu =
                           (field.type === "select" ||
                             field.type === "multiselect") &&
@@ -1814,15 +1550,8 @@ export function Filters<T = unknown>({
                               }}
                             >
                               <DropdownMenuSubTrigger
-                                id={itemId}
-                                role="option"
-                                aria-selected={isHighlighted}
-                                data-highlighted={isHighlighted || undefined}
-                                onMouseEnter={() => {
-                                  setHighlightedIndex(index)
-                                  setActiveMenu("root")
-                                }}
-                                className="data-popup-open:bg-accent data-popup-open:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                                onMouseEnter={() => setActiveMenu("root")}
+                                className="data-highlighted:bg-accent data-highlighted:text-accent-foreground"
                               >
                                 {field.icon}
                                 <span>{field.label}</span>
@@ -1904,12 +1633,7 @@ export function Filters<T = unknown>({
                         return (
                           <DropdownMenuItem
                             key={field.key}
-                            id={itemId}
-                            role="option"
-                            aria-selected={isHighlighted}
-                            data-highlighted={isHighlighted || undefined}
-                            onMouseEnter={() => setHighlightedIndex(index)}
-                            onClick={() => field.key && addFilter(field.key)}
+                            onSelect={() => field.key && addFilter(field.key)}
                             className="data-highlighted:bg-accent data-highlighted:text-accent-foreground"
                           >
                             {field.icon}
