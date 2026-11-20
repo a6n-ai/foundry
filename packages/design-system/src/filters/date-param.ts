@@ -1,6 +1,7 @@
 import { dayRange, isRealDate } from "@foundry/commons/util/dates";
 
-const MAX_MS = 8.64e15;
+// End of year 9999: later epochs format to 5-digit years that no ISO parser reads back.
+const MAX_MS = 253402300799999;
 
 /** A `from`/`to` URL value as epoch ms: raw epoch digits, or an ISO day read in `timeZone` (default: the runtime's). Anything else is undefined. */
 export function dateParamMs(raw: string | null | undefined, edge: "from" | "to", timeZone?: string): number | undefined {
