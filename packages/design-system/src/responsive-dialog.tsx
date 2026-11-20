@@ -1,5 +1,5 @@
 "use client";
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { useIsMobile } from "@foundry/ui/use-mobile";
 import { cn } from "@foundry/ui/cn";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@foundry/ui/dialog";
@@ -44,6 +44,7 @@ export function ResponsiveDialog({
   flush?: boolean;
 }) {
   const isMobile = useIsMobile();
+  useReturnFocus(!trigger && !!open);
   if (isMobile) {
     return (
       <Drawer
@@ -82,7 +83,7 @@ export function ResponsiveDialog({
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent
         className={cn(
-          "flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg",
+          "flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg",
           contentClassName,
         )}
       >
@@ -102,4 +103,20 @@ export function ResponsiveDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+// Radix returns focus to its Trigger on close. A controlled dialog opened from a row button has no Trigger,
+// so focus fell to <body> and keyboard users lost their place. Put it back on whatever opened the dialog.
+// Layout effect: it runs before Radix's focus scope moves focus into the content.
+function useReturnFocus(open: boolean) {
+  const returnTo = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    if (open) {
+      returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      return;
+    }
+    const el = returnTo.current;
+    returnTo.current = null;
+    if (el?.isConnected) requestAnimationFrame(() => el.focus());
+  }, [open]);
 }
