@@ -485,7 +485,6 @@ function EventCalendarDatePicker({
             <Button
               variant={nav.variant}
               size={nav.iconSize}
-              data-slot="event-calendar-date-picker"
               data-mode={resolved}
               aria-label={settings.i18n.labels.goToDate}
               className={cn(nav.className, className)}

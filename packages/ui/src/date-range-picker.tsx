@@ -83,6 +83,7 @@ export function DateRangePicker({
           ].map((p) => (
             <Button
               key={p.label}
+              type="button"
               variant="ghost"
               size="sm"
               onClick={() => {
@@ -95,6 +96,7 @@ export function DateRangePicker({
           ))}
           {from != null && (
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className="ml-auto text-muted-foreground"
