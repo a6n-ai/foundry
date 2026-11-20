@@ -9,7 +9,7 @@ const read = (p: string) => readFileSync(join(root, p), "utf8")
 
 describe("press scale is a token so admin can drop it and customer keeps it", () => {
   it("admin scope sets both press tokens to 1", () => {
-    const admin = tokens.slice(tokens.indexOf(".crm-app:not(.customer-app), body"))
+    const admin = tokens.slice(tokens.indexOf(".admin-ui, body"))
     expect(admin).toMatch(/--ui-press-scale: 1;/)
     expect(admin).toMatch(/--ui-press-scale-nav: 1;/)
   })

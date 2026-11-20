@@ -43,13 +43,13 @@ describe("Skeleton", () => {
 
   it("admin shimmer is scoped out of :root, reaches portals, and is off under reduced motion", () => {
     expect(tokens).toMatch(/@keyframes skeleton-shimmer\s*{/)
-    expect(tokens).toMatch(/\.crm-app:not\(\.customer-app\) \.skeleton-shimmer, body:has\(\.crm-app:not\(\.customer-app\)\) \.skeleton-shimmer\s*{[^}]*animation:/)
-    expect(tokens).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*{[\s\S]*body:has\(\.crm-app:not\(\.customer-app\)\) \.skeleton-shimmer/)
+    expect(tokens).toMatch(/\.admin-ui \.skeleton-shimmer, body:has\(\.admin-ui\) \.skeleton-shimmer\s*{[^}]*animation:/)
+    expect(tokens).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*{[\s\S]*body:has\(\.admin-ui\) \.skeleton-shimmer/)
     expect(tokens).not.toMatch(/:root\s*{[^}]*skeleton-shimmer/)
   })
 
   it("keeps the customer skeleton corner and takes the admin 6px", () => {
     expect(tokens).toMatch(/:root\s*{[^}]*--ui-radius-skeleton: var\(--radius-md\);/)
-    expect(tokens).toMatch(/\.crm-app:not\(\.customer-app\), body:has\(\.crm-app:not\(\.customer-app\)\)\s*{[^}]*--ui-radius-skeleton: 6px;/)
+    expect(tokens).toMatch(/\.admin-ui, body:has\(\.admin-ui\)\s*{[^}]*--ui-radius-skeleton: 6px;/)
   })
 })

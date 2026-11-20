@@ -14,7 +14,7 @@ const block = (selector: string) => {
   return tokens.slice(start, tokens.indexOf("\n}", start))
 }
 const rootBlock = block(":root")
-const adminBlock = block(".crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))")
+const adminBlock = block(".admin-ui, body:has(.admin-ui)")
 
 const renderTable = (variant?: "default" | "striped" | "bordered" | "interactive") =>
   render(

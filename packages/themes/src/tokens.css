@@ -37,8 +37,8 @@
 }
 
 /* Component shape tokens read by @foundry/ui. :root keeps today's look; admin takes the Vercel/Geist shape.
-   Customer layouts also carry .crm-app (as "crm-app customer-app"), so admin is .crm-app without .customer-app;
-   body:has() reaches Radix content portalled to <body>, outside .crm-app. */
+   Admin is opt-in: a layout adds .admin-ui. Keying on .crm-app alone also restyled apps whose customer
+   and auth layouts carry a bare .crm-app. body:has() reaches content portalled to <body>. */
 :root {
   --ui-radius-control: var(--radius-lg);
   --ui-radius-control-sm: min(var(--radius-md), 12px);
@@ -101,18 +101,18 @@
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
 }
-.crm-app:not(.customer-app) .skeleton-shimmer, body:has(.crm-app:not(.customer-app)) .skeleton-shimmer {
+.admin-ui .skeleton-shimmer, body:has(.admin-ui) .skeleton-shimmer {
   background: linear-gradient(90deg, var(--muted) 0%, color-mix(in oklch, var(--muted), var(--foreground) 6%) 50%, var(--muted) 100%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.6s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .crm-app:not(.customer-app) .skeleton-shimmer, body:has(.crm-app:not(.customer-app)) .skeleton-shimmer {
+  .admin-ui .skeleton-shimmer, body:has(.admin-ui) .skeleton-shimmer {
     background: var(--muted);
     animation: none;
   }
 }
-.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app)) {
+.admin-ui, body:has(.admin-ui) {
   --ui-radius-control: 6px;
   --ui-radius-control-sm: 5px;
   --ui-radius-control-xs: 4px;
@@ -173,7 +173,7 @@
 /* Admin badges are one pill: tone fill and tone text, no border. Badges set --ui-badge-tone; unset means neutral.
    Text is 55% tone, 45% foreground: at 65% light success, warning and brand fall under 4.5:1 on the tint.
    The tone is set by a class on the badge, which this unlayered rule overrides, so callers pass the tone var, not bg/text. */
-:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) [data-slot="badge"]:not([data-variant="link"]) {
+:is(.admin-ui, body:has(.admin-ui)) [data-slot="badge"]:not([data-variant="link"]) {
   border-width: 0;
   border-radius: var(--ui-radius-badge);
   transition-property: none;
@@ -191,15 +191,15 @@
   font-variant-numeric: tabular-nums;
 }
 /* Linked badges step the fill up on hover. Instant, no transition, like every admin hover. */
-:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) [data-slot="badge"]:is(a):hover:not([data-variant="link"]),
-:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) a:hover [data-slot="badge"]:not([data-variant="link"]) {
+:is(.admin-ui, body:has(.admin-ui)) [data-slot="badge"]:is(a):hover:not([data-variant="link"]),
+:is(.admin-ui, body:has(.admin-ui)) a:hover [data-slot="badge"]:not([data-variant="link"]) {
   background-color: color-mix(in oklch, var(--ui-badge-tone, var(--muted-foreground)) 22%, transparent);
 }
 /* ReUI badges (data-size) collapse to the admin pill above; sm is 18px. */
-:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) [data-slot="badge"][data-size="sm"]:not([data-variant="link"]) {
+:is(.admin-ui, body:has(.admin-ui)) [data-slot="badge"][data-size="sm"]:not([data-variant="link"]) {
   height: 1.125rem;
 }
 /* Admin hover and press change colour at once: no transition on clickable elements. */
-:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) :is(button, a, [role="button"], [role="row"], [role="menuitem"], tr) {
+:is(.admin-ui, body:has(.admin-ui)) :is(button, a, [role="button"], [role="row"], [role="menuitem"], tr) {
   transition-property: none;
 }

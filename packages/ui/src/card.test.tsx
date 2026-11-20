@@ -14,7 +14,7 @@ const block = (selector: string) => {
   return tokens.slice(start, tokens.indexOf("\n}", start))
 }
 const rootBlock = block(":root")
-const adminBlock = block(".crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))")
+const adminBlock = block(".admin-ui, body:has(.admin-ui)")
 
 describe("Card reads the --ui-* tokens", () => {
   it("the card shell uses the card radius token and the hairline ring token, with no shadow", () => {
