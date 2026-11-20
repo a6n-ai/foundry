@@ -71,7 +71,6 @@ describe("Badge is one pill with tone variants", () => {
 describe("Badge admin rule in tokens.css", () => {
   const rule = tokens.slice(tokens.indexOf('[data-slot="badge"]'), tokens.indexOf("}", tokens.indexOf('[data-slot="badge"]')))
   const hover = tokens.slice(tokens.indexOf('[data-slot="badge"]:is(a):hover'), tokens.indexOf("}", tokens.indexOf('[data-slot="badge"]:is(a):hover')))
-  const reuiSizes = tokens.slice(tokens.indexOf('[data-slot="badge"][data-size]'), tokens.indexOf("}", tokens.indexOf('[data-slot="badge"][data-size]')))
 
   it("admin pills have no border, the badge radius, the tone fill and tone text", () => {
     expect(rule).toContain("border-width: 0;")
@@ -94,9 +93,10 @@ describe("Badge admin rule in tokens.css", () => {
     expect(tokens).toContain('a:hover [data-slot="badge"]')
   })
 
-  it("ReUI badges collapse to a 20px pill with 12px text, and sm to 18px", () => {
-    expect(reuiSizes).toContain("height: 1.25rem;")
-    expect(reuiSizes).toContain("font-size: 0.75rem;")
+  it("every admin badge is Vercel's pill: 20px, 11px / 500, 0.2px tracking; ReUI sm is 18px", () => {
+    expect(rule).toContain("height: 1.25rem;")
+    expect(rule).toContain("font-size: 11px;")
+    expect(rule).toContain("letter-spacing: 0.2px;")
     expect(tokens).toContain('[data-slot="badge"][data-size="sm"]')
   })
 
