@@ -54,7 +54,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@foundry/ui/tooltip"
-import { AlertCircleIcon, XIcon, CheckIcon } from "lucide-react"
+import { AlertCircleIcon, ListFilterIcon, XIcon, CheckIcon } from "lucide-react"
 
 // i18n Configuration Interface
 export interface FilterI18nConfig {
@@ -739,6 +739,7 @@ interface FilterValueSelectorProps<T = unknown> {
   onChange: (values: T[]) => void
   operator: string
   autoFocus?: boolean
+  emptyLabel?: string
 }
 
 interface SelectOptionsPopoverProps<T = unknown> {
@@ -747,6 +748,7 @@ interface SelectOptionsPopoverProps<T = unknown> {
   onChange: (values: T[]) => void
   onClose?: () => void
   inline?: boolean
+  emptyLabel?: string
 }
 
 function SelectOptionsPopover<T = unknown>({
@@ -755,6 +757,7 @@ function SelectOptionsPopover<T = unknown>({
   onChange,
   onClose,
   inline = false,
+  emptyLabel,
 }: SelectOptionsPopoverProps<T>) {
   const [open, setOpen] = useState(false)
   const [searchInput, setSearchInput] = useState("")
@@ -1034,7 +1037,7 @@ function SelectOptionsPopover<T = unknown>({
                     ? selectedOptions[0].label
                     : selectedOptions.length > 1
                       ? `${selectedOptions.length} ${context.i18n.selectedCount}`
-                      : context.i18n.select}
+                      : (emptyLabel ?? context.i18n.select)}
                 </>
               )}
             </div>
@@ -1056,6 +1059,7 @@ function FilterValueSelector<T = unknown>({
   onChange,
   operator,
   autoFocus,
+  emptyLabel,
 }: FilterValueSelectorProps<T>) {
   if (operator === "empty" || operator === "not_empty") {
     return null
@@ -1086,12 +1090,12 @@ function FilterValueSelector<T = unknown>({
 
   if (field.type === "select" || field.type === "multiselect") {
     return (
-      <SelectOptionsPopover field={field} values={values} onChange={onChange} />
+      <SelectOptionsPopover field={field} values={values} onChange={onChange} emptyLabel={emptyLabel} />
     )
   }
 
   return (
-    <SelectOptionsPopover field={field} values={values} onChange={onChange} />
+    <SelectOptionsPopover field={field} values={values} onChange={onChange} emptyLabel={emptyLabel} />
   )
 }
 export interface Filter<T = unknown> {
@@ -1464,6 +1468,7 @@ export function Filters<T = unknown>({
   fieldWidth = "fixed",
 }: FiltersProps<T>) {
   const [addFilterOpen, setAddFilterOpen] = useState(false)
+  const addButtonRef = useRef<HTMLButtonElement>(null)
   const [menuSearchInput, setMenuSearchInput] = useState("")
   const [activeMenu, setActiveMenu] = useState<string>("root")
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null)
@@ -1656,7 +1661,8 @@ export function Filters<T = unknown>({
           >
             <DropdownMenuTrigger asChild>
               {(trigger as React.ReactElement) ?? (
-                <Button variant="outline" size={size} data-slot="filter-add">
+                <Button ref={addButtonRef} variant="outline" size={size} data-slot="filter-add">
+                  <ListFilterIcon size={16} strokeWidth={1.5} />
                   {mergedI18n.addFilter}
                 </Button>
               )}
@@ -1923,13 +1929,17 @@ export function Filters<T = unknown>({
         {filters.map((filter) => {
           const field = fieldsMap[filter.field]
           if (!field) return null
+          // An unpicked chip is just its field name; there is nothing to remove yet.
+          const empty = filter.values.length === 0
           return (
-            <ButtonGroup key={filter.id} data-slot="filter-chip">
-              <ButtonGroupText data-slot="filter-chip-key" className="bg-background dark:bg-input/30">
-                {field.icon && field.icon}
-                {field.label}
-              </ButtonGroupText>
-              {getOperatorsForField(field, filter.values, mergedI18n).length > 1 && (
+            <ButtonGroup key={filter.id} data-slot="filter-chip" data-empty={empty || undefined}>
+              {!empty && (
+                <ButtonGroupText data-slot="filter-chip-key" className="bg-background dark:bg-input/30">
+                  {field.icon && field.icon}
+                  {field.label}
+                </ButtonGroupText>
+              )}
+              {!empty && getOperatorsForField(field, filter.values, mergedI18n).length > 1 && (
                 <FilterOperatorDropdown<T>
                   field={field}
                   operator={filter.operator}
@@ -1943,8 +1953,17 @@ export function Filters<T = unknown>({
                 operator={filter.operator}
                 onChange={(values) => updateFilter(filter.id, { values })}
                 autoFocus={filter.id === lastAddedFilterId}
+                emptyLabel={empty ? field.label : undefined}
               />
-              <FilterRemoveButton aria-label={`Remove ${field.label}`} onClick={() => removeFilter(filter.id)} />
+              {!empty && (
+                <FilterRemoveButton
+                  aria-label={`Remove ${field.label}`}
+                  onClick={() => {
+                    removeFilter(filter.id)
+                    addButtonRef.current?.focus()
+                  }}
+                />
+              )}
             </ButtonGroup>
           )
         })}

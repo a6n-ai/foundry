@@ -71,7 +71,7 @@ export function ReuiFacetFilters({
   spec: FacetDef[];
   /** The page owns the date picker, so this menu must not also write `from`/`to`. */
   hideDate?: boolean;
-  /** Facet fields always shown as chips (empty until picked). Also relabels the add button "More filters". */
+  /** Facet fields always shown as chips (empty until picked). */
   pinned?: readonly string[];
   /** When a select/pills facet is cleared, write this sentinel instead of deleting the param (e.g. `{ ending: "off" }`). */
   clearValues?: Readonly<Record<string, string>>;
@@ -233,7 +233,6 @@ export function ReuiFacetFilters({
       onChange={onChange}
       size="sm"
       allowMultiple={!oneChipPerField}
-      i18n={pinned.length ? { addFilter: "More filters" } : undefined}
     />
   );
 }

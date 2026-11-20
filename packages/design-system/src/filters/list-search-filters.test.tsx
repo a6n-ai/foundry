@@ -28,11 +28,38 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("ListSearchFilters", () => {
-  it("shows pinned facets as empty chips and relabels the add button", () => {
+  it("shows pinned facets as empty chips and keeps the add button label", () => {
     render(<ListSearchFilters spec={spec} pinned={["status"]} />);
     expect(screen.getByText("Status")).toBeInTheDocument();
-    expect(screen.getByText("More filters")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add Filter" })).toBeInTheDocument();
+    expect(screen.queryByText("More filters")).not.toBeInTheDocument();
     expect(screen.queryByText("Source")).not.toBeInTheDocument();
+  });
+
+  it("the add button carries a filter icon", () => {
+    render(<ListSearchFilters spec={spec} />);
+    expect(screen.getByRole("button", { name: "Add Filter" }).querySelector(".lucide-list-filter")).not.toBeNull();
+  });
+
+  it("an empty pinned facet is a dashed key-only chip with no remove button", () => {
+    render(<ListSearchFilters spec={spec} pinned={["status"]} />);
+    const chip = screen.getByText("Status").closest('[data-slot="filter-chip"]') as HTMLElement;
+    expect(chip).toHaveAttribute("data-empty");
+    expect(within(chip).queryByRole("button", { name: "Remove Status" })).not.toBeInTheDocument();
+  });
+
+  it("an active chip has no data-empty marker", () => {
+    search = "status=late";
+    render(<ListSearchFilters spec={spec} />);
+    const chip = screen.getByText("Late").closest('[data-slot="filter-chip"]') as HTMLElement;
+    expect(chip).not.toHaveAttribute("data-empty");
+  });
+
+  it("after × removes a chip, focus moves to the Add Filter button", async () => {
+    search = "status=late";
+    render(<ListSearchFilters spec={spec} />);
+    fireEvent.click(screen.getByRole("button", { name: "Remove Status" }));
+    expect(screen.getByRole("button", { name: "Add Filter" })).toHaveFocus();
   });
 
   it("a numeric pinned count pins the first facets, skipping search", () => {
@@ -99,13 +126,14 @@ describe("ListSearchFilters", () => {
     expect(await screen.findByPlaceholderText("Filter by…")).toBeInTheDocument();
   });
 
-  it("picking a value in a chip writes the same ?param as before", async () => {
+  it("picking a value in an empty pinned chip writes the same ?param and shows the remove button", async () => {
     render(<ListSearchFilters spec={spec} pinned={["status"]} />);
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Select..." }), { button: 0, ctrlKey: false });
+    fireEvent.pointerDown(screen.getByRole("button", { name: "Status" }), { button: 0, ctrlKey: false });
     fireEvent.click(await screen.findByRole("option", { name: "Late" }));
     await waitFor(() => expect(replace).toHaveBeenCalled());
     const url = new URL(replace.mock.calls[0]![0] as string, "http://x");
     expect(Object.fromEntries(url.searchParams)).toEqual({ status: "late" });
+    expect(await screen.findByRole("button", { name: "Remove Status" })).toBeInTheDocument();
   });
 
   it("an active chip reads Key Value with no operator and × removes it", async () => {
