@@ -68,6 +68,7 @@
   --ui-modal-blur: var(--blur-xs, 4px);
   --ui-modal-title-weight: 500;
   --ui-modal-heading-size: 1.125rem;
+  --ui-modal-heading-weight: 600;
   --ui-modal-description-size: 0.875rem;
   --ui-modal-duration: 100ms;
   --ui-modal-scale: 0.95;
@@ -117,6 +118,7 @@
   --ui-modal-blur: 0px;
   --ui-modal-title-weight: 600;
   --ui-modal-heading-size: 16px;
+  --ui-modal-heading-weight: 600;
   --ui-modal-description-size: 13px;
   --ui-modal-duration: 150ms;
   --ui-modal-scale: .96;

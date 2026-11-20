@@ -57,7 +57,7 @@ function AlertDialogTitle({ className, ...props }: React.ComponentProps<typeof S
   return (
     <SdkAlertDialogTitle
       className={cn(
-        "font-heading text-(length:--ui-modal-heading-size) leading-none font-(weight:--ui-modal-title-weight)",
+        "font-heading text-(length:--ui-modal-heading-size) leading-none font-(weight:--ui-modal-heading-weight)",
         className
       )}
       {...props}

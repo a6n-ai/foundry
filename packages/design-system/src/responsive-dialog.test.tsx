@@ -79,7 +79,7 @@ describe("ResponsiveDialog desktop title", () => {
       </ResponsiveDialog>
     )
     const title = screen.getByText("Edit member")
-    expect(title).toHaveClass("text-(length:--ui-modal-heading-size)", "font-(weight:--ui-modal-title-weight)")
+    expect(title).toHaveClass("text-(length:--ui-modal-heading-size)", "font-(weight:--ui-modal-heading-weight)")
     expect(title).not.toHaveClass("text-lg", "font-semibold")
   })
 })
