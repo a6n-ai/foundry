@@ -59,16 +59,45 @@ describe("Badge is one pill with tone variants", () => {
     render(<Badge>b</Badge>)
     expect(screen.getByText("b")).toHaveClass("border", "border-transparent")
   })
+
+  it("a caller's tone class replaces the variant tone and keeps the caller colour", () => {
+    render(<Badge className="[--ui-badge-tone:var(--color-sky-700)]">s</Badge>)
+    const el = screen.getByText("s")
+    expect(el).toHaveClass("[--ui-badge-tone:var(--color-sky-700)]")
+    expect(el).not.toHaveClass("[--ui-badge-tone:var(--primary)]")
+  })
 })
 
 describe("Badge admin rule in tokens.css", () => {
   const rule = tokens.slice(tokens.indexOf('[data-slot="badge"]'), tokens.indexOf("}", tokens.indexOf('[data-slot="badge"]')))
+  const hover = tokens.slice(tokens.indexOf('[data-slot="badge"]:is(a):hover'), tokens.indexOf("}", tokens.indexOf('[data-slot="badge"]:is(a):hover')))
+  const reuiSizes = tokens.slice(tokens.indexOf('[data-slot="badge"][data-size]'), tokens.indexOf("}", tokens.indexOf('[data-slot="badge"][data-size]')))
 
   it("admin pills have no border, the badge radius, the tone fill and tone text", () => {
     expect(rule).toContain("border-width: 0;")
     expect(rule).toContain("border-radius: var(--ui-radius-badge);")
     expect(rule).toContain("background-color: color-mix(in oklch, var(--ui-badge-tone, var(--muted-foreground)) 14%, transparent);")
     expect(rule).toContain("color: var(--ui-badge-tone, var(--muted-foreground));")
+  })
+
+  it("text is the tone mixed 55% into the foreground for AA contrast, and the fill falls back to transparent", () => {
+    expect(rule).toContain("color: color-mix(in oklch, var(--ui-badge-tone, var(--muted-foreground)) 55%, var(--foreground));")
+    expect(rule).toContain("background-color: transparent;")
+  })
+
+  it("admin badges never transition colour", () => {
+    expect(rule).toContain("transition-property: none;")
+  })
+
+  it("linked badges step the fill to 22% on hover, for an anchor badge and for a badge inside a link", () => {
+    expect(hover).toContain("22%")
+    expect(tokens).toContain('a:hover [data-slot="badge"]')
+  })
+
+  it("ReUI badges collapse to a 20px pill with 12px text, and sm to 18px", () => {
+    expect(reuiSizes).toContain("height: 1.25rem;")
+    expect(reuiSizes).toContain("font-size: 0.75rem;")
+    expect(tokens).toContain('[data-slot="badge"][data-size="sm"]')
   })
 
   it("the link variant stays a plain link in admin", () => {

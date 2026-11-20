@@ -20,7 +20,10 @@ describe("Card reads the --ui-* tokens", () => {
   it("the card shell uses the card radius token and the hairline ring token, with no shadow", () => {
     render(<Card>body</Card>)
     const card = screen.getByText("body")
-    expect(card).toHaveClass("rounded-(--ui-radius-card)", "ring-(color:--ui-card-ring)")
+    expect(card).toHaveClass(
+      "rounded-(--ui-radius-card)",
+      "ring-[color:var(--ui-card-ring,color-mix(in_oklab,var(--foreground)_10%,transparent))]"
+    )
     expect(card.className).not.toMatch(/rounded-xl\b|ring-foreground\/10|shadow/)
   })
 
@@ -56,7 +59,7 @@ describe("Card token values", () => {
     expect(rootBlock).toContain("--ui-card-title-size: 1rem;")
     expect(rootBlock).toContain("--ui-card-title-weight: 500;")
     expect(rootBlock).toContain("--ui-card-description-size: 0.875rem;")
-    expect(rootBlock).toContain("--ui-card-ring: color-mix(in oklab, var(--foreground) 10%, transparent);")
+    expect(rootBlock).not.toContain("--ui-card-ring")
     expect(rootBlock).toContain("--ui-radius-card: var(--radius-xl);")
   })
 

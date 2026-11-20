@@ -52,7 +52,6 @@
   --ui-card-title-size: 1rem;
   --ui-card-title-weight: 500;
   --ui-card-description-size: 0.875rem;
-  --ui-card-ring: color-mix(in oklab, var(--foreground) 10%, transparent);
   --ui-radius-popup: var(--radius-lg);
   --ui-shadow-popup: var(--shadow-md), 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent);
   --ui-popup-padding: 0.625rem;
@@ -151,12 +150,30 @@
   --ui-tabs-indicator-offset: -2px;
   --ui-tabs-indicator-height: 2px;
 }
-/* Admin badges are one pill: tone fill and tone text, no border. Badges set --ui-badge-tone; unset means neutral. */
+/* Admin badges are one pill: tone fill and tone text, no border. Badges set --ui-badge-tone; unset means neutral.
+   Text is 55% tone, 45% foreground: at 65% light success, warning and brand fall under 4.5:1 on the tint.
+   The tone is set by a class on the badge, which this unlayered rule overrides, so callers pass the tone var, not bg/text. */
 :is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) [data-slot="badge"]:not([data-variant="link"]) {
   border-width: 0;
   border-radius: var(--ui-radius-badge);
+  transition-property: none;
+  background-color: transparent;
   background-color: color-mix(in oklch, var(--ui-badge-tone, var(--muted-foreground)) 14%, transparent);
   color: var(--ui-badge-tone, var(--muted-foreground));
+  color: color-mix(in oklch, var(--ui-badge-tone, var(--muted-foreground)) 55%, var(--foreground));
+}
+/* Linked badges step the fill up on hover. Instant, no transition, like every admin hover. */
+:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) [data-slot="badge"]:is(a):hover:not([data-variant="link"]),
+:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) a:hover [data-slot="badge"]:not([data-variant="link"]) {
+  background-color: color-mix(in oklch, var(--ui-badge-tone, var(--muted-foreground)) 22%, transparent);
+}
+/* ReUI badges (data-size) collapse to the admin pill: 20px, 18px for sm, 12px text. */
+:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) [data-slot="badge"][data-size]:not([data-variant="link"]) {
+  height: 1.25rem;
+  font-size: 0.75rem;
+}
+:is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) [data-slot="badge"][data-size="sm"]:not([data-variant="link"]) {
+  height: 1.125rem;
 }
 /* Admin hover and press change colour at once: no transition on clickable elements. */
 :is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) :is(button, a, [role="button"], [role="row"], [role="menuitem"], tr) {

@@ -332,7 +332,7 @@ export function DeliveryChargesManager({
                           <Badge variant="secondary">{tag.name}</Badge>
                         ) : (
                           // Hidden from customers until it has a tag.
-                          <Badge variant="outline" className="border-destructive/40 text-destructive">No tag</Badge>
+                          <Badge variant="outline" className="border-destructive/40 [--ui-badge-tone:var(--destructive)]">No tag</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{connectedNames(deliveryStrategies, o) || "—"}</TableCell>
@@ -403,11 +403,11 @@ export function DeliveryChargesManager({
                     </TableCell>
                     <TableCell>
                       {at.active ? (
-                        <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30">
+                        <Badge variant="outline" className="border-emerald-500/30 [--ui-badge-tone:var(--color-emerald-600)]">
                           Active
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="border-muted text-muted-foreground">
+                        <Badge variant="outline" className="border-muted [--ui-badge-tone:var(--muted-foreground)]">
                           Inactive
                         </Badge>
                       )}
@@ -865,11 +865,11 @@ function upsert<T extends { id: string }>(prev: T[], saved: T): T[] {
 
 function StatusBadge({ active }: { active: boolean }) {
   return active ? (
-    <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30">
+    <Badge variant="outline" className="border-emerald-500/30 [--ui-badge-tone:var(--color-emerald-600)]">
       Active
     </Badge>
   ) : (
-    <Badge variant="outline" className="border-muted text-muted-foreground">
+    <Badge variant="outline" className="border-muted [--ui-badge-tone:var(--muted-foreground)]">
       Inactive
     </Badge>
   );

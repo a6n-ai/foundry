@@ -12,7 +12,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-(--ui-radius-card) bg-card py-(--card-spacing) text-sm text-card-foreground ring-1 ring-(color:--ui-card-ring) [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-(--ui-radius-card) *:[img:last-child]:rounded-b-(--ui-radius-card)",
+        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-(--ui-radius-card) bg-card py-(--card-spacing) text-sm text-card-foreground ring-1 ring-[color:var(--ui-card-ring,color-mix(in_oklab,var(--foreground)_10%,transparent))] [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-(--ui-radius-card) *:[img:last-child]:rounded-b-(--ui-radius-card)",
         className
       )}
       {...props}
