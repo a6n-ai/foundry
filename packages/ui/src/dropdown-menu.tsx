@@ -16,11 +16,16 @@ import {
   MenuSub,
   MenuSubContent as SdkMenuSubContent,
   MenuSubTrigger as SdkMenuSubTrigger,
-  MenuTrigger,
+  MenuTrigger as SdkMenuTrigger,
 } from "@ui-sdk/react/menu"
 import { CheckIcon, ChevronRightIcon } from "lucide-react"
 
+import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
+
+function MenuTrigger(props: React.ComponentProps<typeof SdkMenuTrigger> & AsChildProps) {
+  return <SdkMenuTrigger {...withAsChild(props)} />
+}
 
 // Popups render in place and their clicks bubble, so a row or card around a menu would also get them.
 function MenuContent({ className, onClick, ...props }: React.ComponentProps<typeof SdkMenuContent>) {
@@ -63,16 +68,17 @@ function MenuItem({
   inset,
   variant = "default",
   ...props
-}: React.ComponentProps<typeof SdkMenuItem> & {
-  inset?: boolean
-  variant?: "default" | "destructive"
-}) {
+}: React.ComponentProps<typeof SdkMenuItem> &
+  AsChildProps & {
+    inset?: boolean
+    variant?: "default" | "destructive"
+  }) {
   return (
     <SdkMenuItem
       data-inset={inset}
       destructive={variant === "destructive"}
       className={cn(itemClass, className)}
-      {...props}
+      {...withAsChild(props)}
     />
   )
 }

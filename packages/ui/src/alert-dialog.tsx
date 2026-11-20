@@ -8,10 +8,15 @@ import {
   AlertDialogContent as SdkAlertDialogContent,
   AlertDialogDescription as SdkAlertDialogDescription,
   AlertDialogTitle as SdkAlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialogTrigger as SdkAlertDialogTrigger,
 } from "@ui-sdk/react/alert-dialog"
 
+import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
+
+function AlertDialogTrigger(props: React.ComponentProps<typeof SdkAlertDialogTrigger> & AsChildProps) {
+  return <SdkAlertDialogTrigger {...withAsChild(props)} />
+}
 
 function AlertDialogContent({
   className,

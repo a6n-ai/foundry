@@ -8,12 +8,17 @@ import {
   DrawerContent as SdkDrawerContent,
   DrawerDescription as SdkDrawerDescription,
   DrawerTitle as SdkDrawerTitle,
-  DrawerTrigger,
+  DrawerTrigger as SdkDrawerTrigger,
 } from "@ui-sdk/react/drawer"
 import { XIcon } from "lucide-react"
 
+import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 import { Button } from "./button"
+
+function SheetTrigger(props: React.ComponentProps<typeof SdkDrawerTrigger> & AsChildProps) {
+  return <SdkDrawerTrigger {...withAsChild(props)} />
+}
 
 function Sheet({ side = "right", ...props }: React.ComponentProps<typeof Drawer>) {
   return <Drawer side={side} {...props} />
@@ -77,7 +82,7 @@ function SheetDescription({ className, ...props }: React.ComponentProps<typeof S
 
 export {
   Sheet,
-  DrawerTrigger as SheetTrigger,
+  SheetTrigger,
   DrawerClose as SheetClose,
   SheetContent,
   SheetHeader,
