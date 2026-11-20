@@ -47,11 +47,7 @@ export function AdjustCoinsDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          Give or take coins
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger render={<Button size="sm" variant="outline" />}>Give or take coins</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Coins for {who}</DialogTitle>

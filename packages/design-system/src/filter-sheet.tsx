@@ -6,17 +6,15 @@ import { Button } from "@foundry/ui/button";
 
 export function FilterSheet({ activeCount = 0, iconOnly, children }: { activeCount?: number; iconOnly?: boolean; children: ReactNode }) {
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="h-11 gap-2 sm:h-9">
-          <SlidersHorizontalIcon className="size-4" />
-          {iconOnly ? <span className="hidden sm:inline">Filters</span> : "Filters"}
-          {activeCount > 0 && (
-            <span className="bg-primary text-primary-foreground rounded-full px-1.5 text-xs">{activeCount}</span>
-          )}
-        </Button>
+    <Sheet side="bottom">
+      <SheetTrigger render={<Button variant="outline" size="sm" className="h-11 gap-2 sm:h-9" />}>
+        <SlidersHorizontalIcon className="size-4" />
+        {iconOnly ? <span className="hidden sm:inline">Filters</span> : "Filters"}
+        {activeCount > 0 && (
+          <span className="bg-primary text-primary-foreground rounded-full px-1.5 text-xs">{activeCount}</span>
+        )}
       </SheetTrigger>
-      <SheetContent side="bottom" className="rounded-t-xl">
+      <SheetContent className="rounded-t-xl">
         <SheetHeader><SheetTitle>Filters</SheetTitle></SheetHeader>
         <div className="grid gap-4 px-4 pb-6">{children}</div>
       </SheetContent>

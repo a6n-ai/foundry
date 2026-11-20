@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition, type ReactElement } from "react";
 import { toast } from "sonner";
 import { Button } from "@foundry/ui/button";
 import {
@@ -21,7 +21,7 @@ export type OrgRoleDialogProps = {
   resources: ResourceLabel[];
   grantable: PermissionMap;
   initial?: { name: string; permission: PermissionMap };
-  trigger: ReactNode;
+  trigger: ReactElement;
   onSave: (input: { name: string; permission: PermissionMap }) => Promise<{ error?: string }>;
 };
 
@@ -77,7 +77,7 @@ export function OrgRoleDialog({ resources, grantable, initial, trigger, onSave }
         if (o) reset();
       }}
     >
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger render={trigger} />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{editing ? "Edit role" : "Create role"}</DialogTitle>

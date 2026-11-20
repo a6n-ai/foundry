@@ -62,6 +62,15 @@
   --ui-focus-ring: 3px;
   --ui-tooltip-radius: var(--radius-md);
   --ui-tooltip-padding: 0.375rem 0.75rem;
+  --ui-radius-modal: var(--radius-xl);
+  --ui-shadow-modal: 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent);
+  --ui-modal-backdrop: rgb(0 0 0 / 0.1);
+  --ui-modal-blur: var(--blur-xs);
+  --ui-modal-title-weight: 500;
+  --ui-modal-description-size: 0.875rem;
+  --ui-modal-duration: 100ms;
+  --ui-modal-scale: 0.95;
+  --ui-modal-ease: ease;
 }
 @keyframes skeleton-shimmer {
   from { background-position: 100% 0; }
@@ -101,6 +110,15 @@
   --ui-focus-ring: 2px;
   --ui-tooltip-radius: 6px;
   --ui-tooltip-padding: 4px 8px;
+  --ui-radius-modal: 12px;
+  --ui-shadow-modal: 0 4px 12px rgb(0 0 0 / .08), 0 0 0 1px var(--border);
+  --ui-modal-backdrop: rgb(0 0 0 / .4);
+  --ui-modal-blur: 0px;
+  --ui-modal-title-weight: 600;
+  --ui-modal-description-size: 13px;
+  --ui-modal-duration: 150ms;
+  --ui-modal-scale: .96;
+  --ui-modal-ease: var(--ease-soft);
 }
 /* Admin hover and press change colour at once: no transition on clickable elements. */
 :is(.crm-app:not(.customer-app), body:has(.crm-app:not(.customer-app))) :is(button, a, [role="button"], [role="row"], [role="menuitem"], tr) {

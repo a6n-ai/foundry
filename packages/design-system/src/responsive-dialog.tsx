@@ -1,5 +1,5 @@
 "use client";
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactElement, type ReactNode } from "react";
 import { useIsMobile } from "@foundry/ui/use-mobile";
 import { cn } from "@foundry/ui/cn";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@foundry/ui/dialog";
@@ -30,7 +30,7 @@ export function ResponsiveDialog({
 }: {
   open?: boolean;
   onOpenChange?: (o: boolean) => void;
-  trigger?: ReactNode;
+  trigger?: ReactElement;
   title: string;
   description?: string;
   children: ReactNode;
@@ -80,7 +80,7 @@ export function ResponsiveDialog({
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+      {trigger && <DialogTrigger render={trigger} />}
       <DialogContent
         className={cn(
           "flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg",

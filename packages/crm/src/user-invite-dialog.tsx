@@ -54,11 +54,9 @@ export function UserInviteDialog({ roles, onInvite, triggerLabel = "Invite user"
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm">
-          <UserPlusIcon className="size-4" />
-          {triggerLabel}
-        </Button>
+      <DialogTrigger render={<Button size="sm" />}>
+        <UserPlusIcon className="size-4" />
+        {triggerLabel}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
