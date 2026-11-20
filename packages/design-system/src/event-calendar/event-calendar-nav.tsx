@@ -40,7 +40,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@foundry/ui/tooltip"
 import { CalendarIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
@@ -68,7 +67,6 @@ function useNavTooltipConfig(): {
   side: "top" | "bottom" | "left" | "right"
   delay: number
   closeDelay: number
-  timeout: number
   className: string | undefined
 } {
   const viewConfig = useEventCalendarViewConfig()
@@ -82,7 +80,6 @@ function useNavTooltipConfig(): {
     side: config?.side ?? "top",
     delay: config?.delay ?? 600,
     closeDelay: config?.closeDelay ?? 0,
-    timeout: config?.timeout ?? 300,
     className: viewConfig.classNames?.navTooltip,
   }
 }
@@ -120,8 +117,8 @@ function NavTooltip({
   if (tooltips.disabled || content === null || content === undefined)
     return children
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
+    <Tooltip delay={tooltips.delay} closeDelay={tooltips.closeDelay}>
+      <TooltipTrigger render={children} />
       <TooltipContent side={tooltips.side} className={tooltips.className}>
         {content}
       </TooltipContent>
@@ -315,31 +312,39 @@ function EventCalendarViewSwitcher({
     >
       {/* Tooltip on an overlay-opener: hover-only (focus opens ignored) and
           force-closed while the menu is up, so it never lingers or flashes
-          when focus returns on close. Inherits the nav TooltipProvider's
-          delayDuration/skipDelayDuration. */}
-      <Tooltip open={tipOpen && !open} onOpenChange={setTipOpen}>
+          when focus returns on close. Inherits the nav's delay. */}
+      <Tooltip
+        open={tipOpen && !open}
+        delay={tooltips.delay}
+        closeDelay={tooltips.closeDelay}
+        onOpenChange={(next, details) => {
+          if (next && details.reason === "trigger-focus") return details.cancel()
+          setTipOpen(next)
+        }}
+      >
         <DropdownMenuTrigger asChild {...props}>
           {/* opens are hover-only; the trigger-focus open that follows a
-              menu close is ignored (prevented before Radix opens), closes
-              always land */}
-          <TooltipTrigger asChild onFocus={(event) => event.preventDefault()}>
-            <Button
-              variant={nav.variant}
-              size={nav.size}
-              data-slot="event-calendar-view-switcher"
-              aria-label={labels.selectView}
-              className={cn("gap-1", nav.className, className)}
-              asChild={asChild}
-            >
-              {children ?? (
-                <>
-                  {viewLabel(view)}
-                  <ChevronDownIcon className="size-4 opacity-60"
-                    aria-hidden="true" />
-                </>
-              )}
-            </Button>
-          </TooltipTrigger>
+              menu close is canceled, closes always land */}
+          <TooltipTrigger
+            render={
+              <Button
+                variant={nav.variant}
+                size={nav.size}
+                data-slot="event-calendar-view-switcher"
+                aria-label={labels.selectView}
+                className={cn("gap-1", nav.className, className)}
+                asChild={asChild}
+              >
+                {children ?? (
+                  <>
+                    {viewLabel(view)}
+                    <ChevronDownIcon className="size-4 opacity-60"
+                      aria-hidden="true" />
+                  </>
+                )}
+              </Button>
+            }
+          />
         </DropdownMenuTrigger>
         {tipOpen && !open && tooltip !== null && !tooltips.disabled && (
           <TooltipContent side={tooltips.side} className={tooltips.className}>
@@ -573,7 +578,6 @@ function EventCalendarNav({
   ...props
 }: EventCalendarNavProps) {
   const viewConfig = useEventCalendarViewConfig()
-  const tooltips = useNavTooltipConfig()
   const Comp = asChild ? Slot.Root : "div"
   return (
     <Comp
@@ -587,11 +591,7 @@ function EventCalendarNav({
       {...props}
     >
       {children ?? (
-        // Shared provider: first tooltip waits, moving between buttons is instant
-        <TooltipProvider
-          delayDuration={tooltips.delay}
-          skipDelayDuration={tooltips.timeout}
-        >
+        <>
           <EventCalendarNavToday />
           {showViewSwitcher && <EventCalendarViewSwitcher />}
           <div className="flex items-center">
@@ -602,7 +602,7 @@ function EventCalendarNav({
               period reads as its own group, not another button */}
           <EventCalendarTitle className="ms-3" />
           <div className="grow" />
-        </TooltipProvider>
+        </>
       )}
     </Comp>
   )

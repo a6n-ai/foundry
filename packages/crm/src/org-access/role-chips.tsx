@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { XIcon } from "lucide-react";
 import { Button } from "@foundry/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@foundry/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@foundry/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@foundry/ui/tooltip";
 
 export type ChipOp = "add" | "remove";
 
@@ -59,61 +59,57 @@ export function RoleChips({ roles, options, onAdd, onRemove, disabledReason }: R
   const addable = options.filter((o) => !roles.includes(o.value));
 
   return (
-    <TooltipProvider>
-      <div className="grid gap-2">
-        <ul className="flex flex-wrap gap-2">
-          {roles.map((role) => {
-            const label = options.find((o) => o.value === role)?.label ?? role;
-            const reason = disabledReason(role, "remove");
-            const remove = (
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                aria-label={reason ? `Remove ${label}: ${reason}` : `Remove ${label}`}
-                disabled={pending || reason !== null}
-                onClick={() => run(role, "remove")}
-              >
-                <XIcon />
-              </Button>
-            );
-            return (
-              <li key={role} className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-sm">
-                <span>{label}</span>
-                {reason ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span tabIndex={0}>{remove}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>{reason}</TooltipContent>
-                  </Tooltip>
-                ) : (
-                  remove
-                )}
-              </li>
-            );
-          })}
-        </ul>
-        {addable.length > 0 && (
-          <Select value="" onValueChange={(role) => run(role, "add")} disabled={pending}>
-            <SelectTrigger aria-label="Add role" aria-invalid={Boolean(error)} className="w-full sm:w-56">
-              <SelectValue placeholder="Add role" />
-            </SelectTrigger>
-            <SelectContent>
-              {addable.map((o) => (
-                <SelectItem key={o.value} value={o.value} disabled={disabledReason(o.value, "add") !== null}>
-                  {o.label}
-                  {disabledReason(o.value, "add") && ` · ${disabledReason(o.value, "add")}`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        {error && (
-          <p role="alert" className="text-xs text-destructive">
-            {error}
-          </p>
-        )}
-      </div>
-    </TooltipProvider>
+    <div className="grid gap-2">
+      <ul className="flex flex-wrap gap-2">
+        {roles.map((role) => {
+          const label = options.find((o) => o.value === role)?.label ?? role;
+          const reason = disabledReason(role, "remove");
+          const remove = (
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              aria-label={reason ? `Remove ${label}: ${reason}` : `Remove ${label}`}
+              disabled={pending || reason !== null}
+              onClick={() => run(role, "remove")}
+            >
+              <XIcon />
+            </Button>
+          );
+          return (
+            <li key={role} className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-sm">
+              <span>{label}</span>
+              {reason ? (
+                <Tooltip>
+                  <TooltipTrigger render={<span tabIndex={0} />}>{remove}</TooltipTrigger>
+                  <TooltipContent>{reason}</TooltipContent>
+                </Tooltip>
+              ) : (
+                remove
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {addable.length > 0 && (
+        <Select value="" onValueChange={(role) => run(role, "add")} disabled={pending}>
+          <SelectTrigger aria-label="Add role" aria-invalid={Boolean(error)} className="w-full sm:w-56">
+            <SelectValue placeholder="Add role" />
+          </SelectTrigger>
+          <SelectContent>
+            {addable.map((o) => (
+              <SelectItem key={o.value} value={o.value} disabled={disabledReason(o.value, "add") !== null}>
+                {o.label}
+                {disabledReason(o.value, "add") && ` · ${disabledReason(o.value, "add")}`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+      {error && (
+        <p role="alert" className="text-xs text-destructive">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

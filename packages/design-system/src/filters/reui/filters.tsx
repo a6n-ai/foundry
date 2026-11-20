@@ -434,11 +434,13 @@ function FilterInput<T = unknown>({
       {!isValid && validationMessage && (
         <InputGroupAddon align="inline-end">
           <Tooltip>
-            <TooltipTrigger asChild>
-              <InputGroupButton size="icon-xs">
-                <AlertCircleIcon className="text-destructive size-3.5" />
-              </InputGroupButton>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <InputGroupButton size="icon-xs">
+                  <AlertCircleIcon className="text-destructive size-3.5" />
+                </InputGroupButton>
+              }
+            />
             <TooltipContent>
               <p className="text-sm">{validationMessage}</p>
             </TooltipContent>
