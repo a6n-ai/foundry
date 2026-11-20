@@ -60,17 +60,19 @@ export function DateRangePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "justify-start gap-2 font-normal tabular-nums transition-transform active:scale-(--ui-press-scale)",
-            from == null && "text-muted-foreground",
-          )}
-        >
-          <CalendarIcon className="size-4 text-muted-foreground" />
-          {triggerLabel}
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            className={cn(
+              "justify-start gap-2 font-normal tabular-nums transition-transform active:scale-(--ui-press-scale)",
+              from == null && "text-muted-foreground",
+            )}
+          />
+        }
+      >
+        <CalendarIcon className="size-4 text-muted-foreground" />
+        {triggerLabel}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <div className="flex flex-wrap gap-1 border-b p-2">
@@ -137,21 +139,23 @@ export function DatePicker({
   const selected = value ? new Date(`${value}T00:00:00`) : undefined;
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "justify-start gap-2 font-normal tabular-nums",
-            !value && "text-muted-foreground",
-          )}
-        >
-          <CalendarIcon className="size-4 text-muted-foreground" />
-          {value
-            ? new Date(`${value}T00:00:00`).toLocaleDateString("en-CA", {
-                month: "short", day: "numeric", year: "numeric",
-              })
-            : placeholder}
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            className={cn(
+              "justify-start gap-2 font-normal tabular-nums",
+              !value && "text-muted-foreground",
+            )}
+          />
+        }
+      >
+        <CalendarIcon className="size-4 text-muted-foreground" />
+        {value
+          ? new Date(`${value}T00:00:00`).toLocaleDateString("en-CA", {
+              month: "short", day: "numeric", year: "numeric",
+            })
+          : placeholder}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar

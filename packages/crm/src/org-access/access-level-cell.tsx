@@ -21,10 +21,8 @@ export function AccessLevelCell({ level, actions, grants, resourceLabel }: Acces
   }
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label={`${resourceLabel}: ${LEVEL_TEXT[level]}`}>
-          {LEVEL_TEXT[level]}
-        </Button>
+      <PopoverTrigger render={<Button variant="ghost" size="sm" aria-label={`${resourceLabel}: ${LEVEL_TEXT[level]}`} />}>
+        {LEVEL_TEXT[level]}
       </PopoverTrigger>
       <PopoverContent align="start" className="grid gap-2">
         <p className="text-sm font-medium">{resourceLabel}</p>

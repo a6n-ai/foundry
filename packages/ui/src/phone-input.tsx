@@ -55,16 +55,12 @@ type CountrySelectProps = {
 function CountrySelect({ disabled, value, onChange, options }: CountrySelectProps) {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          className="flex gap-1 rounded-e-none rounded-s-md px-3"
-          disabled={disabled}
-        >
-          <FlagComponent country={value} countryName={value} />
-          <ChevronsUpDown className={cn("-mr-2 size-4 opacity-50", disabled ? "hidden" : "opacity-100")} />
-        </Button>
+      <PopoverTrigger
+        disabled={disabled}
+        render={<Button type="button" variant="outline" className="flex gap-1 rounded-e-none rounded-s-md px-3" />}
+      >
+        <FlagComponent country={value} countryName={value} />
+        <ChevronsUpDown className={cn("-mr-2 size-4 opacity-50", disabled ? "hidden" : "opacity-100")} />
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
         <Command>

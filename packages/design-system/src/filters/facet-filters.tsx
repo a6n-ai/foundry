@@ -135,8 +135,7 @@ function SingleSelectFacet({
   const selected = options.find((o) => o.value === value);
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className={triggerCn(Boolean(selected))}>
+      <PopoverTrigger render={<Button variant="outline" className={triggerCn(Boolean(selected))} />}>
           {label}
           {selected && <span className="font-medium">: {selected.label}</span>}
           {selected ? (
@@ -160,7 +159,6 @@ function SingleSelectFacet({
           ) : (
             <ChevronDown className="size-3.5 opacity-60" />
           )}
-        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <Command>
@@ -200,8 +198,7 @@ function MultiSelectFacet({
     onChange(values.includes(v) ? values.filter((x) => x !== v) : [...values, v]);
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className={triggerCn(values.length > 0)}>
+      <PopoverTrigger render={<Button variant="outline" className={triggerCn(values.length > 0)} />}>
           {label}
           {values.length > 0 && <span className="font-medium">: {values.length}</span>}
           {values.length > 0 ? (
@@ -225,7 +222,6 @@ function MultiSelectFacet({
           ) : (
             <ChevronDown className="size-3.5 opacity-60" />
           )}
-        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <Command>

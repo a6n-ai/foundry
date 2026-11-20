@@ -1047,7 +1047,7 @@ function EventCalendarMonthCell({
       onPointerDown={(e) => {
         const target = e.target as HTMLElement
         if (target.closest("[data-slot=event-calendar-event]")) return
-        if (target.closest("[data-slot=event-calendar-more]")) return
+        if (target.closest("[data-event-calendar-more]")) return
         gestures.beginCreate(e, day, true)
       }}
       onClick={(e) => {
@@ -1134,7 +1134,7 @@ function EventCalendarMoreIndicator({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        data-slot="event-calendar-more"
+        data-event-calendar-more=""
         data-drop-into={dropInto ? "" : undefined}
         data-drop-invalid={dropInto && !dropInto.valid ? "" : undefined}
         className={cn(

@@ -50,7 +50,8 @@
   --ui-press-scale-nav: 0.96;
   --ui-radius-card: var(--radius-xl);
   --ui-radius-popup: var(--radius-lg);
-  --ui-shadow-popup: var(--shadow-md);
+  --ui-shadow-popup: var(--shadow-md), 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent);
+  --ui-popup-padding: 0.625rem;
   --ui-shadow-card: var(--shadow-xs);
   --ui-primary-hover: color-mix(in oklch, var(--primary) 80%, transparent);
   --ui-focus-ring: 3px;
@@ -84,6 +85,7 @@
   --ui-radius-card: 6px;
   --ui-radius-popup: 12px;
   --ui-shadow-popup: 0 4px 12px rgb(0 0 0 / .08), 0 0 0 1px var(--border);
+  --ui-popup-padding: 0.75rem;
   --ui-shadow-card: none;
   --ui-primary-hover: color-mix(in oklch, var(--primary), black 8%);
   --ui-focus-ring: 2px;

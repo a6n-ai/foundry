@@ -479,21 +479,24 @@ function EventCalendarDatePicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <NavTooltip content={tooltip}>
-        <PopoverTrigger asChild {...props}>
-          <Button
-            variant={nav.variant}
-            size={nav.iconSize}
-            data-slot="event-calendar-date-picker"
-            data-mode={resolved}
-            aria-label={settings.i18n.labels.goToDate}
-            className={cn(nav.className, className)}
-            asChild={asChild}
-          >
-            {children ?? (
-              <CalendarIcon className="size-4"
-                aria-hidden="true" />
-            )}
-          </Button>
+        <PopoverTrigger
+          {...props}
+          render={
+            <Button
+              variant={nav.variant}
+              size={nav.iconSize}
+              data-slot="event-calendar-date-picker"
+              data-mode={resolved}
+              aria-label={settings.i18n.labels.goToDate}
+              className={cn(nav.className, className)}
+              asChild={asChild}
+            />
+          }
+        >
+          {children ?? (
+            <CalendarIcon className="size-4"
+              aria-hidden="true" />
+          )}
         </PopoverTrigger>
       </NavTooltip>
       <PopoverContent
