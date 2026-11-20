@@ -60,15 +60,12 @@
   --ui-radius-control-xs: 4px;
   --ui-radius-badge: 9999px;
   --ui-press-shift: 0px;
-  --ui-radius-card: 8px;
-  --ui-radius-popup: 8px;
+  --ui-radius-card: 6px;
+  --ui-radius-popup: 12px;
   --ui-shadow-popup: 0 4px 12px rgb(0 0 0 / .08), 0 0 0 1px var(--border);
   --ui-shadow-card: none;
   --ui-primary-hover: color-mix(in oklch, var(--primary), black 8%);
   --ui-focus-ring: 2px;
   --ui-tooltip-radius: 6px;
   --ui-tooltip-padding: 4px 8px;
-}
-body:has(.crm-app:not(.customer-app)) [data-slot="tooltip-arrow"] {
-  display: none;
 }

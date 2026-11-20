@@ -83,7 +83,7 @@ describe("Tooltip", () => {
     expect(trigger).toHaveFocus()
   })
 
-  it("opens on hover after 300 ms", () => {
+  it("opens on hover after 150 ms", () => {
     vi.useFakeTimers()
     try {
       vi.advanceTimersByTime(10_000)
@@ -95,7 +95,7 @@ describe("Tooltip", () => {
       )
       const trigger = screen.getByRole("button", { name: "Save" })
       fireEvent.pointerEnter(trigger, { pointerType: "mouse" })
-      act(() => vi.advanceTimersByTime(299))
+      act(() => vi.advanceTimersByTime(149))
       expect(screen.getByRole("tooltip", { hidden: true })).not.toHaveAttribute("data-open")
       act(() => vi.advanceTimersByTime(1))
       expect(screen.getByRole("tooltip")).toHaveAttribute("data-open")

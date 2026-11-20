@@ -11,7 +11,7 @@ import {
 import { cn } from "./cn"
 
 function Tooltip({
-  delay = 300,
+  delay = 150,
   ...props
 }: React.ComponentProps<typeof SdkTooltip>) {
   return <SdkTooltip delay={delay} {...props} />
