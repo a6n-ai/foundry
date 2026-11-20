@@ -38,7 +38,7 @@ export function StatBar({ items }: { items: StatItem[] }) {
           >
             {it.value}
           </span>
-          <span className="text-muted-foreground text-[11px] leading-tight whitespace-nowrap">{it.label}</span>
+          <span className="text-muted-foreground text-caption-2 leading-tight whitespace-nowrap">{it.label}</span>
         </div>
       ))}
     </div>

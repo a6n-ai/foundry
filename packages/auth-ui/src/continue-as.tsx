@@ -40,12 +40,12 @@ export function ContinueAs({ user, onContinue, onOther, onForget, getStarted, ui
             className="border-border size-20 rounded-full border object-cover"
           />
         ) : (
-          <span aria-hidden className="bg-primary text-primary-foreground flex size-20 items-center justify-center rounded-full text-[28px] font-semibold">
+          <span aria-hidden className="bg-primary text-primary-foreground flex size-20 items-center justify-center rounded-full text-title-1 font-semibold">
             {initial}
           </span>
         )}
         <div className="flex flex-col gap-0.5">
-          {user.firstName ? <p className="text-[17px] font-semibold">{user.firstName}</p> : null}
+          {user.firstName ? <p className="text-body font-semibold">{user.firstName}</p> : null}
           <p className="text-muted-foreground text-sm [overflow-wrap:anywhere]">{user.email}</p>
         </div>
       </div>

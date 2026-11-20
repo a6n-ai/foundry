@@ -18,7 +18,7 @@ const toggleVariants = cva(
       },
       size: {
         default: "h-8 min-w-8 px-2.5",
-        sm: "h-7 min-w-7 rounded-[min(var(--radius-md),12px)] px-2 text-[0.8rem]",
+        sm: "h-7 min-w-7 rounded-[min(var(--radius-md),12px)] px-2 text-footnote",
         lg: "h-9 min-w-9 px-3",
       },
     },

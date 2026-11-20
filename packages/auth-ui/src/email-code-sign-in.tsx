@@ -228,7 +228,7 @@ export function EmailCodeSignIn({
       >
         {compact ? (
           <div className="flex flex-col gap-1">
-            <p className="text-[15px]">
+            <p className="text-subhead">
               If there&apos;s an account for <span className="font-medium [overflow-wrap:anywhere]">{email}</span>, we&apos;ve sent it a {OTP_LENGTH}-digit code.{" "}
               <button type="button" onClick={changeEmail} className="text-primary font-medium underline-offset-4 hover:underline">
                 Change
@@ -240,8 +240,8 @@ export function EmailCodeSignIn({
           <>
             <BackButton onClick={changeEmail} label="Change email" />
             <header className="flex flex-col gap-2 text-center">
-              <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.022em]">Check your email</h1>
-              <p className="text-muted-foreground text-balance text-[15px]">
+              <h1 className="text-title-1 font-semibold leading-tight tracking-[-0.022em]">Check your email</h1>
+              <p className="text-muted-foreground text-balance text-subhead">
                 If there&apos;s an account for <span className="text-foreground font-medium [overflow-wrap:anywhere]">{email}</span>, we&apos;ve sent it a {OTP_LENGTH}-digit code.
               </p>
               {codeHint ? <p className="text-muted-foreground text-balance text-xs">{codeHint}</p> : null}
@@ -286,8 +286,8 @@ export function EmailCodeSignIn({
         <>
           {onBack ? <BackButton onClick={onBack} label="Back" /> : null}
           <header className="flex flex-col gap-2 text-center">
-            <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.022em]">{title}</h1>
-            {subtitle ? <p className="text-muted-foreground text-balance text-[15px]">{subtitle}</p> : null}
+            <h1 className="text-title-1 font-semibold leading-tight tracking-[-0.022em]">{title}</h1>
+            {subtitle ? <p className="text-muted-foreground text-balance text-subhead">{subtitle}</p> : null}
           </header>
         </>
       )}
@@ -327,7 +327,7 @@ function BackButton({ onClick, label }: { onClick: () => void; label: string }) 
     <button
       type="button"
       onClick={onClick}
-      className="text-primary -ml-2 flex min-h-11 items-center gap-0.5 self-start rounded-lg pr-2 text-[17px] focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-3"
+      className="text-primary -ml-2 flex min-h-11 items-center gap-0.5 self-start rounded-lg pr-2 text-body focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-3"
     >
       <ChevronLeft className="size-6" aria-hidden />
       {label}

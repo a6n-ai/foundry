@@ -109,7 +109,7 @@ const EVENT_CALENDAR_SLOT_DRAFT = {
    * draft's own overflow-hidden.
    */
   label:
-    "text-primary truncate px-1 py-0.5 text-[0.6875rem] leading-none font-medium",
+    "text-primary truncate px-1 py-0.5 text-caption-2 leading-none font-medium",
 } as const
 
 interface EventCalendarChipContextValue<TData = unknown> {

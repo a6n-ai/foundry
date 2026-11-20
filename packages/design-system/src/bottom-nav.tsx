@@ -45,7 +45,7 @@ export function BottomNav({
             "relative z-10 mx-0.5 my-1.5 min-h-16 rounded-[22px] px-1 text-xs",
             active ? "bg-primary/12 font-semibold text-primary" : "font-medium text-muted-foreground",
           )
-        : cn("min-h-14 text-[10px] font-medium", active ? "text-foreground" : "text-muted-foreground"),
+        : cn("min-h-14 text-caption-2 font-medium", active ? "text-foreground" : "text-muted-foreground"),
     );
   const Tab = ({ it }: { it: BottomNavItem }) => {
     const body = (
@@ -132,7 +132,7 @@ export function BottomNav({
               <span
                 className={cn(
                   "text-foreground mt-1 max-w-full text-center font-semibold leading-tight",
-                  glass ? "text-[10px]" : "text-muted-foreground text-[10px] font-medium",
+                  glass ? "text-caption-2" : "text-muted-foreground text-caption-2 font-medium",
                 )}
               >
                 {fabCaption}

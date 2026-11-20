@@ -175,7 +175,7 @@ function SlotForgotPasswordForm(props: ForgotPasswordFormProps & { ui: Partial<A
     return (
       <form method="post" key="verify" onSubmit={verifyForm.handleSubmit(onVerify)} className={props.compact ? "flex flex-1 flex-col gap-5" : "grid gap-4"}>
         {props.compact ? (
-          <p className="text-[15px]">
+          <p className="text-subhead">
             If there&apos;s an account for <span className="font-medium [overflow-wrap:anywhere]">{identifier}</span>, we&apos;ve sent it a {OTP_LENGTH}-digit code.
           </p>
         ) : (

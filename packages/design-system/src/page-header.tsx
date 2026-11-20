@@ -20,7 +20,7 @@ export function PageHeader({
           <Icon className="icon-pop size-5" />
         </span>
         <div className="min-w-0 space-y-0.5 md:space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-title-1">{title}</h1>
           {subtitle ? (
             <p className="text-muted-foreground text-sm text-pretty md:max-w-prose md:text-base">
               {subtitle}

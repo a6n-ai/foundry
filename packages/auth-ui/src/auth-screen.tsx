@@ -57,8 +57,8 @@ export function AuthPanel({ art, title, tagline, children }: AuthPanelProps) {
           key={typeof title === "string" ? title : undefined}
           className={`flex flex-col gap-2 ${stepped ? "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 duration-300 ease-out" : ""}`}
         >
-          <h1 className="text-balance text-[30px] font-semibold leading-[1.1] tracking-[-0.025em]">{title}</h1>
-          {tagline ? <p className="text-muted-foreground max-w-[34ch] text-pretty text-[17px] leading-snug">{tagline}</p> : null}
+          <h1 className="text-balance text-title-1 font-semibold leading-[1.1] tracking-[-0.025em]">{title}</h1>
+          {tagline ? <p className="text-muted-foreground max-w-[34ch] text-pretty text-body leading-snug">{tagline}</p> : null}
         </div>
       </header>
       <div className="flex flex-1 flex-col">{children}</div>
