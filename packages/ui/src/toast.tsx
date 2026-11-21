@@ -7,42 +7,12 @@ import {
   ToastDescription,
   ToastRegion,
   ToastTitle,
-  toast as sdkToast,
-  type ToastActionData,
-  type ToastOptions,
+  toast,
 } from "@ui-sdk/react/toast"
 import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon } from "lucide-react"
 
 import { buttonVariants } from "./button"
 import { cn } from "./cn"
-
-type Content = React.ReactNode
-type SdkOptions = ToastOptions<Content>
-
-/** @deprecated sonner call shape (`action.onClick`), kept for callers; new code uses `@ui-sdk/react/toast` (`action.onAction`). */
-type Options = Omit<SdkOptions, "action"> & {
-  action?: { label: Content; onClick?: (event: Event | undefined) => void } | ToastActionData<Content>
-}
-
-const toSdk = ({ action, ...options }: Options = {}): SdkOptions => {
-  if (!action) return options
-  const { onClick, ...rest } = action as { onClick?: (event: Event | undefined) => void } & ToastActionData<Content>
-  return { ...options, action: onClick ? { ...rest, onAction: (event) => onClick(event) } : rest }
-}
-
-type Show = (message: Content, options?: Options) => string
-const wrap = (show: (message: Content, options?: SdkOptions) => string): Show => (message, options) => show(message, toSdk(options))
-
-const toast = Object.assign(wrap(sdkToast), {
-  message: wrap(sdkToast),
-  success: wrap(sdkToast.success),
-  error: wrap(sdkToast.error),
-  info: wrap(sdkToast.info),
-  warning: wrap(sdkToast.warning),
-  loading: wrap(sdkToast.loading),
-  promise: sdkToast.promise,
-  dismiss: sdkToast.dismiss,
-})
 
 const icons: Record<string, React.ReactNode> = {
   success: <CircleCheckIcon className="size-4" aria-hidden="true" />,

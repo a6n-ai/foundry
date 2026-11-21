@@ -52,11 +52,11 @@ describe("toast facade", () => {
     expect(screen.getByText("Careful").closest("[data-slot=toast]")).toHaveAttribute("data-type", "warning")
   })
 
-  it("runs the sonner-shaped action onClick when its button is pressed", async () => {
+  it("runs the action onAction when its button is pressed", async () => {
     const onClick = vi.fn()
     render(<Toaster />)
     act(() => {
-      toast.success("Installed", { action: { label: "Undo", onClick } })
+      toast.success("Installed", { action: { label: "Undo", onAction: onClick } })
     })
     fireEvent.click(await screen.findByRole("button", { name: "Undo" }))
     expect(onClick).toHaveBeenCalledTimes(1)
@@ -160,7 +160,7 @@ describe("toast stack", () => {
     render(<Toaster />)
     act(() => {
       toast("Behind", { duration: Infinity })
-      toast("Front", { duration: Infinity, action: { label: "Undo", onClick } })
+      toast("Front", { duration: Infinity, action: { label: "Undo", onAction: onClick } })
     })
     fireEvent.click(await screen.findByRole("button", { name: "Undo" }))
     expect(onClick).toHaveBeenCalledTimes(1)

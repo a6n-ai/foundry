@@ -19,7 +19,7 @@ export function promptReloadIfStale(error: unknown): boolean {
     toast.error("A new version of the app is available.", {
       description: "Reload to continue.",
       duration: Infinity,
-      action: { label: "Reload", onClick: () => window.location.reload() },
+      action: { label: "Reload", onAction: () => window.location.reload() },
     });
   }
   return true;
