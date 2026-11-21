@@ -19,19 +19,10 @@ type DrawerSide = "top" | "bottom" | "left" | "right"
 function Drawer({
   direction = "bottom",
   side,
-  nested: _nested,
-  handleOnly: _handleOnly,
-  shouldScaleBackground: _shouldScaleBackground,
   ...props
 }: React.ComponentProps<typeof SdkDrawer> & {
   /** Vaul's name for `side`. */
   direction?: DrawerSide
-  /** @deprecated ui-sdk stacks a drawer opened inside another on its own. */
-  nested?: boolean
-  /** @deprecated ui-sdk drags a sheet from its grip and any non-scrolling area. */
-  handleOnly?: boolean
-  /** @deprecated Vaul scaled the page behind; ui-sdk dims it. */
-  shouldScaleBackground?: boolean
 }) {
   return <SdkDrawer side={side ?? direction} {...props} />
 }

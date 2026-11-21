@@ -44,11 +44,11 @@ describe("Avatar", () => {
     expect(screen.queryByRole("img", { name: "Ada" })).toBeNull()
   })
 
-  it("waits delayMs before showing the fallback", async () => {
+  it("waits delay before showing the fallback", async () => {
     vi.useFakeTimers()
     render(
       <Avatar>
-        <AvatarFallback delayMs={500}>AL</AvatarFallback>
+        <AvatarFallback delay={500}>AL</AvatarFallback>
       </Avatar>
     )
     expect(screen.queryByText("AL")).toBeNull()

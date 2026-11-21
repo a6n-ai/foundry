@@ -35,10 +35,6 @@ export function ResponsiveDialog({
   footer?: ReactNode;
   contentClassName?: string;
   direction?: "top" | "bottom";
-  /** @deprecated ui-sdk stacks a drawer opened inside another on its own. */
-  nested?: boolean;
-  /** @deprecated ui-sdk lets inner scrollers and widgets keep their pointer events. */
-  handleOnly?: boolean;
   flush?: boolean;
 }) {
   const isMobile = useIsMobile();

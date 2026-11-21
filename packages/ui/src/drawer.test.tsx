@@ -134,12 +134,4 @@ describe("Drawer", () => {
     expect(document.querySelector("[data-vaul-drawer],[vaul-drawer]")).toBeNull()
     expect(content.querySelector('[data-slot="drawer-grip"]')).not.toBeNull()
   })
-
-  it("keeps accepting the retired vaul props without passing them on", () => {
-    const warn = vi.spyOn(console, "error").mockImplementation(() => {})
-    render(<Sheet open nested handleOnly shouldScaleBackground />)
-    expect(screen.getByRole("dialog")).toBeInTheDocument()
-    expect(warn).not.toHaveBeenCalled()
-    warn.mockRestore()
-  })
 })
