@@ -160,8 +160,10 @@ export function ListSearchFilters({
   );
   if (!presets.length) return bar;
 
+  // Vercel puts suggested filters inline after the filter controls, as "Key Value" with the key muted.
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-wrap items-center gap-2">
+      {bar}
       <ToggleGroup
         type="single"
         variant="outline"
@@ -171,13 +173,22 @@ export function ListSearchFilters({
         value={activePreset ?? ""}
         onValueChange={pickPreset}
       >
-        {presets.map((p) => (
-          <ToggleGroupItem key={p.key} value={p.key} data-slot="filter-suggestion">
-            {p.label}
-          </ToggleGroupItem>
-        ))}
+        {presets.map((p) => {
+          const at = p.label.indexOf(": ");
+          return (
+            <ToggleGroupItem key={p.key} value={p.key} data-slot="filter-suggestion" aria-label={p.label}>
+              {at > 0 ? (
+                <>
+                  <span data-slot="filter-suggestion-key">{p.label.slice(0, at)}</span>
+                  <span data-slot="filter-suggestion-value">{p.label.slice(at + 2)}</span>
+                </>
+              ) : (
+                <span data-slot="filter-suggestion-value">{p.label}</span>
+              )}
+            </ToggleGroupItem>
+          );
+        })}
       </ToggleGroup>
-      {bar}
     </div>
   );
 }

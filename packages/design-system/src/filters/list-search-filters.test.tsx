@@ -210,6 +210,18 @@ describe("ListSearchFilters", () => {
     expect(await screen.findByRole("radio", { name: "Late orders" })).toHaveAttribute("data-slot", "filter-suggestion");
   });
 
+  it("a Key: Value preset reads as Vercel's key then value, inline with the filters", async () => {
+    const recommendations = {
+      load: vi.fn(async () => [{ key: "zone", label: "Zone: Brampton", params: { zone: "brampton" } }]),
+      record: vi.fn(async () => undefined),
+    };
+    const { container } = render(<ListSearchFilters spec={spec} recommendations={recommendations} />);
+    const pill = await screen.findByRole("radio", { name: "Zone: Brampton" });
+    expect(pill.querySelector('[data-slot="filter-suggestion-key"]')).toHaveTextContent("Zone");
+    expect(pill.querySelector('[data-slot="filter-suggestion-value"]')).toHaveTextContent("Brampton");
+    expect(container.firstElementChild).toHaveClass("flex-wrap", "items-center");
+  });
+
   it("× on a pinned chip with a value clears it back to the empty pinned chip", async () => {
     search = "status=late";
     render(<ListSearchFilters spec={spec} pinned={["status"]} />);
