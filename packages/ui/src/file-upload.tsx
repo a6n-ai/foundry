@@ -9,7 +9,6 @@ import {
   FileTextIcon,
   FileVideoIcon,
 } from "lucide-react";
-import { Direction as DirectionPrimitive } from "radix-ui";
 import * as React from "react";
 import { cn } from "./cn";
 import { Slot } from "./slot";
@@ -238,7 +237,7 @@ function FileUpload(props: FileUploadProps) {
   const listId = React.useId();
   const labelId = React.useId();
 
-  const dir = DirectionPrimitive.useDirection(dirProp);
+  const dir = dirProp ?? "ltr";
   const listeners = useLazyRef(() => new Set<() => void>()).current;
   const files = useLazyRef<Map<File, FileState>>(() => new Map()).current;
   const urlCache = useLazyRef(() => new WeakMap<File, string>()).current;

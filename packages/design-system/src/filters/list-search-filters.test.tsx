@@ -6,6 +6,11 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 beforeAll(() => {
   Element.prototype.getAnimations = () => [];
   Element.prototype.scrollIntoView = function () {};
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
   document.head.append(
     Object.assign(document.createElement("style"), {
       textContent: "[popover][data-open] { display: block !important }",
