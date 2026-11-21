@@ -176,7 +176,7 @@ export function ListSearchFilters({
         {presets.map((p) => {
           const at = p.label.indexOf(": ");
           return (
-            <ToggleGroupItem key={p.key} value={p.key} data-slot="filter-suggestion" aria-label={p.label}>
+            <ToggleGroupItem key={p.key} value={p.key} data-filter-suggestion="" aria-label={p.label}>
               {at > 0 ? (
                 <>
                   <span data-slot="filter-suggestion-key">{p.label.slice(0, at)}</span>

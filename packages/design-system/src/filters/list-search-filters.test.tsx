@@ -125,7 +125,7 @@ describe("ListSearchFilters", () => {
       record: vi.fn(async () => undefined),
     };
     render(<ListSearchFilters spec={spec} recommendations={recommendations} />);
-    fireEvent.click(await screen.findByRole("radio", { name: "Late orders" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Late orders" }));
     await waitFor(() => expect(replace).toHaveBeenCalled());
     const url = new URL(replace.mock.calls[0]![0] as string, "http://x");
     expect(url.pathname).toBe("/orders");
@@ -207,7 +207,7 @@ describe("ListSearchFilters", () => {
       record: vi.fn(async () => undefined),
     };
     render(<ListSearchFilters spec={spec} recommendations={recommendations} />);
-    expect(await screen.findByRole("radio", { name: "Late orders" })).toHaveAttribute("data-slot", "filter-suggestion");
+    expect(await screen.findByRole("button", { name: "Late orders" })).toHaveAttribute("data-filter-suggestion");
   });
 
   it("a Key: Value preset reads as Vercel's key then value, inline with the filters", async () => {
@@ -216,7 +216,7 @@ describe("ListSearchFilters", () => {
       record: vi.fn(async () => undefined),
     };
     const { container } = render(<ListSearchFilters spec={spec} recommendations={recommendations} />);
-    const pill = await screen.findByRole("radio", { name: "Zone: Brampton" });
+    const pill = await screen.findByRole("button", { name: "Zone: Brampton" });
     expect(pill.querySelector('[data-slot="filter-suggestion-key"]')).toHaveTextContent("Zone");
     expect(pill.querySelector('[data-slot="filter-suggestion-value"]')).toHaveTextContent("Brampton");
     expect(container.firstElementChild).toHaveClass("flex-wrap", "items-center");
