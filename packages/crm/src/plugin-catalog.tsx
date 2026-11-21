@@ -5,7 +5,7 @@ import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PlusIcon, SettingsIcon, Trash2Icon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@foundry/ui/toast";
 import { Button } from "@foundry/ui/button";
 import { IntegrationPluginCard, IntegrationPluginCardSkeleton } from "./integration-plugin-card";
 import type { PluginMeta } from "@foundry/commons/plugin";

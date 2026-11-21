@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PencilIcon, PlusIcon, StarIcon, Trash2Icon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@foundry/ui/toast";
 import type { AddressValues } from "@foundry/commons";
 import { SectionCard } from "@foundry/design-system";
 import { AddressFields } from "./address-fields";

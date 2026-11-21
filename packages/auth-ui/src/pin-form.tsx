@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { toast } from "@foundry/ui/toast";
 import { Controller } from "react-hook-form";
 import { pinSchema } from "@foundry/commons";
 import { RevealToggle, resolveUi, type AuthUi } from "./ui";

@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { toast } from "./toast";
 
 // After a deploy, tabs holding the old JS bundle call server actions by an ID the
 // new server no longer has → the server logs "Failed to find Server Action …" and the

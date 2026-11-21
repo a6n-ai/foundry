@@ -14,7 +14,7 @@ import {
   TagIcon,
   UnplugIcon,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@foundry/ui/toast";
 import { SectionCard } from "@foundry/design-system";
 import { Badge } from "@foundry/ui/badge";
 import { Button } from "@foundry/ui/button";

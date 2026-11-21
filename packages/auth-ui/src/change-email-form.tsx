@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { toast } from "@foundry/ui/toast";
 import { resolveUi, type AuthUi } from "./ui";
 import { OTP_CODE_REGEX, OTP_LENGTH } from "@foundry/commons";
 

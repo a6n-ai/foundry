@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
+import { toast } from "@foundry/ui/toast";
 import { SectionCard } from "@foundry/design-system";
 import { Button } from "@foundry/ui/button";
 import { Label } from "@foundry/ui/label";

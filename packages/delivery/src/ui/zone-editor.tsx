@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PlusIcon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@foundry/ui/toast";
 import { Button } from "@foundry/ui/button";
 import { ZoneMap, type MapZone } from "./zone-map";
 import { ZonesTable } from "./zones-table";
