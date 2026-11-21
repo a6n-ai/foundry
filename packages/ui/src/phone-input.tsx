@@ -65,9 +65,9 @@ function CountrySelect({ disabled, value, onChange, options }: CountrySelectProp
       <PopoverContent className="w-[300px] p-0">
         <Command>
           <CommandInput placeholder="Search country..." />
+          <CommandEmpty>No country found.</CommandEmpty>
           <CommandList>
             <ScrollArea className="h-72">
-              <CommandEmpty>No country found.</CommandEmpty>
               <CommandGroup>
                 {options
                   .filter((x) => x.value)

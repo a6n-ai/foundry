@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Radix Select forbids an empty-string item value — map back to "" in onValueChange. */
+/** A Select item value cannot be an empty string — map back to "" in onValueChange. */
 export const NO_PROVINCE = "__none__";
 
 export const CANADIAN_PROVINCES = [

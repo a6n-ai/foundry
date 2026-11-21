@@ -91,15 +91,15 @@ function MenuCheckboxItem({
   closeOnSelect,
   ...props
 }: Omit<React.ComponentProps<typeof SdkMenuCheckboxItem>, "children" | "value"> & {
-  /** Defaults to a generated id for Radix-era callers that never passed one. */
+  /** Defaults to a generated id for callers that never passed one. */
   value?: string
   children?: React.ReactNode
   inset?: boolean
-  /** @deprecated Radix-era callers prevent default here to keep the menu open; use `closeOnSelect={false}`. */
+  /** @deprecated callers prevent default here to keep the menu open; use `closeOnSelect={false}`. */
   onSelect?: (event: { preventDefault: () => void }) => void
 }) {
   const fallback = React.useId()
-  // Radix callers only pass onSelect to call preventDefault (keep open for multi-select), so its presence means stay open.
+  // Callers only pass onSelect to call preventDefault (keep open for multi-select), so its presence means stay open.
   return (
     <SdkMenuCheckboxItem
       data-inset={inset}

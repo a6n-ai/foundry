@@ -252,7 +252,7 @@ function leaveFirstMenuItemUp(
   }
 }
 
-// "plain": Radix ScrollArea's viewport child is display:table, so a max-height on it never becomes a scrollport
+// "plain": a scroll area's viewport child can be display:table, so a max-height on it never becomes a scrollport
 // and a long list can paint over the page. A real overflow box caps at 24rem instead.
 function FilterMenuList({
   scrollAreaClassName,
@@ -1140,7 +1140,7 @@ interface FiltersProps<T = unknown> {
   enableShortcut?: boolean
   shortcutKey?: string
   shortcutLabel?: string
-  /** "plain" swaps the Radix ScrollArea for a native overflow box (fixes max-height never scrolling). */
+  /** "plain" swaps the scroll area for a native overflow box (fixes max-height never scrolling). */
   menuList?: "scroll-area" | "plain"
   /** "fit" sizes value menus to their content (min 12.5rem, max-w-xs) instead of a fixed 200px. */
   fieldWidth?: "fixed" | "fit"

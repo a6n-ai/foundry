@@ -56,8 +56,8 @@ function Fruit({ onSelect = () => {}, ...root }: { onSelect?: (value: string) =>
   return (
     <Command {...root}>
       <CommandInput aria-label="Search fruit" placeholder="Search" />
+      <CommandEmpty>No fruit</CommandEmpty>
       <CommandList>
-        <CommandEmpty>No fruit</CommandEmpty>
         <CommandGroup heading="Fruit">
           <CommandItem value="apple" onSelect={onSelect}>
             Apple
@@ -106,6 +106,7 @@ describe("Command", () => {
     await settle()
     expect(screen.queryByRole("option")).toBeNull()
     expect(screen.getByText("No fruit")).toBeInTheDocument()
+    expect(screen.getByText("No fruit").closest("[role=listbox]")).toBeNull()
   })
 
   it("keeps every item with shouldFilter={false}", async () => {

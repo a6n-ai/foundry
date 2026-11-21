@@ -163,8 +163,8 @@ function SingleSelectFacet({
       <PopoverContent className="w-56 p-0" align="start">
         <Command>
           {searchable && <CommandInput placeholder={`Search ${label.toLowerCase()}…`} />}
+          <CommandEmpty>No results.</CommandEmpty>
           <CommandList>
-            <CommandEmpty>No results.</CommandEmpty>
             <CommandGroup>
               {options.map((o) => (
                 <CommandItem
@@ -226,8 +226,8 @@ function MultiSelectFacet({
       <PopoverContent className="w-56 p-0" align="start">
         <Command>
           <CommandInput placeholder={`Search ${label.toLowerCase()}…`} />
+          <CommandEmpty>No results.</CommandEmpty>
           <CommandList>
-            <CommandEmpty>No results.</CommandEmpty>
             <CommandGroup>
               {options.map((o) => (
                 <CommandItem key={o.value} onSelect={() => toggle(o.value)}>

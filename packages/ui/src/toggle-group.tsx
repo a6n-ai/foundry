@@ -38,7 +38,7 @@ type ValueProps =
       multiple?: boolean
     }
 
-// Callers were written for Radix: `type` picks single or multiple, a single group's value is one string
+// Callers expect: `type` picks single or multiple, a single group's value is one string
 // ("" for none), and pressing the active item clears it. Without `type` the props are ui-sdk's own.
 function ToggleGroup({
   className,

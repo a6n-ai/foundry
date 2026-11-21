@@ -20,7 +20,7 @@ import { cn } from "./cn"
 
 type SingleSelectDetails = Parameters<NonNullable<SelectProps["onValueChange"]>>[1]
 
-// Callers were written for Radix: "" shows the placeholder, and a change always carries a string.
+// Callers expect: "" shows the placeholder, and a change always carries a string.
 function Select({
   value,
   defaultValue,
@@ -65,7 +65,7 @@ function SelectTrigger({
 }
 
 // Popups render in place and their clicks bubble, so a row or card around a select would also get them.
-// The closed list stays mounted so the trigger can show the label of a value set before the first open, as Radix did.
+// The closed list stays mounted so the trigger can show the label of a value set before the first open, as before.
 // A click inside a label is forwarded to the label's control, which is the trigger: cancel it so the list stays closed.
 function SelectGroup({ className, ...props }: React.ComponentProps<typeof SdkSelectGroup>) {
   return <SdkSelectGroup className={cn("scroll-my-1 p-1", className)} {...props} />

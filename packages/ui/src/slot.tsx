@@ -49,12 +49,12 @@ function mergeProps(slotProps: AnyProps, childProps: AnyProps) {
   return merged
 }
 
-// Radix Slot semantics without Radix: the single child (or the <Slottable> child) receives the slot's props.
+// Slot semantics: the single child (or the <Slottable> child) receives the slot's props.
 // Handlers compose child first, then slot, always (slot handlers check defaultPrevented themselves).
 function Slot({ children, ...slotProps }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode; ref?: React.Ref<any> }) {
   const items = React.Children.toArray(children)
   const slottable = items.find(isSlottable)
-  // Radix throws here too: several children with no Slottable would silently drop every slot prop.
+  // Throws here: several children with no Slottable would silently drop every slot prop.
   if (!slottable && items.length > 1) React.Children.only(null)
   const element = slottable ? slottable.props.children : children
   if (!React.isValidElement<AnyProps>(element)) return <>{element}</>

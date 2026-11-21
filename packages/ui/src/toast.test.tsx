@@ -114,3 +114,55 @@ describe("toast facade", () => {
     expect(region).toHaveAttribute("data-align", "end")
   })
 })
+
+describe("toast stack", () => {
+  const show = (...titles: string[]) =>
+    act(() => {
+      titles.forEach((title) => toast(title, { duration: Infinity }))
+    })
+  const toasts = () => [...document.querySelectorAll<HTMLElement>("[data-slot=toast]")]
+
+  it("marks only the newest toast as front and numbers the rest by age", async () => {
+    render(<Toaster />)
+    show("One", "Two", "Three")
+    await screen.findByText("Three")
+    const byTitle = (t: string) => screen.getByText(t).closest<HTMLElement>("[data-slot=toast]")!
+    expect(byTitle("Three")).toHaveAttribute("data-front")
+    expect(byTitle("Two")).not.toHaveAttribute("data-front")
+    expect(byTitle("One")).not.toHaveAttribute("data-front")
+    expect(byTitle("Three").style.getPropertyValue("--toast-index")).toBe("0")
+    expect(byTitle("Two").style.getPropertyValue("--toast-index")).toBe("1")
+    expect(byTitle("One").style.getPropertyValue("--toast-index")).toBe("2")
+  })
+
+  it("queues toasts past maxVisible", async () => {
+    render(<Toaster />)
+    show("A", "B", "C", "D")
+    await screen.findByText("D")
+    expect(toasts()).toHaveLength(3)
+    expect(screen.queryByText("A")).toBeNull()
+  })
+
+  it("lays the stack out from the ui-sdk hooks, for both edges", async () => {
+    render(<Toaster />)
+    show("Styled")
+    const el = (await screen.findByText("Styled")).closest("[data-slot=toast]")!
+    const region = document.querySelector("[data-slot=toast-region]")!
+    expect(region.className).toContain("data-expanded:h-")
+    expect(region.className).toContain("overflow-visible")
+    for (const token of ["absolute", "h-(--toast-height)", "origin-bottom", "group-data-[side=top]/region:origin-top", "data-swiping:transition-none", "motion-reduce:"]) {
+      expect(el.className).toContain(token)
+    }
+  })
+
+  it("still runs an action on a stacked toast", async () => {
+    const onClick = vi.fn()
+    render(<Toaster />)
+    act(() => {
+      toast("Behind", { duration: Infinity })
+      toast("Front", { duration: Infinity, action: { label: "Undo", onClick } })
+    })
+    fireEvent.click(await screen.findByRole("button", { name: "Undo" }))
+    expect(onClick).toHaveBeenCalledTimes(1)
+  })
+})

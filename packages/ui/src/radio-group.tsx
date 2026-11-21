@@ -8,7 +8,7 @@ import { cn } from "./cn"
 
 type GroupDetails = Parameters<NonNullable<RadioGroupOptions["onValueChange"]>>[1]
 
-// Callers were written for Radix: a change always carries a string.
+// Callers expect: a change always carries a string.
 function RadioGroup({
   className,
   onValueChange,
