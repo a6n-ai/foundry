@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import type { DateRange } from "./calendar";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { tzOffsetMinutes, zonedDateIso } from "@foundry/commons";
+import { isoToLocalDate } from "@foundry/commons/util/dates";
 import { cn } from "./cn";
 
 const fmt = (ms: number, timeZone: string) =>
@@ -51,10 +51,8 @@ export function DateRangePicker({
 }) {
   const [open, setOpen] = useState(false);
   const tz = timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const selected: DateRange | undefined =
-    from != null
-      ? { from: toCalendarDay(from, tz), to: to != null ? toCalendarDay(to, tz) : undefined }
-      : undefined;
+  const value: [string, string] | null =
+    from != null ? [zonedDateIso(from, tz), zonedDateIso(to ?? from, tz)] : null;
   const triggerLabel =
     from != null ? `${fmt(from, tz)}${to != null ? ` – ${fmt(to, tz)}` : ""}` : label;
 
@@ -111,24 +109,23 @@ export function DateRangePicker({
         </div>
         <Calendar
           mode="range"
-          numberOfMonths={2}
-          selected={selected}
-          defaultMonth={selected?.from}
-          onSelect={(r) =>
-            onChange({
-              from: r?.from ? startOfDay(r.from, tz) : undefined,
-              to: r?.to ? endOfDay(r.to, tz) : undefined,
-            })
-          }
+          months={2}
+          value={value}
+          defaultMonth={value?.[0].slice(0, 7)}
+          onAnchorChange={(anchor) => {
+            if (anchor) onChange({ from: startOfDay(isoToLocalDate(anchor), tz), to: undefined });
+          }}
+          onValueChange={(next) => {
+            if (!Array.isArray(next)) return;
+            const [start, end] = next;
+            onChange({ from: startOfDay(isoToLocalDate(start!), tz), to: endOfDay(isoToLocalDate(end!), tz) });
+          }}
           autoFocus
         />
       </PopoverContent>
     </Popover>
   );
 }
-
-const toIso = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 export function DatePicker({
   value, onChange, placeholder = "Pick a date",
@@ -138,7 +135,6 @@ export function DatePicker({
   placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const selected = value ? new Date(`${value}T00:00:00`) : undefined;
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
@@ -162,10 +158,9 @@ export function DatePicker({
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
-          selected={selected}
-          defaultMonth={selected}
-          onSelect={(d) => {
-            if (d) onChange(toIso(d));
+          value={value || null}
+          onValueChange={(next) => {
+            if (typeof next === "string") onChange(next);
             setOpen(false);
           }}
           autoFocus

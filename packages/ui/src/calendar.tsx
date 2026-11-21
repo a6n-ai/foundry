@@ -12,81 +12,20 @@ import {
   CalendarWeekdays,
   CalendarWeeks,
   createCalendarController,
-  type CalendarValue,
 } from "@ui-sdk/react/calendar"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 
 import { cn } from "./cn"
 import { buttonVariants } from "./button"
 
-type DateRange = { from?: Date; to?: Date }
-type Matcher =
-  | Date
-  | { before: Date }
-  | { after: Date }
-  | { from: Date; to: Date }
-  | ((date: Date) => boolean)
-
-type CommonProps = {
-  month?: Date
-  defaultMonth?: Date
-  onMonthChange?: (month: Date) => void
-  weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6
-  locale?: { code?: string }
-  onDayClick?: (day: Date) => void
-  disabled?: Matcher | Matcher[]
-  numberOfMonths?: number
-  showOutsideDays?: boolean
-  autoFocus?: boolean
+type CalendarProps = Omit<React.ComponentProps<typeof SdkCalendar>, "children" | "className"> & {
   className?: string
+  autoFocus?: boolean
 }
 
-/** @deprecated react-day-picker call shape, kept for callers; new code uses `@ui-sdk/react/calendar` directly. */
-type CalendarProps = CommonProps &
-  (
-    | { mode?: "single"; selected?: Date; onSelect?: (date: Date | undefined, day: Date) => void }
-    | { mode: "range"; selected?: DateRange; onSelect?: (range: DateRange | undefined, day: Date) => void }
-  )
-
-const pad = (n: number) => String(n).padStart(2, "0")
-const toIso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-const toMonth = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`
-const fromIso = (iso: string) => {
-  const [y, m, d = 1] = iso.split("-").map(Number)
-  return new Date(y!, m! - 1, d)
-}
-
-function toMatcher(m: Matcher) {
-  if (m instanceof Date) return toIso(m)
-  if (typeof m === "function") return (iso: string) => m(fromIso(iso))
-  if ("before" in m) return { before: toIso(m.before) }
-  if ("after" in m) return { after: toIso(m.after) }
-  return { from: toIso(m.from), to: toIso(m.to) }
-}
-
-// A press reports the day it landed on; a range only reports once both ends are in, so the day is read off the event.
-const pressedDay = (event: Event | undefined) => {
-  const iso = (event?.target as Element | null)?.closest?.("[data-value]")?.getAttribute("data-value")
-  return iso ? fromIso(iso) : undefined
-}
-
-function Calendar(props: CalendarProps) {
-  const {
-    mode = "single",
-    month,
-    defaultMonth,
-    onMonthChange,
-    weekStartsOn,
-    locale,
-    onDayClick,
-    disabled,
-    numberOfMonths = 1,
-    showOutsideDays = true,
-    autoFocus,
-    className,
-  } = props
-  const controlled = "selected" in props
-  const [controller] = React.useState(createCalendarController)
+function Calendar({ className, autoFocus, controller: given, months = 1, showOutsideDays = true, ...props }: CalendarProps) {
+  const [own] = React.useState(createCalendarController)
+  const controller = given ?? own
   // The controller only knows its days once they have rendered in the browser, so focus waits a frame.
   React.useEffect(() => {
     if (!autoFocus) return
@@ -94,55 +33,13 @@ function Calendar(props: CalendarProps) {
     return () => cancelAnimationFrame(frame)
   }, [autoFocus, controller])
 
-  const value = React.useMemo<CalendarValue | undefined>(() => {
-    if (!controlled) return undefined
-    if (props.mode === "range") {
-      const range = props.selected
-      return range?.from ? [toIso(range.from), toIso(range.to ?? range.from)] : null
-    }
-    return props.selected ? toIso(props.selected) : null
-  }, [controlled, props])
-
-  const unavailable = React.useMemo(
-    () => (disabled === undefined ? undefined : (Array.isArray(disabled) ? disabled : [disabled]).map(toMatcher)),
-    [disabled]
-  )
-
   return (
     <SdkCalendar
-      mode={mode}
       controller={controller}
       deselectable
-      value={value}
-      onValueChange={(next, details) => {
-        if (props.mode === "range") {
-          const [start, end] = next as [string, string]
-          const day = pressedDay(details.event) ?? fromIso(end)
-          props.onSelect?.({ from: fromIso(start), to: fromIso(end) }, day)
-          onDayClick?.(day)
-        } else {
-          const day = (next ? fromIso(next as string) : pressedDay(details.event))!
-          props.onSelect?.(next ? day : undefined, day)
-          onDayClick?.(day)
-        }
-      }}
-      onAnchorChange={
-        props.mode === "range"
-          ? (anchor) => {
-              if (!anchor) return
-              props.onSelect?.({ from: fromIso(anchor), to: undefined }, fromIso(anchor))
-              onDayClick?.(fromIso(anchor))
-            }
-          : undefined
-      }
-      month={month && toMonth(month)}
-      defaultMonth={defaultMonth && toMonth(defaultMonth)}
-      onMonthChange={onMonthChange && ((next) => onMonthChange(fromIso(next)))}
-      weekStartsOn={weekStartsOn}
-      locale={locale?.code}
-      unavailable={unavailable}
-      months={numberOfMonths}
+      months={months}
       showOutsideDays={showOutsideDays}
+      {...props}
       className={cn(
         "group/calendar relative w-fit bg-background p-2 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(7)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent",
         className
@@ -162,7 +59,7 @@ function Calendar(props: CalendarProps) {
       </div>
       <CalendarHeading className="sr-only" />
       <div className="relative flex flex-col gap-4 md:flex-row">
-        {Array.from({ length: numberOfMonths }, (_, offset) => (
+        {Array.from({ length: months }, (_, offset) => (
           <CalendarGrid key={offset} offset={offset} className="w-full border-separate border-spacing-x-0 border-spacing-y-1">
             {(state) => (
               <>
@@ -197,4 +94,4 @@ function Calendar(props: CalendarProps) {
   )
 }
 
-export { Calendar, type CalendarProps, type DateRange }
+export { Calendar, type CalendarProps }
