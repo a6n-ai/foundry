@@ -24,8 +24,6 @@ export function ResponsiveDialog({
   footer,
   contentClassName,
   direction = "top",
-  nested = false,
-  handleOnly = false,
   flush = false,
 }: {
   open?: boolean;
@@ -37,9 +35,9 @@ export function ResponsiveDialog({
   footer?: ReactNode;
   contentClassName?: string;
   direction?: "top" | "bottom";
-  /** Nested Vaul drawer — required when this sheet opens from inside another drawer. */
+  /** @deprecated ui-sdk stacks a drawer opened inside another on its own. */
   nested?: boolean;
-  /** Only the handle swipes the sheet closed; inner widgets (calendars) keep pointer events. */
+  /** @deprecated ui-sdk lets inner scrollers and widgets keep their pointer events. */
   handleOnly?: boolean;
   flush?: boolean;
 }) {
@@ -47,14 +45,8 @@ export function ResponsiveDialog({
   useReturnFocus(!trigger && !!open);
   if (isMobile) {
     return (
-      <Drawer
-        nested={nested}
-        handleOnly={handleOnly}
-        direction={direction}
-        open={open}
-        onOpenChange={onOpenChange}
-      >
-        {trigger && <DrawerTrigger asChild>{trigger}</DrawerTrigger>}
+      <Drawer direction={direction} open={open} onOpenChange={onOpenChange}>
+        {trigger && <DrawerTrigger render={trigger} />}
         <DrawerContent
           className={cn(
             "flex max-h-[92dvh] flex-col gap-0 overflow-hidden p-0",
@@ -105,9 +97,9 @@ export function ResponsiveDialog({
   );
 }
 
-// Radix returns focus to its Trigger on close. A controlled dialog opened from a row button has no Trigger,
+// The Trigger gets focus back on close. A controlled dialog opened from a row button has no Trigger,
 // so focus fell to <body> and keyboard users lost their place. Put it back on whatever opened the dialog.
-// Layout effect: it runs before Radix's focus scope moves focus into the content.
+// Layout effect: it runs before the dialog's focus scope moves focus into the content.
 function useReturnFocus(open: boolean) {
   const returnTo = useRef<HTMLElement | null>(null);
   useLayoutEffect(() => {

@@ -1,6 +1,5 @@
 "use client";
 
-import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@foundry/ui/input-otp";
 import { OTP_LENGTH } from "@foundry/commons";
 
@@ -19,13 +18,12 @@ type CodeOtpProps = {
   masked?: boolean;
 };
 
-// 6-digit verification code entry, unmasked. Segmented input-otp component —
+// 6-digit verification code entry, unmasked. Segmented one-time-code component —
 // plain controlled <Input> here misses real keystrokes' onChange in prod.
 export function CodeOtp({ value, onChange, onComplete, autoFocus, disabled, length = OTP_LENGTH, masked, ...rest }: CodeOtpProps) {
   return (
     <InputOTP
       maxLength={length}
-      pattern={REGEXP_ONLY_DIGITS}
       inputMode="numeric"
       autoComplete={masked ? "off" : "one-time-code"}
       value={value}
