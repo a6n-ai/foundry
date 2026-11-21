@@ -10,7 +10,7 @@ import {
 } from "./event-calendar"
 import { EventCalendarMonthView } from "./event-calendar-month-view"
 import type { CalendarView } from "./event-calendar-types"
-import { Slot } from "radix-ui"
+import { Slot } from "@foundry/ui/slot"
 
 import { cn } from "@foundry/ui/cn"
 
@@ -46,7 +46,7 @@ function EventCalendarContent({
   // ? ProMonth : undefined }}` would erase the default and render <undefined />.
   const ActiveView = resolved[view] ?? EventCalendarMonthView
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <Comp
