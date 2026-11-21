@@ -166,7 +166,8 @@ function Calendar(props: CalendarProps) {
           <CalendarGrid key={offset} offset={offset} className="w-full border-separate border-spacing-x-0 border-spacing-y-1">
             {(state) => (
               <>
-                <caption aria-hidden="true" className="flex h-(--cell-size) items-center justify-center text-sm font-medium select-none">
+                {/* A flex caption stops being a table caption and lands in the first column; keep it a caption, on top. */}
+                <caption aria-hidden="true" className="h-(--cell-size) caption-top text-center align-middle text-sm leading-(--cell-size) font-medium select-none">
                   {state.label}
                 </caption>
                 <CalendarWeekdays>
