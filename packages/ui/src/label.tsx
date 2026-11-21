@@ -1,22 +1,22 @@
 "use client"
 
 import * as React from "react"
-import { Label as LabelPrimitive } from "radix-ui"
+import { Label as SdkLabel } from "@ui-sdk/react/label"
 
+import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 
 function Label({
   className,
   ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+}: React.ComponentProps<typeof SdkLabel> & AsChildProps) {
   return (
-    <LabelPrimitive.Root
-      data-slot="label"
+    <SdkLabel
       className={cn(
         "flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
         className
       )}
-      {...props}
+      {...withAsChild(props)}
     />
   )
 }
