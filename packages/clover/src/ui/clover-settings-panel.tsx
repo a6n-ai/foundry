@@ -102,9 +102,7 @@ export function CloverSettingsPanel({
             account.
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={integrationsHref}>Browse plugins</Link>
-        </Button>
+        <Button variant="outline" size="sm" render={<Link href={integrationsHref} />}>Browse plugins</Button>
       </div>
     );
   }

@@ -104,12 +104,10 @@ describe("Collapsible", () => {
     expect(link).toHaveAttribute("aria-expanded", "false")
   })
 
-  it("root asChild renders the child element", () => {
+  it("root render replaces the element", () => {
     render(
-      <Collapsible asChild>
-        <aside data-testid="root">
-          <CollapsibleTrigger>More</CollapsibleTrigger>
-        </aside>
+      <Collapsible render={<aside data-testid="root" />}>
+        <CollapsibleTrigger>More</CollapsibleTrigger>
       </Collapsible>
     )
     const root = screen.getByTestId("root")

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Slot } from "./slot"
+import { renderElement } from "@ui-sdk/react/primitive"
 
 import { cn } from "./cn"
 import { ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
@@ -39,20 +39,20 @@ function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 function BreadcrumbLink({
-  asChild,
+  render,
   className,
   ...props
 }: React.ComponentProps<"a"> & {
-  asChild?: boolean
+  render?: React.ReactElement
 }) {
-  const Comp = asChild ? Slot : "a"
-
-  return (
-    <Comp
-      data-slot="breadcrumb-link"
-      className={cn("transition-colors hover:text-foreground", className)}
-      {...props}
-    />
+  return renderElement(
+    "a",
+    {
+      "data-slot": "breadcrumb-link",
+      className: cn("transition-colors hover:text-foreground", className),
+      ...props,
+    },
+    render
   )
 }
 

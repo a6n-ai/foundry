@@ -8,8 +8,8 @@ import {
 } from "@ui-sdk/react/collapsible"
 import { type AsChildProps, withAsChild } from "./as-child"
 
-function Collapsible(props: React.ComponentProps<typeof SdkCollapsible> & AsChildProps) {
-  return <SdkCollapsible {...withAsChild(props)} />
+function Collapsible(props: React.ComponentProps<typeof SdkCollapsible>) {
+  return <SdkCollapsible {...props} />
 }
 
 function CollapsibleTrigger(props: React.ComponentProps<typeof SdkCollapsibleTrigger> & AsChildProps) {

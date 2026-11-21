@@ -11,7 +11,6 @@ import {
   DrawerTrigger as SdkDrawerTrigger,
 } from "@ui-sdk/react/drawer"
 
-import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 
 type DrawerSide = "top" | "bottom" | "left" | "right"
@@ -27,12 +26,12 @@ function Drawer({
   return <SdkDrawer side={side ?? direction} {...props} />
 }
 
-function DrawerTrigger(props: React.ComponentProps<typeof SdkDrawerTrigger> & AsChildProps) {
-  return <SdkDrawerTrigger {...withAsChild(props)} />
+function DrawerTrigger(props: React.ComponentProps<typeof SdkDrawerTrigger>) {
+  return <SdkDrawerTrigger {...props} />
 }
 
-function DrawerClose(props: React.ComponentProps<typeof SdkDrawerClose> & AsChildProps) {
-  return <SdkDrawerClose {...withAsChild(props)} />
+function DrawerClose(props: React.ComponentProps<typeof SdkDrawerClose>) {
+  return <SdkDrawerClose {...props} />
 }
 
 function DrawerOverlay({ className, ...props }: React.ComponentProps<typeof DrawerBackdrop>) {

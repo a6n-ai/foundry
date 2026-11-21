@@ -12,12 +12,11 @@ import {
 } from "@ui-sdk/react/drawer"
 import { XIcon } from "lucide-react"
 
-import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 import { Button } from "./button"
 
-function SheetTrigger(props: React.ComponentProps<typeof SdkDrawerTrigger> & AsChildProps) {
-  return <SdkDrawerTrigger {...withAsChild(props)} />
+function SheetTrigger(props: React.ComponentProps<typeof SdkDrawerTrigger>) {
+  return <SdkDrawerTrigger {...props} />
 }
 
 function Sheet({ side = "right", ...props }: React.ComponentProps<typeof Drawer>) {

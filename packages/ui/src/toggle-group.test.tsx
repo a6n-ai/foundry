@@ -98,12 +98,10 @@ describe("ToggleGroup", () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
-  it("keeps Radix asChild working on an item", () => {
+  it("replaces an item element through render", () => {
     render(
       <ToggleGroup type="single" aria-label="Pick">
-        <ToggleGroupItem value="a" asChild>
-          <button type="button" data-custom>Custom</button>
-        </ToggleGroupItem>
+        <ToggleGroupItem value="a" render={<button type="button" data-custom />}>Custom</ToggleGroupItem>
       </ToggleGroup>
     )
     expect(screen.getByText("Custom")).toHaveAttribute("data-slot", "toggle")

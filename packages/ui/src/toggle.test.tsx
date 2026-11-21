@@ -58,11 +58,9 @@ describe("Toggle", () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
-  it("keeps Radix asChild working", () => {
+  it("replaces its element through render", () => {
     render(
-      <Toggle aria-label="x" asChild>
-        <a href="/x" data-custom>Link</a>
-      </Toggle>
+      <Toggle aria-label="x" render={<a href="/x" data-custom />}>Link</Toggle>
     )
     const link = screen.getByRole("link")
     expect(link).toHaveAttribute("data-slot", "toggle")

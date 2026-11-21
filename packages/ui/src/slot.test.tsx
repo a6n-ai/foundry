@@ -115,6 +115,18 @@ describe("Slot", () => {
   })
 })
 
+describe("Button render", () => {
+  it("renders one anchor with button classes", () => {
+    const { container } = render(<Button render={<a href="/x" className="extra" />}>link</Button>)
+    expect(container.querySelectorAll("a")).toHaveLength(1)
+    expect(container.querySelector("button")).toBeNull()
+    const link = screen.getByRole("link")
+    expect(link).toHaveAttribute("data-slot", "button")
+    expect(link.className).toContain("inline-flex")
+    expect(link.className).toContain("extra")
+  })
+})
+
 describe("Button asChild", () => {
   it("renders one anchor with button classes", () => {
     const { container } = render(

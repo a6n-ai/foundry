@@ -73,12 +73,10 @@ describe("RadioGroup", () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
-  it("keeps Radix asChild working on an item", () => {
+  it("replaces an item element through render", () => {
     render(
       <RadioGroup aria-label="x" defaultValue="a">
-        <RadioGroupItem value="a" asChild>
-          <button type="button" data-custom aria-label="Custom" />
-        </RadioGroupItem>
+        <RadioGroupItem value="a" render={<button type="button" data-custom aria-label="Custom" />} />
       </RadioGroup>
     )
     expect(screen.getByRole("radio", { name: "Custom" })).toHaveAttribute("data-custom")

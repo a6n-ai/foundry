@@ -109,12 +109,10 @@ describe("Drawer", () => {
     expect(seen).toEqual([true, false])
   })
 
-  it("replaces the trigger element through asChild", () => {
+  it("replaces the trigger element through render", () => {
     render(
       <Drawer>
-        <DrawerTrigger asChild>
-          <a href="#x">Go</a>
-        </DrawerTrigger>
+        <DrawerTrigger render={<a href="#x" />}>Go</DrawerTrigger>
         <DrawerContent>
           <DrawerTitle>T</DrawerTitle>
         </DrawerContent>

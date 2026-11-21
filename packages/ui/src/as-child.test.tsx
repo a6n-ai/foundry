@@ -94,24 +94,20 @@ describe("asChild back-compat", () => {
     expectOnlyChildButton("Create")
   })
 
-  it("AlertDialogTrigger asChild renders the child as the only button", () => {
+  it("AlertDialogTrigger render replaces the element with the only button", () => {
     render(
       <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <button>Remove</button>
-        </AlertDialogTrigger>
+        <AlertDialogTrigger render={<button />}>Remove</AlertDialogTrigger>
         <AlertDialogContent>Body</AlertDialogContent>
       </AlertDialog>
     )
     expectOnlyChildButton("Remove")
   })
 
-  it("SheetTrigger asChild renders the child as the only button", () => {
+  it("SheetTrigger render replaces the element with the only button", () => {
     render(
       <Sheet>
-        <SheetTrigger asChild>
-          <button>Details</button>
-        </SheetTrigger>
+        <SheetTrigger render={<button />}>Details</SheetTrigger>
       </Sheet>
     )
     expectOnlyChildButton("Details")

@@ -91,12 +91,10 @@ function PluginCard({
       ) : (
         <>
           {meta.settingsHref ? (
-            <Button asChild type="button" size="sm" variant="outline" className="gap-1.5 self-start">
-              <Link href={meta.settingsHref}>
+            <Button type="button" size="sm" variant="outline" className="gap-1.5 self-start" render={<Link href={meta.settingsHref} />}>
                 <SettingsIcon className="size-3.5" />
                 Configure
-              </Link>
-            </Button>
+              </Button>
           ) : null}
           <Button
             type="button"

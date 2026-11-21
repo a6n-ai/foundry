@@ -4,7 +4,6 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Toggle as SdkToggle } from "@ui-sdk/react/toggle"
 
-import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 
 const toggleVariants = cva(
@@ -36,12 +35,11 @@ function Toggle({
   size,
   ...props
 }: React.ComponentProps<typeof SdkToggle> &
-  AsChildProps &
   VariantProps<typeof toggleVariants>) {
   return (
     <SdkToggle
       className={cn(toggleVariants({ variant, size, className }))}
-      {...withAsChild(props)}
+      {...props}
     />
   )
 }

@@ -3,14 +3,13 @@
 import * as React from "react"
 import { Separator as SdkSeparator } from "@ui-sdk/react/separator"
 
-import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 
 function Separator({
   className,
   decorative = true,
   ...props
-}: React.ComponentProps<typeof SdkSeparator> & AsChildProps) {
+}: React.ComponentProps<typeof SdkSeparator>) {
   return (
     <SdkSeparator
       decorative={decorative}
@@ -18,7 +17,7 @@ function Separator({
         "shrink-0 bg-border data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-px data-[orientation=vertical]:self-stretch",
         className
       )}
-      {...withAsChild(props)}
+      {...props}
     />
   )
 }

@@ -71,12 +71,10 @@ export function CloverIntegrationsCard({
         </Button>
       ) : (
         <>
-          <Button asChild type="button" size="sm" variant="outline" className="gap-1.5 self-start">
-            <Link href={settingsHref}>
+          <Button type="button" size="sm" variant="outline" className="gap-1.5 self-start" render={<Link href={settingsHref} />}>
               <SettingsIcon className="size-3.5" />
               {clover.connected ? "Configure" : "Connect"}
-            </Link>
-          </Button>
+            </Button>
           <Button
             type="button"
             variant="outline"

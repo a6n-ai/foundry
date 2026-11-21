@@ -7,17 +7,15 @@ import {
   AvatarImage as SdkAvatarImage,
 } from "@ui-sdk/react/avatar"
 
-import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 
 function Avatar({
   className,
   size = "default",
   ...props
-}: React.ComponentProps<typeof SdkAvatar> &
-  AsChildProps & {
-    size?: "default" | "sm" | "lg"
-  }) {
+}: React.ComponentProps<typeof SdkAvatar> & {
+  size?: "default" | "sm" | "lg"
+}) {
   return (
     <SdkAvatar
       data-size={size}
@@ -25,7 +23,7 @@ function Avatar({
         "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
         className
       )}
-      {...withAsChild(props)}
+      {...props}
     />
   )
 }
@@ -33,14 +31,14 @@ function Avatar({
 function AvatarImage({
   className,
   ...props
-}: React.ComponentProps<typeof SdkAvatarImage> & AsChildProps) {
+}: React.ComponentProps<typeof SdkAvatarImage>) {
   return (
     <SdkAvatarImage
       className={cn(
         "aspect-square size-full rounded-full object-cover",
         className
       )}
-      {...withAsChild(props)}
+      {...props}
     />
   )
 }
@@ -48,14 +46,14 @@ function AvatarImage({
 function AvatarFallback({
   className,
   ...props
-}: React.ComponentProps<typeof SdkAvatarFallback> & AsChildProps) {
+}: React.ComponentProps<typeof SdkAvatarFallback>) {
   return (
     <SdkAvatarFallback
       className={cn(
         "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
         className
       )}
-      {...withAsChild(props)}
+      {...props}
     />
   )
 }

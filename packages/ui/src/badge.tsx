@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "./slot"
+import { renderElement } from "@ui-sdk/react/primitive"
 
 import { cn } from "./cn"
 
@@ -50,19 +50,19 @@ function Badge({
   className,
   variant = "default",
   size = "default",
-  asChild = false,
+  render,
   ...props
 }: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "span"
-
-  return (
-    <Comp
-      data-slot="badge"
-      data-variant={variant}
-      className={cn(badgeVariants({ variant, size }), className)}
-      {...props}
-    />
+  VariantProps<typeof badgeVariants> & { render?: React.ReactElement }) {
+  return renderElement(
+    "span",
+    {
+      "data-slot": "badge",
+      "data-variant": variant,
+      className: cn(badgeVariants({ variant, size }), className),
+      ...props,
+    },
+    render
   )
 }
 

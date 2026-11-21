@@ -23,11 +23,9 @@ export function ReviewNudgeCard({
         <p className="text-muted-foreground text-sm">
           A Google review takes a minute and helps enormously.
         </p>
-        <Button asChild size="sm" onClick={() => start(async () => void onDismiss())}>
-          <a href={reviewUrl} target="_blank" rel="noreferrer">
+        <Button size="sm" onClick={() => start(async () => void onDismiss())} render={<a href={reviewUrl} target="_blank" rel="noreferrer" />}>
             Leave a review
-          </a>
-        </Button>
+          </Button>
       </div>
       <button
         type="button"

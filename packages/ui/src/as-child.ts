@@ -1,7 +1,7 @@
 import * as React from "react"
 
 export type AsChildProps = {
-  /** @deprecated ui-sdk parts take `render`; pass the element there instead. */
+  /** @deprecated ui-sdk parts take `render`; pass the element there instead. Kept for apps/puchkaman. */
   asChild?: boolean
 }
 

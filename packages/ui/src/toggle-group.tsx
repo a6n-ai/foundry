@@ -4,7 +4,6 @@ import * as React from "react"
 import { type VariantProps } from "class-variance-authority"
 import { Toggle as SdkToggle, ToggleGroup as SdkToggleGroup, type ToggleGroupOptions } from "@ui-sdk/react/toggle"
 
-import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 import { toggleVariants } from "./toggle"
 
@@ -89,12 +88,10 @@ const toArray = (v: string | undefined) => (v === undefined ? undefined : v === 
 
 function ToggleGroupItem({
   className,
-  children,
   variant,
   size,
   ...props
 }: React.ComponentProps<typeof SdkToggle> &
-  AsChildProps &
   VariantProps<typeof toggleVariants>) {
   const context = React.useContext(ToggleGroupContext)
 
@@ -112,7 +109,7 @@ function ToggleGroupItem({
         "data-[spacing=0]:rounded-none data-[spacing=0]:shadow-none data-[spacing=0]:first:rounded-l-(--ui-radius-control) data-[spacing=0]:last:rounded-r-(--ui-radius-control) data-[spacing=0]:data-[variant=outline]:border-l-0 data-[spacing=0]:data-[variant=outline]:first:border-l",
         className
       )}
-      {...withAsChild({ ...props, children })}
+      {...props}
     />
   )
 }
