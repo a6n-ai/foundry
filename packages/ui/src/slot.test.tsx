@@ -32,7 +32,7 @@ describe("Slot", () => {
     expect(order).toEqual(["child", "slot"])
   })
 
-  it("skips the slot handler when the child prevents default", () => {
+  it("still runs the slot handler when the child prevents default, as Radix does", () => {
     const slot = vi.fn()
     render(
       <Slot onClick={slot}>
@@ -40,7 +40,30 @@ describe("Slot", () => {
       </Slot>
     )
     fireEvent.click(screen.getByRole("button"))
-    expect(slot).not.toHaveBeenCalled()
+    expect(slot).toHaveBeenCalledOnce()
+  })
+
+  it("hands back React 19 callback-ref cleanups", () => {
+    const cleanup = vi.fn()
+    const { unmount } = render(
+      <Slot ref={() => cleanup}>
+        <div />
+      </Slot>
+    )
+    unmount()
+    expect(cleanup).toHaveBeenCalledOnce()
+  })
+
+  it("throws on several children without a Slottable, like Radix", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {})
+    expect(() =>
+      render(
+        <Slot>
+          <span>a</span>
+          <span>b</span>
+        </Slot>
+      )
+    ).toThrow()
   })
 
   it("composes refs", () => {

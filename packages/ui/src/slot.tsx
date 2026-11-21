@@ -12,9 +12,14 @@ function isSlottable(child: React.ReactNode): child is React.ReactElement<{ chil
   return React.isValidElement(child) && child.type === Slottable
 }
 
-function setRef(ref: unknown, node: unknown) {
-  if (typeof ref === "function") ref(node)
-  else if (ref) (ref as { current: unknown }).current = node
+// Returns a React 19 callback-ref cleanup when the ref gave one, so the composed ref can hand it back.
+function setRef(ref: unknown, node: unknown): (() => void) | undefined {
+  if (typeof ref === "function") {
+    const cleanup = ref(node)
+    return typeof cleanup === "function" ? cleanup : undefined
+  }
+  if (ref) (ref as { current: unknown }).current = node
+  return undefined
 }
 
 function mergeProps(slotProps: AnyProps, childProps: AnyProps) {
@@ -25,8 +30,7 @@ function mergeProps(slotProps: AnyProps, childProps: AnyProps) {
     if (/^on[A-Z]/.test(key) && typeof slotValue === "function" && typeof childValue === "function") {
       merged[key] = (...args: unknown[]) => {
         const result = childValue(...args)
-        const event = args[0] as { defaultPrevented?: boolean } | undefined
-        if (!event?.defaultPrevented) slotValue(...args)
+        slotValue(...args)
         return result
       }
     } else if (key === "style") {
@@ -35,8 +39,10 @@ function mergeProps(slotProps: AnyProps, childProps: AnyProps) {
       merged.className = cn(slotValue, childValue)
     } else if (key === "ref") {
       merged.ref = (node: unknown) => {
-        setRef(slotValue, node)
-        setRef(childValue, node)
+        const cleanups = [setRef(slotValue, node), setRef(childValue, node)]
+        if (!cleanups.some(Boolean)) return undefined
+        return () =>
+          cleanups.forEach((cleanup, i) => (cleanup ? cleanup() : setRef(i === 0 ? slotValue : childValue, null)))
       }
     }
   }
@@ -44,10 +50,12 @@ function mergeProps(slotProps: AnyProps, childProps: AnyProps) {
 }
 
 // Radix Slot semantics without Radix: the single child (or the <Slottable> child) receives the slot's props.
-// Unlike Radix, the slot handler is skipped when the child's handler called preventDefault.
+// Handlers compose child first, then slot, always (slot handlers check defaultPrevented themselves).
 function Slot({ children, ...slotProps }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode; ref?: React.Ref<any> }) {
   const items = React.Children.toArray(children)
   const slottable = items.find(isSlottable)
+  // Radix throws here too: several children with no Slottable would silently drop every slot prop.
+  if (!slottable && items.length > 1) React.Children.only(null)
   const element = slottable ? slottable.props.children : children
   if (!React.isValidElement<AnyProps>(element)) return <>{element}</>
   const content = slottable
