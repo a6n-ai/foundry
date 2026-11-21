@@ -20,11 +20,10 @@ import {
 } from "@ui-sdk/react/menu"
 import { CheckIcon, ChevronRightIcon } from "lucide-react"
 
-import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 
-function MenuTrigger(props: React.ComponentProps<typeof SdkMenuTrigger> & AsChildProps) {
-  return <SdkMenuTrigger {...withAsChild(props)} />
+function MenuTrigger(props: React.ComponentProps<typeof SdkMenuTrigger>) {
+  return <SdkMenuTrigger {...props} />
 }
 
 // Popups render in place and their clicks bubble, so a row or card around a menu would also get them.
@@ -68,17 +67,16 @@ function MenuItem({
   inset,
   variant = "default",
   ...props
-}: React.ComponentProps<typeof SdkMenuItem> &
-  AsChildProps & {
-    inset?: boolean
-    variant?: "default" | "destructive"
-  }) {
+}: React.ComponentProps<typeof SdkMenuItem> & {
+  inset?: boolean
+  variant?: "default" | "destructive"
+}) {
   return (
     <SdkMenuItem
       data-inset={inset}
       destructive={variant === "destructive"}
       className={cn(itemClass, className)}
-      {...withAsChild(props)}
+      {...props}
     />
   )
 }
@@ -87,24 +85,18 @@ function MenuCheckboxItem({
   className,
   children,
   inset,
-  onSelect,
-  closeOnSelect,
   ...props
 }: Omit<React.ComponentProps<typeof SdkMenuCheckboxItem>, "children" | "value"> & {
   /** Defaults to a generated id for callers that never passed one. */
   value?: string
   children?: React.ReactNode
   inset?: boolean
-  /** @deprecated callers prevent default here to keep the menu open; use `closeOnSelect={false}`. */
-  onSelect?: (event: { preventDefault: () => void }) => void
 }) {
   const fallback = React.useId()
-  // Callers only pass onSelect to call preventDefault (keep open for multi-select), so its presence means stay open.
   return (
     <SdkMenuCheckboxItem
       data-inset={inset}
       className={cn(itemClass, "pr-8", className)}
-      closeOnSelect={closeOnSelect ?? (onSelect ? false : undefined)}
       {...props}
       value={props.value ?? fallback}
     >

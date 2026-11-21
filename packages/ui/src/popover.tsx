@@ -9,11 +9,10 @@ import {
   PopoverTrigger as SdkPopoverTrigger,
 } from "@ui-sdk/react/popover"
 
-import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 
-function PopoverTrigger(props: React.ComponentProps<typeof SdkPopoverTrigger> & AsChildProps) {
-  return <SdkPopoverTrigger {...withAsChild(props)} />
+function PopoverTrigger(props: React.ComponentProps<typeof SdkPopoverTrigger>) {
+  return <SdkPopoverTrigger {...props} />
 }
 
 // Popups render in place and their clicks bubble, so a row or card around a popover would also get them.

@@ -12,12 +12,11 @@ import {
 } from "@ui-sdk/react/dialog"
 import { XIcon } from "lucide-react"
 
-import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 import { Button } from "./button"
 
-function DialogTrigger(props: React.ComponentProps<typeof SdkDialogTrigger> & AsChildProps) {
-  return <SdkDialogTrigger {...withAsChild(props)} />
+function DialogTrigger(props: React.ComponentProps<typeof SdkDialogTrigger>) {
+  return <SdkDialogTrigger {...props} />
 }
 
 function DialogBackdrop({ className, ...props }: React.ComponentProps<typeof SdkDialogBackdrop>) {

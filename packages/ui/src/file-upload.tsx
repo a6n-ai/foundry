@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { cn } from "./cn";
-import { Slot } from "./slot";
+import { renderElement } from "@ui-sdk/react/primitive";
 import { useAsRef } from "./use-as-ref";
 import { useLazyRef } from "./use-lazy-ref";
 
@@ -199,7 +199,6 @@ interface FileUploadProps
   dir?: Direction;
   label?: string;
   name?: string;
-  asChild?: boolean;
   disabled?: boolean;
   invalid?: boolean;
   multiple?: boolean;
@@ -222,7 +221,6 @@ function FileUpload(props: FileUploadProps) {
     dir: dirProp,
     label,
     name,
-    asChild,
     disabled = false,
     invalid = false,
     multiple = false,
@@ -634,12 +632,10 @@ function FileUpload(props: FileUploadProps) {
     [dropzoneId, inputId, listId, labelId, dir, disabled, urlCache],
   );
 
-  const RootPrimitive = asChild ? Slot : "div";
-
   return (
     <StoreContext.Provider value={store}>
       <FileUploadContext.Provider value={contextValue}>
-        <RootPrimitive
+        <div
           data-disabled={disabled ? "" : undefined}
           data-slot="file-upload"
           dir={dir}
@@ -665,19 +661,17 @@ function FileUpload(props: FileUploadProps) {
           <div id={labelId} className="sr-only">
             {label ?? "File upload"}
           </div>
-        </RootPrimitive>
+        </div>
       </FileUploadContext.Provider>
     </StoreContext.Provider>
   );
 }
 
 interface FileUploadDropzoneProps extends React.ComponentProps<"div"> {
-  asChild?: boolean;
 }
 
 function FileUploadDropzone(props: FileUploadDropzoneProps) {
   const {
-    asChild,
     className,
     onClick: onClickProp,
     onDragOver: onDragOverProp,
@@ -846,10 +840,8 @@ function FileUploadDropzone(props: FileUploadDropzoneProps) {
     [context.inputRef, propsRef],
   );
 
-  const DropzonePrimitive = asChild ? Slot : "div";
-
   return (
-    <DropzonePrimitive
+    <div
       role="region"
       id={context.dropzoneId}
       aria-controls={`${context.inputId} ${context.listId}`}
@@ -878,11 +870,11 @@ function FileUploadDropzone(props: FileUploadDropzoneProps) {
 }
 
 interface FileUploadTriggerProps extends React.ComponentProps<"button"> {
-  asChild?: boolean;
+  render?: React.ReactElement;
 }
 
 function FileUploadTrigger(props: FileUploadTriggerProps) {
-  const { asChild, onClick: onClickProp, ...triggerProps } = props;
+  const { render, onClick: onClickProp, ...triggerProps } = props;
 
   const context = useFileUploadContext(TRIGGER_NAME);
 
@@ -901,24 +893,23 @@ function FileUploadTrigger(props: FileUploadTriggerProps) {
     [context.inputRef, propsRef],
   );
 
-  const TriggerPrimitive = asChild ? Slot : "button";
-
-  return (
-    <TriggerPrimitive
-      type="button"
-      aria-controls={context.inputId}
-      data-disabled={context.disabled ? "" : undefined}
-      data-slot="file-upload-trigger"
-      {...triggerProps}
-      disabled={context.disabled}
-      onClick={onClick}
-    />
+  return renderElement(
+    "button",
+    {
+      type: "button",
+      "aria-controls": context.inputId,
+      "data-disabled": context.disabled ? "" : undefined,
+      "data-slot": "file-upload-trigger",
+      ...triggerProps,
+      disabled: context.disabled,
+      onClick,
+    },
+    render,
   );
 }
 
 interface FileUploadListProps extends React.ComponentProps<"div"> {
   orientation?: "horizontal" | "vertical";
-  asChild?: boolean;
   forceMount?: boolean;
 }
 
@@ -926,7 +917,6 @@ function FileUploadList(props: FileUploadListProps) {
   const {
     className,
     orientation = "vertical",
-    asChild,
     forceMount,
     ...listProps
   } = props;
@@ -937,10 +927,8 @@ function FileUploadList(props: FileUploadListProps) {
 
   if (!shouldRender) return null;
 
-  const ListPrimitive = asChild ? Slot : "div";
-
   return (
-    <ListPrimitive
+    <div
       role="list"
       id={context.listId}
       aria-orientation={orientation}
@@ -980,11 +968,10 @@ function useFileUploadItemContext(consumerName: string) {
 
 interface FileUploadItemProps extends React.ComponentProps<"div"> {
   value: File;
-  asChild?: boolean;
 }
 
 function FileUploadItem(props: FileUploadItemProps) {
-  const { value, asChild, className, ...itemProps } = props;
+  const { value, className, ...itemProps } = props;
 
   const id = React.useId();
   const statusId = `${id}-status`;
@@ -1022,11 +1009,9 @@ function FileUploadItem(props: FileUploadItemProps) {
         ? "Upload complete"
         : "Ready to upload";
 
-  const ItemPrimitive = asChild ? Slot : "div";
-
   return (
     <FileUploadItemContext.Provider value={itemContext}>
-      <ItemPrimitive
+      <div
         role="listitem"
         id={id}
         aria-setsize={fileCount}
@@ -1047,18 +1032,17 @@ function FileUploadItem(props: FileUploadItemProps) {
         <span id={statusId} className="sr-only">
           {statusText}
         </span>
-      </ItemPrimitive>
+      </div>
     </FileUploadItemContext.Provider>
   );
 }
 
 interface FileUploadItemPreviewProps extends React.ComponentProps<"div"> {
   render?: (file: File, fallback: () => React.ReactNode) => React.ReactNode;
-  asChild?: boolean;
 }
 
 function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
-  const { render, asChild, children, className, ...previewProps } = props;
+  const { render, children, className, ...previewProps } = props;
 
   const itemContext = useFileUploadItemContext(ITEM_PREVIEW_NAME);
   const context = useFileUploadContext(ITEM_PREVIEW_NAME);
@@ -1096,10 +1080,8 @@ function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
 
   if (!itemContext.fileState) return null;
 
-  const ItemPreviewPrimitive = asChild ? Slot : "div";
-
   return (
-    <ItemPreviewPrimitive
+    <div
       aria-labelledby={itemContext.nameId}
       data-slot="file-upload-preview"
       {...previewProps}
@@ -1110,18 +1092,16 @@ function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
     >
       {onPreviewRender(itemContext.fileState.file)}
       {children}
-    </ItemPreviewPrimitive>
+    </div>
   );
 }
 
 interface FileUploadItemMetadataProps extends React.ComponentProps<"div"> {
-  asChild?: boolean;
   size?: "default" | "sm";
 }
 
 function FileUploadItemMetadata(props: FileUploadItemMetadataProps) {
   const {
-    asChild,
     size = "default",
     children,
     className,
@@ -1133,10 +1113,8 @@ function FileUploadItemMetadata(props: FileUploadItemMetadataProps) {
 
   if (!itemContext.fileState) return null;
 
-  const ItemMetadataPrimitive = asChild ? Slot : "div";
-
   return (
-    <ItemMetadataPrimitive
+    <div
       data-slot="file-upload-metadata"
       dir={context.dir}
       {...metadataProps}
@@ -1172,13 +1150,12 @@ function FileUploadItemMetadata(props: FileUploadItemMetadataProps) {
           )}
         </>
       )}
-    </ItemMetadataPrimitive>
+    </div>
   );
 }
 interface FileUploadItemProgressProps extends React.ComponentProps<"div"> {
   variant?: "linear" | "circular" | "fill";
   size?: number;
-  asChild?: boolean;
   forceMount?: boolean;
 }
 
@@ -1186,7 +1163,6 @@ function FileUploadItemProgress(props: FileUploadItemProgressProps) {
   const {
     variant = "linear",
     size = 40,
-    asChild,
     forceMount,
     className,
     ...progressProps
@@ -1200,8 +1176,6 @@ function FileUploadItemProgress(props: FileUploadItemProgressProps) {
 
   if (!shouldRender) return null;
 
-  const ItemProgressPrimitive = asChild ? Slot : "div";
-
   switch (variant) {
     case "circular": {
       const circumference = 2 * Math.PI * ((size - 4) / 2);
@@ -1209,7 +1183,7 @@ function FileUploadItemProgress(props: FileUploadItemProgressProps) {
         circumference - (itemContext.fileState.progress / 100) * circumference;
 
       return (
-        <ItemProgressPrimitive
+        <div
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}
@@ -1249,7 +1223,7 @@ function FileUploadItemProgress(props: FileUploadItemProgressProps) {
               r={(size - 4) / 2}
             />
           </svg>
-        </ItemProgressPrimitive>
+        </div>
       );
     }
 
@@ -1258,7 +1232,7 @@ function FileUploadItemProgress(props: FileUploadItemProgressProps) {
       const topInset = 100 - progressPercentage;
 
       return (
-        <ItemProgressPrimitive
+        <div
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}
@@ -1280,7 +1254,7 @@ function FileUploadItemProgress(props: FileUploadItemProgressProps) {
 
     default:
       return (
-        <ItemProgressPrimitive
+        <div
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}
@@ -1300,17 +1274,16 @@ function FileUploadItemProgress(props: FileUploadItemProgressProps) {
               transform: `translateX(-${100 - itemContext.fileState.progress}%)`,
             }}
           />
-        </ItemProgressPrimitive>
+        </div>
       );
   }
 }
 
 interface FileUploadItemDeleteProps extends React.ComponentProps<"button"> {
-  asChild?: boolean;
 }
 
 function FileUploadItemDelete(props: FileUploadItemDeleteProps) {
-  const { asChild, onClick: onClickProp, ...deleteProps } = props;
+  const { onClick: onClickProp, ...deleteProps } = props;
 
   const store = useStoreContext(ITEM_DELETE_NAME);
   const itemContext = useFileUploadItemContext(ITEM_DELETE_NAME);
@@ -1331,10 +1304,8 @@ function FileUploadItemDelete(props: FileUploadItemDeleteProps) {
 
   if (!itemContext.fileState) return null;
 
-  const ItemDeletePrimitive = asChild ? Slot : "button";
-
   return (
-    <ItemDeletePrimitive
+    <button
       type="button"
       aria-controls={itemContext.id}
       aria-describedby={itemContext.nameId}
@@ -1347,12 +1318,10 @@ function FileUploadItemDelete(props: FileUploadItemDeleteProps) {
 
 interface FileUploadClearProps extends React.ComponentProps<"button"> {
   forceMount?: boolean;
-  asChild?: boolean;
 }
 
 function FileUploadClear(props: FileUploadClearProps) {
   const {
-    asChild,
     forceMount,
     disabled,
     onClick: onClickProp,
@@ -1380,10 +1349,8 @@ function FileUploadClear(props: FileUploadClearProps) {
 
   if (!shouldRender) return null;
 
-  const ClearPrimitive = asChild ? Slot : "button";
-
   return (
-    <ClearPrimitive
+    <button
       type="button"
       aria-controls={context.listId}
       data-slot="file-upload-clear"

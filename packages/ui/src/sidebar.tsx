@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "./slot"
+import { Rendered } from "./rendered"
 
 import { useIsMobile } from "./use-mobile"
 import { cn } from "./cn"
@@ -389,13 +389,12 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
 
 function SidebarGroupLabel({
   className,
-  asChild = false,
+  render,
   ...props
-}: React.ComponentProps<"div"> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "div"
+}: React.ComponentProps<"div"> & { render?: React.ReactElement }) {
 
   return (
-    <Comp
+    <Rendered tag="div" render={render}
       data-slot="sidebar-group-label"
       data-sidebar="group-label"
       className={cn(
@@ -409,13 +408,12 @@ function SidebarGroupLabel({
 
 function SidebarGroupAction({
   className,
-  asChild = false,
+  render,
   ...props
-}: React.ComponentProps<"button"> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "button"
+}: React.ComponentProps<"button"> & { render?: React.ReactElement }) {
 
   return (
-    <Comp
+    <Rendered tag="button" render={render}
       data-slot="sidebar-group-action"
       data-sidebar="group-action"
       className={cn(
@@ -486,7 +484,7 @@ const sidebarMenuButtonVariants = cva(
 )
 
 function SidebarMenuButton({
-  asChild = false,
+  render,
   isActive = false,
   variant = "default",
   size = "default",
@@ -494,15 +492,14 @@ function SidebarMenuButton({
   className,
   ...props
 }: React.ComponentProps<"button"> & {
-  asChild?: boolean
+  render?: React.ReactElement
   isActive?: boolean
   tooltip?: string | React.ComponentProps<typeof TooltipContent>
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
-  const Comp = asChild ? Slot : "button"
   const { isMobile, state } = useSidebar()
 
   const button = (
-    <Comp
+    <Rendered tag="button" render={render}
       data-slot="sidebar-menu-button"
       data-sidebar="menu-button"
       data-size={size}
@@ -532,17 +529,16 @@ function SidebarMenuButton({
 
 function SidebarMenuAction({
   className,
-  asChild = false,
+  render,
   showOnHover = false,
   ...props
 }: React.ComponentProps<"button"> & {
-  asChild?: boolean
+  render?: React.ReactElement
   showOnHover?: boolean
 }) {
-  const Comp = asChild ? Slot : "button"
 
   return (
-    <Comp
+    <Rendered tag="button" render={render}
       data-slot="sidebar-menu-action"
       data-sidebar="menu-action"
       className={cn(
@@ -640,20 +636,19 @@ function SidebarMenuSubItem({
 }
 
 function SidebarMenuSubButton({
-  asChild = false,
+  render,
   size = "md",
   isActive = false,
   className,
   ...props
 }: React.ComponentProps<"a"> & {
-  asChild?: boolean
+  render?: React.ReactElement
   size?: "sm" | "md"
   isActive?: boolean
 }) {
-  const Comp = asChild ? Slot : "a"
 
   return (
-    <Comp
+    <Rendered tag="a" render={render}
       data-slot="sidebar-menu-sub-button"
       data-sidebar="menu-sub-button"
       data-size={size}

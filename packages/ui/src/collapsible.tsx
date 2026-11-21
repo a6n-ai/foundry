@@ -6,14 +6,13 @@ import {
   CollapsiblePanel,
   CollapsibleTrigger as SdkCollapsibleTrigger,
 } from "@ui-sdk/react/collapsible"
-import { type AsChildProps, withAsChild } from "./as-child"
 
 function Collapsible(props: React.ComponentProps<typeof SdkCollapsible>) {
   return <SdkCollapsible {...props} />
 }
 
-function CollapsibleTrigger(props: React.ComponentProps<typeof SdkCollapsibleTrigger> & AsChildProps) {
-  return <SdkCollapsibleTrigger {...withAsChild(props)} />
+function CollapsibleTrigger(props: React.ComponentProps<typeof SdkCollapsibleTrigger>) {
+  return <SdkCollapsibleTrigger {...props} />
 }
 
 function CollapsibleContent(props: React.ComponentProps<typeof CollapsiblePanel>) {

@@ -90,12 +90,10 @@ describe("Collapsible", () => {
     expect(screen.queryByText("Hidden stuff")).toBeNull()
   })
 
-  it("trigger asChild renders the child element", () => {
+  it("trigger render renders the given element", () => {
     render(
       <Collapsible>
-        <CollapsibleTrigger asChild>
-          <a href="#x">Toggle</a>
-        </CollapsibleTrigger>
+        <CollapsibleTrigger render={<a href="#x" />}>Toggle</CollapsibleTrigger>
         <CollapsibleContent>Body</CollapsibleContent>
       </Collapsible>
     )

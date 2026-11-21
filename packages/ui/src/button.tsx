@@ -1,7 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { renderElement } from "@ui-sdk/react/primitive"
-import { Slot } from "./slot"
 
 import { cn } from "./cn"
 
@@ -46,14 +45,11 @@ function Button({
   className,
   variant = "default",
   size = "default",
-  asChild = false,
   render,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     render?: React.ReactElement
-    /** @deprecated pass the element as `render`; kept for apps/puchkaman. */
-    asChild?: boolean
   }) {
   const merged = {
     "data-slot": "button",
@@ -62,7 +58,7 @@ function Button({
     className: cn(buttonVariants({ variant, size, className })),
     ...props,
   }
-  return asChild ? <Slot {...merged} /> : renderElement("button", merged, render)
+  return renderElement("button", merged, render)
 }
 
 export { Button, buttonVariants }

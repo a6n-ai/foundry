@@ -8,23 +8,10 @@ import {
   TooltipTrigger as SdkTooltipTrigger,
 } from "@ui-sdk/react/tooltip"
 
-import { withAsChild, type AsChildProps } from "./as-child"
 import { cn } from "./cn"
 
-/** @deprecated ui-sdk tooltips need no provider. */
-function TooltipProvider({
-  children,
-}: {
-  children?: React.ReactNode
-  delayDuration?: number
-  skipDelayDuration?: number
-  disableHoverableContent?: boolean
-}) {
-  return <>{children}</>
-}
-
-function TooltipTrigger(props: React.ComponentProps<typeof SdkTooltipTrigger> & AsChildProps) {
-  return <SdkTooltipTrigger {...withAsChild(props)} />
+function TooltipTrigger(props: React.ComponentProps<typeof SdkTooltipTrigger>) {
+  return <SdkTooltipTrigger {...props} />
 }
 
 function Tooltip({
@@ -57,4 +44,4 @@ function TooltipContent({
   )
 }
 
-export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger }
+export { Tooltip, TooltipContent, TooltipTrigger }

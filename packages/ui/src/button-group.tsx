@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "./slot"
+import { renderElement } from "@ui-sdk/react/primitive"
 
 import { cn } from "./cn"
 import { Separator } from "./separator"
@@ -39,21 +39,21 @@ function ButtonGroup({
 
 function ButtonGroupText({
   className,
-  asChild = false,
+  render,
   ...props
 }: React.ComponentProps<"div"> & {
-  asChild?: boolean
+  render?: React.ReactElement
 }) {
-  const Comp = asChild ? Slot : "div"
-
-  return (
-    <Comp
-      className={cn(
+  return renderElement(
+    "div",
+    {
+      className: cn(
         "flex items-center gap-2 rounded-lg border bg-muted px-2.5 text-sm font-medium [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
         className
-      )}
-      {...props}
-    />
+      ),
+      ...props,
+    },
+    render
   )
 }
 
