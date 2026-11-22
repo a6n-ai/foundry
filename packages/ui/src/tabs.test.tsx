@@ -49,6 +49,16 @@ describe("Tabs", () => {
     expect(screen.getByRole("tabpanel")).toHaveTextContent("Manage your profile.")
   })
 
+  it("stacks the list above the panel unless vertical", () => {
+    const { container, rerender } = render(<Settings defaultValue="account" />)
+    const root = container.firstElementChild!
+    expect(root).toHaveAttribute("data-orientation", "horizontal")
+    expect(root.className).toContain("data-[orientation=horizontal]:flex-col")
+    expect(screen.getByRole("tab", { name: "Account" }).className).toContain("group-data-[orientation=vertical]/tabs:w-full")
+    rerender(<Settings defaultValue="account" orientation="vertical" />)
+    expect(root).toHaveAttribute("data-orientation", "vertical")
+  })
+
   it("moves the selection with the arrow keys", () => {
     render(<Settings defaultValue="account" />)
     const account = screen.getByRole("tab", { name: "Account" })
