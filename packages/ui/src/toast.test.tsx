@@ -104,6 +104,19 @@ describe("toast facade", () => {
     vi.useRealTimers()
   })
 
+  it("gives a toast that never times out a Close button, and only that toast", async () => {
+    render(<Toaster />)
+    act(() => {
+      toast("Timed")
+      toast.success("Key created", { duration: Infinity })
+    })
+    const sticky = (await screen.findByText("Key created")).closest<HTMLElement>("[data-slot=toast]")!
+    const timed = screen.getByText("Timed").closest<HTMLElement>("[data-slot=toast]")!
+    expect(timed.querySelector("[aria-label=Close]")).toBeNull()
+    fireEvent.click(sticky.querySelector<HTMLElement>("[aria-label=Close]")!)
+    await waitFor(() => expect(screen.queryByText("Key created")).toBeNull())
+  })
+
   it("places the region from a sonner position", () => {
     render(<Toaster position="top-right" />)
     act(() => {

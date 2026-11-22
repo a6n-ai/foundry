@@ -4,12 +4,13 @@ import * as React from "react"
 import {
   Toast,
   ToastAction,
+  ToastClose,
   ToastDescription,
   ToastRegion,
   ToastTitle,
   toast,
 } from "@ui-sdk/react/toast"
-import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon } from "lucide-react"
+import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon, XIcon } from "lucide-react"
 
 import { buttonVariants } from "./button"
 import { cn } from "./cn"
@@ -64,6 +65,12 @@ function Toaster({ position = "bottom-right", className }: { position?: Position
             <ToastDescription className="order-none flex-none text-muted-foreground" />
           </div>
           <ToastAction className={buttonVariants({ variant: "outline", size: "sm" })} />
+          {/* Sonner's closeButton: a toast that never times out needs a way to go besides swiping. */}
+          {item.duration === Infinity && item.dismissible !== false ? (
+            <ToastClose aria-label="Close" className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "-my-1 -me-1.5 shrink-0")}>
+              <XIcon aria-hidden="true" />
+            </ToastClose>
+          ) : null}
         </Toast>
       )}
     </ToastRegion>
