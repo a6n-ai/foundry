@@ -22,6 +22,12 @@ describe("makeDiscountTables", () => {
     expect(col("active").default).toBe(true);
   });
 
+  it("has a nullable min_eating_days column", () => {
+    const { discounts } = makeDiscountTables({ organization });
+    expect(discounts.minEatingDays.name).toBe("min_eating_days");
+    expect(discounts.minEatingDays.notNull).toBe(false);
+  });
+
   it("keeps the percent range check and org FK", () => {
     expect(cfg.checks.map((c) => c.name)).toEqual(["discounts_percent_range"]);
     expect(cfg.foreignKeys).toHaveLength(1);

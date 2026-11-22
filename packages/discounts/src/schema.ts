@@ -14,7 +14,7 @@ import {
 
 /**
  * Central catalog-discount table, identical in every adopting app. Applicable
- * rows ADD UP (the app caps the sum). Built per app because `organization_id`
+ * rows ADD UP (except eating-day tiers, see the app's resolver; the app caps the sum). Built per app because `organization_id`
  * FKs to that app's own organization table, and `kinds` lets an app extend the
  * enum (same Postgres type name, different value set — like makeWalletTables).
  * `target_id` is a soft ref (no FK); null = every row of that kind.
@@ -43,6 +43,8 @@ export function makeDiscountTables<
       startsAt: bigint("starts_at", { mode: "number" }),
       endsAt: bigint("ends_at", { mode: "number" }),
       minWeeks: integer("min_weeks"),
+      // Delivery tiers: applies when the customer eats at least this many days a week; the highest tier per target wins.
+      minEatingDays: integer("min_eating_days"),
       // Flat money off, for kinds an app prices per unit (e.g. a meal size's list price).
       // The additive engine reads only `percent`, so a flat row there keeps percent 0.
       amount: numeric("amount", { precision: 10, scale: 2 }),
