@@ -45,7 +45,8 @@ function Calendar({ className, autoFocus, controller: given, months = 1, showOut
         className
       )}
     >
-      <div className="pointer-events-none absolute inset-x-2 top-2 flex items-center justify-between">
+      {/* z-10: the month grid below is positioned and comes later, so without it the caption row sits over the arrows and eats their clicks. */}
+      <div className="pointer-events-none absolute inset-x-2 top-2 z-10 flex items-center justify-between">
         <CalendarPrevious
           className={cn(buttonVariants({ variant: "ghost" }), "pointer-events-auto size-(--cell-size) p-0 select-none data-disabled:opacity-50")}
         >
