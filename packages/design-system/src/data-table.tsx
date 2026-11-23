@@ -118,8 +118,9 @@ const KIND_WIDTH: Record<string, string> = {};
 const kinds: [string, string[]][] = [
   ["w-44", ["time", "createdAt", "created", "updatedAt", "lastTouch", "lastMessage", "lastOrder", "lastSynced", "synced", "joined", "expiresAt", "startsAt", "submitted", "eventDate", "capturedAt", "paidAt", "when"]],
   ["w-32", ["start", "occursOn", "customerSince", "planCompletion", "deliveryDate"]],
-  ["w-28", ["status", "stage", "published", "priority", "latestStatus", "role", "type", "method", "source", "scope", "category", "stackable", "autoApply", "deployment", "direction", "fulfillment", "payment", "consent", "operation", "entity", "proof", "reporting", "color"]],
-  ["w-36", ["kind"]],
+  ["w-28", ["stage", "published", "priority", "role", "type", "method", "source", "scope", "category", "stackable", "autoApply", "deployment", "direction", "fulfillment", "payment", "consent", "operation", "entity", "proof", "reporting", "color"]],
+  // Status badges run as long as "Awaiting payment", which w-28 clipped to an ellipsis.
+  ["w-36", ["kind", "status", "latestStatus"]],
   ["w-24", ["amount", "total", "price", "spent", "value", "coins", "basePrice", "markup", "rate", "minSpend", "channel", "channels"]],
   ["w-20", ["orders", "count", "memberCount", "members", "tiffins", "guests", "capacity", "remaining", "items", "modifiers", "stops", "serial", "duration", "maximum"]],
   ["w-32", ["phone"]],
