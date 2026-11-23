@@ -61,6 +61,11 @@ export type WalletDeps<E extends string> = {
    * would, and filterUnderCap() splits a batch. Checked before canAward.
    */
   maxBalance?: () => Promise<number | null>;
+  /**
+   * Read-through cache for the active coin rate (read on every balance display and quote). The
+   * caller evicts it when it saves a new rate. Any TieredCache fits. Omit to read the DB each time.
+   */
+  rateCache?: { getOrSet<T>(key: string, load: () => Promise<T>): Promise<T> };
 };
 
 /**
@@ -607,7 +612,7 @@ export async function reverseAward(
 }
 
 export function createWalletService<E extends string>(deps: WalletDeps<E>) {
-  const { db, tables, orders, users, recordRedemptionDiscount, canAward, maxBalance } = deps;
+  const { db, tables, orders, users, recordRedemptionDiscount, canAward, maxBalance, rateCache } = deps;
   const { walletLedger, eventPayout, coinRate } = tables;
 
   const balanceSum = sql<number>`coalesce(sum(case when ${walletLedger.direction} = 'credit' then ${walletLedger.coins} else -${walletLedger.coins} end), 0)::int`;
@@ -628,7 +633,12 @@ export function createWalletService<E extends string>(deps: WalletDeps<E>) {
     return { ok, capped };
   }
 
-  async function activeRate(currency: string): Promise<number> {
+  function activeRate(currency: string): Promise<number> {
+    // A missing rate throws inside the loader, so the cache never keeps the failure.
+    return rateCache ? rateCache.getOrSet(`coin-rate:${currency}`, () => loadRate(currency)) : loadRate(currency);
+  }
+
+  async function loadRate(currency: string): Promise<number> {
     const [row] = await db
       .select({ v: coinRate.valuePerCoin })
       .from(coinRate)
