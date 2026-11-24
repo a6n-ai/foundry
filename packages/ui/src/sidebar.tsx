@@ -37,20 +37,25 @@ type SidebarContextProps = {
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
 
 // Loaded on first mobile render so desktop consumers never fetch the drawer code.
-const MobileSidebar = React.lazy(async () => {
-  const { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } = await import("./sheet")
+// A failed chunk load (offline, stale deploy) renders no mobile nav instead of throwing to the error boundary.
+type MobileSidebarProps = React.ComponentProps<"div"> & {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  side: "left" | "right"
+  dir?: string
+}
+
+const MobileSidebar = React.lazy(async (): Promise<{ default: React.ComponentType<MobileSidebarProps> }> => {
+  const sheet = await import("./sheet").catch(() => null)
+  if (!sheet) return { default: () => null }
+  const { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } = sheet
   return {
     default: function MobileSidebar({
       dir,
       side,
       children,
       ...props
-    }: React.ComponentProps<"div"> & {
-      open: boolean
-      onOpenChange: (open: boolean) => void
-      side: "left" | "right"
-      dir?: string
-    }) {
+    }: MobileSidebarProps) {
       return (
         <Sheet side={side} {...props}>
           <SheetContent
