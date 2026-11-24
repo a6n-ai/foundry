@@ -9,13 +9,6 @@ import { cn } from "./cn"
 import { Button } from "./button"
 import { Input } from "./input"
 import { Separator } from "./separator"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "./sheet"
 import { Skeleton } from "./skeleton"
 import {
   Tooltip,
@@ -42,6 +35,46 @@ type SidebarContextProps = {
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
+
+// Loaded on first mobile render so desktop consumers never fetch the drawer code.
+const MobileSidebar = React.lazy(async () => {
+  const { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } = await import("./sheet")
+  return {
+    default: function MobileSidebar({
+      dir,
+      side,
+      children,
+      ...props
+    }: React.ComponentProps<"div"> & {
+      open: boolean
+      onOpenChange: (open: boolean) => void
+      side: "left" | "right"
+      dir?: string
+    }) {
+      return (
+        <Sheet side={side} {...props}>
+          <SheetContent
+            dir={dir}
+            data-sidebar="sidebar"
+            data-mobile="true"
+            className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+            style={
+              {
+                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+              } as React.CSSProperties
+            }
+          >
+            <SheetHeader className="sr-only">
+              <SheetTitle>Sidebar</SheetTitle>
+              <SheetDescription>Displays the mobile sidebar.</SheetDescription>
+            </SheetHeader>
+            <div className="flex h-full w-full flex-col">{children}</div>
+          </SheetContent>
+        </Sheet>
+      )
+    },
+  }
+})
 
 function useSidebar() {
   const context = React.useContext(SidebarContext)
@@ -180,25 +213,11 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} side={side} {...props}>
-        <SheetContent
-          dir={dir}
-          data-sidebar="sidebar"
-          data-mobile="true"
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
-          </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
-      </Sheet>
+      <React.Suspense fallback={null}>
+        <MobileSidebar open={openMobile} onOpenChange={setOpenMobile} side={side} dir={dir} {...props}>
+          {children}
+        </MobileSidebar>
+      </React.Suspense>
     )
   }
 
