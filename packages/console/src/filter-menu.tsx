@@ -1,3 +1,5 @@
+"use client"
+
 import { Badge } from "@foundry/ui/badge"
 import { Button } from "@foundry/ui/button"
 import {
@@ -16,12 +18,20 @@ import type { ConsoleSearch } from "./router"
 export function FilterMenu({
   facets,
   value,
-  onChange,
+  onChange: emit,
+  reset = ["page", "cursor"],
 }: {
   facets: Facet[]
   value: ConsoleSearch
   onChange: (next: ConsoleSearch) => void
+  /** Search keys dropped on every filter change, so a new filter starts on the first page. */
+  reset?: string[]
 }) {
+  const onChange = (next: ConsoleSearch) => {
+    const out = { ...next }
+    for (const k of reset) delete out[k]
+    emit(out)
+  }
   const chips = chipsFrom(value, facets)
   return (
     <div className="flex flex-wrap items-center gap-2">

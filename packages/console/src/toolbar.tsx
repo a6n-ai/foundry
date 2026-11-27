@@ -1,3 +1,5 @@
+"use client"
+
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@foundry/ui/input-group"
 import { Kbd } from "@foundry/ui/kbd"
 import { SearchIcon } from "lucide-react"

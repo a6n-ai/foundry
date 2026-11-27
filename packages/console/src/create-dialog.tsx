@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@foundry/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@foundry/ui/dialog"
 import { type ReactNode, useState } from "react"

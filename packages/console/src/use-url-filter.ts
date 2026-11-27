@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useRef, useState } from "react"
 import { useConsoleRouter } from "./router"
 import { withParam } from "./search-param"

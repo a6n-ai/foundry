@@ -13,6 +13,8 @@ interface ConsoleRouter {
 }
 ```
 
+The adapter `Link` must forward `ref` and every anchor prop and event handler (`onClick`, `onKeyDown`, `aria-*`, `data-*`) unchanged: menus, tooltips and `Button render` clone it, and a dropped ref or handler breaks keyboard navigation silently.
+
 Wrap the app once in `<ConsoleRouterProvider router={router}>`. URL filter state (`useUrlFilter`, `Pager`, `SearchTabs`) reads and writes only through this adapter.
 
 ## Tailwind

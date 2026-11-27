@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@foundry/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { ConsoleLink, useConsoleRouter } from "./router"

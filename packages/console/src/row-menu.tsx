@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@foundry/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@foundry/ui/dropdown-menu"
 import { MoreHorizontalIcon } from "lucide-react"

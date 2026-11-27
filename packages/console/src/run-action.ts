@@ -6,6 +6,15 @@ function refusal(result: unknown): string | null {
   return "code" in result && typeof result.code === "string" ? result.code : ""
 }
 
+// The action already succeeded; a failed refresh must not be reported as a failed action.
+async function refresh(invalidate: () => Promise<void>): Promise<void> {
+  try {
+    await invalidate()
+  } catch (err) {
+    console.error("refresh after action failed", err)
+  }
+}
+
 export async function runAction(
   action: () => Promise<unknown>,
   success: string,
@@ -19,10 +28,11 @@ export async function runAction(
       return
     }
     toast.success(success)
-    await invalidate()
   } catch (err) {
     toast.error(errorText(err))
+    return
   }
+  await refresh(invalidate)
 }
 
 // For a confirm dialog: rejects with the mapped copy so the dialog shows it inline.
@@ -40,5 +50,5 @@ export async function confirmAction(
   }
   if (code !== null) throw new Error(errorText(new Error(code)))
   toast.success(success)
-  await invalidate()
+  await refresh(invalidate)
 }
