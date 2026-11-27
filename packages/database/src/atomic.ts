@@ -61,6 +61,16 @@ export async function atomic<TDb extends AnyDatabase>(
       const q = isGuarded(item) ? guardSqlite(item.query) : item;
       return isThenable(q) ? q : any.run(q.getSQL());
     });
+    // Drizzle's D1 batch needs prepared statements, which a raw `db.run(sql)` does not carry.
+    const client = any.$client;
+    if (typeof client?.prepare === "function" && typeof client?.batch === "function") {
+      return client.batch(
+        stmts.map((s: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+          const { sql: text, params } = typeof s.toSQL === "function" ? s.toSQL() : s.getQuery();
+          return client.prepare(text).bind(...params);
+        }),
+      );
+    }
     return any.batch(stmts);
   }
   return any.transaction(async (tx: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
