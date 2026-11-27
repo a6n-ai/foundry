@@ -1,0 +1,38 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`pg repository SQL > create 1`] = `
+[
+  "insert into "items" ("id", "public_id", "app_id", "created_at", "created_by", "updated_at", "updated_by") values (default, $1, default, $2, $3, $4, default) returning "id", "public_id", "app_id", "created_at", "created_by", "updated_at", "updated_by" -- ["itm_1",1,"7n",1]",
+]
+`;
+
+exports[`pg repository SQL > deleteByPublicId 1`] = `
+[
+  "delete from "items" where "items"."public_id" = $1 returning "id" -- ["itm_1"]",
+]
+`;
+
+exports[`pg repository SQL > findById 1`] = `
+[
+  "select "id", "public_id", "app_id", "created_at", "created_by", "updated_at", "updated_by" from "items" where "items"."id" = $1 limit $2 -- ["5n",1]",
+]
+`;
+
+exports[`pg repository SQL > findByPublicId 1`] = `
+[
+  "select "id", "public_id", "app_id", "created_at", "created_by", "updated_at", "updated_by" from "items" where "items"."public_id" = $1 limit $2 -- ["itm_1",1]",
+]
+`;
+
+exports[`pg repository SQL > findMany with like + sort 1`] = `
+[
+  "select "id", "public_id", "app_id", "created_at", "created_by", "updated_at", "updated_by" from "items" where "items"."public_id" ilike $1 order by "items"."created_at" desc, "items"."id" desc limit $2 offset $3 -- ["%a%",10,10]",
+  "select cast(count(*) as int) from "items" where "items"."public_id" ilike $1 -- ["%a%"]",
+]
+`;
+
+exports[`pg repository SQL > updateByPublicId 1`] = `
+[
+  "update "items" set "updated_at" = $1, "updated_by" = $2 where "items"."public_id" = $3 returning "id", "public_id", "app_id", "created_at", "created_by", "updated_at", "updated_by" -- [2,"7n","itm_1"]",
+]
+`;
