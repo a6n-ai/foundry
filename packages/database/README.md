@@ -16,12 +16,13 @@ Import the root for the dialect-neutral API. Import a driver from its subpath:
 | `@foundry/database/libsql` | SQLite (libsql) | `@libsql/client` |
 | `@foundry/database/postgres` | Postgres | `postgres` |
 | `@foundry/database/mysql` | MySQL | `mysql2` |
+| `@foundry/database/factory` | Table factory (`c`, `defineTable`, `buildTables`) | `drizzle-orm` |
 
-The root never imports a driver at runtime. Drivers are only loaded through their subpath.
+The root never imports a driver or dialect core at runtime. Drivers are only loaded through their subpath. The factory is also on its own subpath because it loads the dialect cores.
 
 ## Defining tables
 
-Describe each table once with the neutral descriptors (`c.id`, `c.ref`, `c.string`, `c.text`, `c.int`, `c.bool`, `c.time`, `c.timestamp`, `c.json`). The app then calls `buildTables(tables, "sqlite" | "pg" | "mysql")` once, in its schema module. Queries never branch on the dialect.
+Describe each table once with the neutral descriptors (`c.id`, `c.ref`, `c.string`, `c.text`, `c.int`, `c.bool`, `c.time`, `c.timestamp`, `c.json`). Import them from `@foundry/database/factory`. The app then calls `buildTables(tables, "sqlite" | "pg" | "mysql")` once, in its schema module, and destructures the result into top-level exports (`export const { users } = buildTables(...)`) so drizzle-kit finds each table. Queries never branch on the dialect.
 
 The descriptors map to each dialect as follows:
 

@@ -6,6 +6,7 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
+    "./factory": "./src/factory/index.ts",
     "./d1": "./src/drivers/d1.ts",
     "./libsql": "./src/drivers/libsql.ts",
     "./postgres": "./src/drivers/postgres.ts",

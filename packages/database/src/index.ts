@@ -2,7 +2,6 @@ export * from "./atomic";
 export { baseColumns, updatableColumns } from "./columns";
 export * from "./condition";
 export * from "./dialect";
-export * from "./factory/index";
 export * from "./ids";
 export * from "./managed-fields";
 export * from "./order";

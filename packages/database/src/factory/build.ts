@@ -106,6 +106,10 @@ function buildColumn(d: Dialect, s: ColSpec, lookup: (c: AnyCol) => any): any {
   return b;
 }
 
+/**
+ * drizzle-kit only discovers top-level exported tables, so a schema module must destructure:
+ * `export const { users, inquiries } = buildTables(defs, "sqlite")`, never `export const tables = buildTables(...)`.
+ */
 export function buildTables<D extends Dialect, T extends Record<string, TableDef>>(
   defs: T,
   dialect: D,
