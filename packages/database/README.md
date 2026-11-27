@@ -18,7 +18,7 @@ Import the root for the dialect-neutral API. Import a driver from its subpath:
 | `@foundry/database/mysql` | MySQL | `mysql2` |
 | `@foundry/database/factory` | Table factory (`c`, `defineTable`, `buildTables`) | `drizzle-orm` |
 
-The root never imports a driver or dialect core at runtime. Drivers are only loaded through their subpath. The factory is also on its own subpath because it loads the dialect cores.
+The root never imports a driver at runtime, and imports no dialect core except one exception: `baseColumns`/`updatableColumns` (`src/columns.ts`) load `drizzle-orm/pg-core` until A-step 2 moves them to `@foundry/database/pg`. Drivers are only loaded through their subpath. The factory is also on its own subpath because it loads the dialect cores.
 
 ## Defining tables
 
@@ -52,7 +52,7 @@ The descriptors map to each dialect as follows:
 
 - A unit cannot read a row it wrote earlier in the same unit (no read-after-write).
 - A guarded item runs only when the previous item changed exactly one row. A guarded item must be a plain `INSERT ... SELECT`, placed directly after an `INSERT`, `UPDATE` or `DELETE`. It may not use `ON CONFLICT` or `RETURNING`.
-- D1 allows at most 100 bound parameters per batch. Keep units small, or split them.
+- D1 allows at most 100 bound parameters per statement. Keep units small, or split them.
 
 ## `like` case folding
 
@@ -60,7 +60,7 @@ The descriptors map to each dialect as follows:
 
 - Postgres uses `ilike`, so ASCII and Unicode letters fold.
 - SQLite `LIKE` folds ASCII letters only.
-- MySQL follows the column collation. The portable test suite runs on `utf8mb4_0900_ai_ci`, where `like` is case-insensitive.
+- MySQL follows the column collation. The portable suite (`src/__tests__/portable-repository.test.ts`) runs in foundry CI (`.github/workflows/ci.yml`) against `mysql:8.4`, whose default collation is `utf8mb4_0900_ai_ci`, where `like` is case-insensitive.
 
 Do not rely on non-ASCII case folding in app code.
 
