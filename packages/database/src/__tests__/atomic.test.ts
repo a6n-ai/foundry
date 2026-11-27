@@ -1,8 +1,8 @@
 import { createClient } from "@libsql/client";
-import { sql } from "drizzle-orm";
+import { entityKind, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { beforeEach, describe, expect, it } from "vitest";
-import { atomic, sqlNewId } from "../atomic";
+import { atomic, readAffected, sqlNewId } from "../atomic";
 
 let db: ReturnType<typeof drizzle>;
 
@@ -51,6 +51,23 @@ describe("atomic (sqlite)", () => {
     expect(await ids("log")).toEqual(["l1"]);
   });
 
+  it("guarded insert with a bound param in the SELECT", async () => {
+    await atomic(db, () => [
+      sql`update t set v = 9 where id = 'a'`,
+      { query: sql`insert into log (id, ref) select 'l1', id from t where id = ${"a"}`, onlyIfPreviousChanged: 1 },
+    ]);
+    expect(await ids("log")).toEqual(["l1"]);
+  });
+
+  it.each(["on conflict do nothing", "returning id"])("guarded item with %s throws", async (tail) => {
+    await expect(
+      atomic(db, () => [
+        sql`update t set v = 9 where id = 'a'`,
+        { query: sql.raw(`insert into log (id, ref) select 'l1', id from t ${tail}`), onlyIfPreviousChanged: 1 },
+      ]),
+    ).rejects.toThrow(/without ON CONFLICT\/RETURNING/);
+  });
+
   it("guarded non-INSERT…SELECT item throws", async () => {
     await expect(
       atomic(db, () => [
@@ -69,5 +86,50 @@ describe("sqlNewId", () => {
 
   it("rejects a bad prefix", () => {
     expect(() => sqlNewId("ab", "pg")).toThrow(/3 lowercase/);
+  });
+});
+
+describe("atomic (pg/mysql path, fake tx)", () => {
+  const fakeDb = (dialect: string, results: unknown[]) => {
+    const ran: unknown[] = [];
+    class Fake {
+      static readonly [entityKind] = dialect;
+      transaction<T>(cb: (tx: unknown) => Promise<T>) {
+        return cb({ execute: async (q: unknown) => (ran.push(q), results[ran.length - 1]) });
+      }
+    }
+    return { db: new Fake() as never, ran };
+  };
+  const guarded = { query: sql`insert into log select 1`, onlyIfPreviousChanged: 1 as const };
+  const upd = sql`update t set v = 1`;
+
+  it("pg runs guarded item when count is 1", async () => {
+    const { db, ran } = fakeDb("PgDatabase", [{ count: 1 }, { count: 1 }]);
+    expect(await atomic(db, () => [upd, guarded])).toEqual([{ count: 1 }, { count: 1 }]);
+    expect(ran).toHaveLength(2);
+  });
+
+  it("pg skips guarded item when count is 0 and skips chained guards", async () => {
+    const { db, ran } = fakeDb("PgDatabase", [{ count: 0 }]);
+    expect(await atomic(db, () => [upd, guarded, guarded])).toEqual([{ count: 0 }, undefined, undefined]);
+    expect(ran).toHaveLength(1);
+  });
+
+  it("mysql reads [{ affectedRows }]", async () => {
+    const run = fakeDb("MySqlDatabase", [[{ affectedRows: 1 }], [{ affectedRows: 1 }]]);
+    expect(await atomic(run.db, () => [upd, guarded])).toHaveLength(2);
+    const skip = fakeDb("MySqlDatabase", [[{ affectedRows: 0 }]]);
+    expect(await atomic(skip.db, () => [upd, guarded])).toEqual([[{ affectedRows: 0 }], undefined]);
+  });
+
+  it("unreadable driver result throws", async () => {
+    const { db } = fakeDb("PgDatabase", [{ rowCount: 1 }]);
+    await expect(atomic(db, () => [upd, guarded])).rejects.toThrow(/cannot read affected row count/);
+  });
+
+  it("readAffected rejects unreadable shapes", () => {
+    expect(() => readAffected("mysql", undefined)).toThrow(/cannot read/);
+    expect(() => readAffected("pg", {})).toThrow(/cannot read/);
+    expect(readAffected("pg", { count: 2 })).toBe(2);
   });
 });

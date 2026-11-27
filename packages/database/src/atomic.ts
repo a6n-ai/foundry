@@ -2,6 +2,11 @@ import { type SQL, type SQLWrapper, StringChunk, sql } from "drizzle-orm";
 import { dialectOf } from "./dialect";
 import type { AnyDatabase, Dialect } from "./types";
 
+/**
+ * Flat `sql` templates only. A guarded item must directly follow an INSERT/UPDATE/DELETE and be a plain
+ * INSERT ... SELECT (no ON CONFLICT/RETURNING). A skipped guarded item yields a 0-row result on sqlite
+ * and `undefined` on pg/mysql.
+ */
 export type BatchItem = SQLWrapper | { query: SQLWrapper; onlyIfPreviousChanged: 1 };
 
 const isGuarded = (i: BatchItem): i is { query: SQLWrapper; onlyIfPreviousChanged: 1 } =>
@@ -19,6 +24,10 @@ function guardSqlite(query: SQLWrapper): SQL {
   if (head === undefined || !/^\s*insert\b/i.test(chunks[0] instanceof StringChunk ? chunks[0].value.join("") : "")) {
     throw new Error("onlyIfPreviousChanged requires an INSERT ... SELECT query");
   }
+  const text = chunks.map((c) => (c instanceof StringChunk ? c.value.join("") : "")).join(" ");
+  if (/\b(on\s+conflict|returning)\b/i.test(text)) {
+    throw new Error("guarded items must be a plain INSERT ... SELECT without ON CONFLICT/RETURNING");
+  }
   const cut = head.search(/\bselect\b/i);
   return sql.join(
     [
@@ -31,10 +40,14 @@ function guardSqlite(query: SQLWrapper): SQL {
   );
 }
 
-const affected = (dialect: Dialect, res: unknown): number =>
-  dialect === "pg"
-    ? ((res as { count?: number }).count ?? 0)
-    : ((res as [{ affectedRows?: number }])[0]?.affectedRows ?? 0);
+export function readAffected(dialect: Dialect, res: unknown): number {
+  const n =
+    dialect === "pg"
+      ? (res as { count?: unknown } | null | undefined)?.count
+      : (res as [{ affectedRows?: unknown }] | null | undefined)?.[0]?.affectedRows;
+  if (typeof n !== "number") throw new Error("atomic: cannot read affected row count from driver result");
+  return n;
+}
 
 /** All items commit together or none do. D1 has no interactive transactions, so sqlite uses db.batch. */
 export async function atomic<TDb extends AnyDatabase>(
@@ -53,13 +66,16 @@ export async function atomic<TDb extends AnyDatabase>(
   return any.transaction(async (tx: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     const results: unknown[] = [];
     let prev: unknown;
+    let skipped = false;
     for (const item of build(tx)) {
       const guarded = isGuarded(item);
-      if (guarded && affected(dialect, prev) !== 1) {
+      if (guarded && (skipped || readAffected(dialect, prev) !== 1)) {
         results.push(undefined);
         prev = undefined;
+        skipped = true;
         continue;
       }
+      skipped = false;
       const q = guarded ? item.query : item;
       prev = await (isThenable(q) ? q : tx.execute(q.getSQL()));
       results.push(prev);
