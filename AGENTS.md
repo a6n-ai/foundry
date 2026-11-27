@@ -18,8 +18,10 @@ then follows these two.
 
 ## Graph
 
-`commons` / `themes` floor → `ui` → `design-system` → `crm`. Lower layers never
-import up. `crm` never imports an app — `<CrmShell>` is slot-based.
+`commons` / `themes` floor → `ui` → `console` and `design-system` → `crm`. Lower layers never
+import up. `crm` never imports an app — `<CrmShell>` is slot-based. `console` never
+imports `design-system` or `crm`, and imports no router: apps inject one through
+`ConsoleRouterProvider`.
 
 Packages ship raw `.ts` / `.tsx`. Consumers must `transpilePackages` and declare
 **direct** dependencies for anything a client component executes, including
