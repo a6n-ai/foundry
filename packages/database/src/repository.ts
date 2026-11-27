@@ -1,6 +1,6 @@
 import type { Condition, Page, PageRequest } from "@foundry/commons";
 import { DEFAULT_PAGE } from "@foundry/commons";
-import { eq, getTableName, sql, type SQL } from "drizzle-orm";
+import { eq, getTableColumns, getTableName, sql, type SQL } from "drizzle-orm";
 import { resolveColumn, toDrizzleWhere } from "./condition";
 import { dialectOf, supportsReturning } from "./dialect";
 import { stripCreateOnly } from "./managed-fields";
@@ -52,10 +52,14 @@ export class BaseRepository<
     return this.findByPublicId(publicId);
   }
 
-  private withPublicId(values: Record<string, unknown>): Record<string, unknown> {
-    if (values.publicId !== undefined) return values;
+  private withPublicId(values: Record<string, unknown>): { values: Record<string, unknown>; publicId: string } {
+    const key = Object.entries(getTableColumns(this.table)).find(([, c]) => c === this.publicIdColumn)?.[0];
+    if (!key) throw new Error(`${this.tableName}: public id column is not a column of the table`);
+    if (values[key] !== undefined) return { values, publicId: values[key] as string };
     const generate = (this.publicIdColumn as Loose).defaultFn as (() => unknown) | undefined;
-    return generate ? { ...values, publicId: generate() } : values;
+    if (!generate) throw new Error(`${this.tableName}: no value or defaultFn for public id column "${key}"`);
+    const publicId = generate() as string;
+    return { values: { ...values, [key]: publicId }, publicId };
   }
 
   async create(values: Record<string, unknown>, actorId?: TActorId | null): Promise<TTable["$inferSelect"]> {
@@ -64,9 +68,9 @@ export class BaseRepository<
       const [row] = await this.q.insert(this.t).values(withActor as never).returning();
       return row as TTable["$inferSelect"];
     }
-    const toInsert = this.withPublicId(withActor);
+    const { values: toInsert, publicId } = this.withPublicId(withActor);
     await this.q.insert(this.t).values(toInsert as never);
-    return (await this.selectByPublicId(toInsert.publicId as string)) as TTable["$inferSelect"];
+    return (await this.selectByPublicId(publicId)) as TTable["$inferSelect"];
   }
 
   async findByPublicId(publicId: string): Promise<TTable["$inferSelect"] | null> {
