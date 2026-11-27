@@ -1,0 +1,269 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildTables > mysql 1`] = `
+[
+  [
+    "id",
+    "varchar(32)",
+    true,
+  ],
+  [
+    "created_at",
+    "bigint",
+    true,
+  ],
+  [
+    "created_by",
+    "varchar(32)",
+    false,
+  ],
+  [
+    "updated_at",
+    "bigint",
+    true,
+  ],
+  [
+    "updated_by",
+    "varchar(32)",
+    false,
+  ],
+  [
+    "org_id",
+    "varchar(32)",
+    true,
+  ],
+  [
+    "title",
+    "varchar(255)",
+    true,
+  ],
+  [
+    "body",
+    "text",
+    false,
+  ],
+  [
+    "qty",
+    "int",
+    true,
+  ],
+  [
+    "done",
+    "boolean",
+    true,
+  ],
+  [
+    "at",
+    "bigint",
+    false,
+  ],
+  [
+    "seen_at",
+    "bigint",
+    false,
+  ],
+  [
+    "meta",
+    "json",
+    false,
+  ],
+  [
+    "slug",
+    "varchar(255)",
+    false,
+  ],
+]
+`;
+
+exports[`buildTables > mysql 2`] = `
+[
+  [
+    "evt_org_idx",
+    false,
+  ],
+  [
+    "evt_slug_uq",
+    true,
+  ],
+]
+`;
+
+exports[`buildTables > pg 1`] = `
+[
+  [
+    "id",
+    "text",
+    true,
+  ],
+  [
+    "created_at",
+    "bigint",
+    true,
+  ],
+  [
+    "created_by",
+    "text",
+    false,
+  ],
+  [
+    "updated_at",
+    "bigint",
+    true,
+  ],
+  [
+    "updated_by",
+    "text",
+    false,
+  ],
+  [
+    "org_id",
+    "text",
+    true,
+  ],
+  [
+    "title",
+    "varchar(255)",
+    true,
+  ],
+  [
+    "body",
+    "text",
+    false,
+  ],
+  [
+    "qty",
+    "integer",
+    true,
+  ],
+  [
+    "done",
+    "boolean",
+    true,
+  ],
+  [
+    "at",
+    "bigint",
+    false,
+  ],
+  [
+    "seen_at",
+    "bigint",
+    false,
+  ],
+  [
+    "meta",
+    "jsonb",
+    false,
+  ],
+  [
+    "slug",
+    "varchar(255)",
+    false,
+  ],
+]
+`;
+
+exports[`buildTables > pg 2`] = `
+[
+  [
+    "evt_org_idx",
+    false,
+    false,
+  ],
+  [
+    "evt_slug_uq",
+    true,
+    true,
+  ],
+]
+`;
+
+exports[`buildTables > sqlite 1`] = `
+[
+  [
+    "id",
+    "text",
+    true,
+  ],
+  [
+    "created_at",
+    "integer",
+    true,
+  ],
+  [
+    "created_by",
+    "text",
+    false,
+  ],
+  [
+    "updated_at",
+    "integer",
+    true,
+  ],
+  [
+    "updated_by",
+    "text",
+    false,
+  ],
+  [
+    "org_id",
+    "text",
+    true,
+  ],
+  [
+    "title",
+    "text",
+    true,
+  ],
+  [
+    "body",
+    "text",
+    false,
+  ],
+  [
+    "qty",
+    "integer",
+    true,
+  ],
+  [
+    "done",
+    "integer",
+    true,
+  ],
+  [
+    "at",
+    "integer",
+    false,
+  ],
+  [
+    "seen_at",
+    "integer",
+    false,
+  ],
+  [
+    "meta",
+    "text",
+    false,
+  ],
+  [
+    "slug",
+    "text",
+    false,
+  ],
+]
+`;
+
+exports[`buildTables > sqlite 2`] = `
+[
+  [
+    "evt_org_idx",
+    false,
+    false,
+  ],
+  [
+    "evt_slug_uq",
+    true,
+    true,
+  ],
+]
+`;

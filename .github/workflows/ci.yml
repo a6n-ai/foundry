@@ -16,6 +16,30 @@ jobs:
   packages:
     name: Foundry packages
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: portable
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: mysql
+          MYSQL_DATABASE: portable
+        # mysql:8.4 defaults to utf8mb4 / utf8mb4_0900_ai_ci, which the like() case-insensitivity test relies on
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -pmysql"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -26,3 +50,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo typecheck
       - run: pnpm turbo test
+        env:
+          PORTABLE_PG_URL: postgres://postgres:postgres@localhost:5432/portable
+          PORTABLE_MYSQL_URL: mysql://root:mysql@localhost:3306/portable

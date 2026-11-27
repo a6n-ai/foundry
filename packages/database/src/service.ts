@@ -1,13 +1,17 @@
 import type { Condition, Page, PageRequest } from "@foundry/commons";
 import { NotFoundError } from "@foundry/commons";
-import type { PgTable } from "drizzle-orm/pg-core";
 import { stripManaged } from "./managed-fields";
 import type { BaseRepository, UpdatableRepository } from "./repository";
+import type { AnyDatabase, AnyTable, Database } from "./types";
 
-export class BaseService<TTable extends PgTable> {
-  constructor(protected readonly repo: BaseRepository<TTable>) {}
+export class BaseService<
+  TTable extends AnyTable,
+  TDb extends AnyDatabase = Database,
+  TActorId extends bigint | string = bigint,
+> {
+  constructor(protected readonly repo: BaseRepository<TTable, TDb, TActorId>) {}
 
-  protected async currentUserId(): Promise<bigint | null> {
+  protected async currentUserId(): Promise<TActorId | null> {
     return null;
   }
 
@@ -30,8 +34,12 @@ export class BaseService<TTable extends PgTable> {
   }
 }
 
-export class UpdatableService<TTable extends PgTable> extends BaseService<TTable> {
-  constructor(protected readonly repo: UpdatableRepository<TTable>) {
+export class UpdatableService<
+  TTable extends AnyTable,
+  TDb extends AnyDatabase = Database,
+  TActorId extends bigint | string = bigint,
+> extends BaseService<TTable, TDb, TActorId> {
+  constructor(protected readonly repo: UpdatableRepository<TTable, TDb, TActorId>) {
     super(repo);
   }
 

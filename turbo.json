@@ -5,7 +5,7 @@
     "build": { "dependsOn": ["^build"], "outputs": [".next/**", "!.next/cache/**"] },
     "lint": {},
     "typecheck": { "dependsOn": ["^typecheck"] },
-    "test": {},
+    "test": { "env": ["PORTABLE_PG_URL", "PORTABLE_MYSQL_URL"] },
     "dev": { "cache": false, "persistent": true }
   }
 }

@@ -1,8 +1,11 @@
-export * from "./columns";
+export * from "./atomic";
+export { baseColumns, updatableColumns } from "./columns";
 export * from "./condition";
+export * from "./dialect";
+export * from "./ids";
 export * from "./managed-fields";
 export * from "./order";
 export * from "./postgres-options";
 export * from "./repository";
 export * from "./service";
-export type { Database } from "./types";
+export type { AnyColumn, AnyDatabase, AnyTable, Database, Dialect } from "./types";
