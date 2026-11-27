@@ -1,16 +1,8 @@
 import { sql } from "drizzle-orm";
 import { bigint, text } from "drizzle-orm/pg-core";
-import { customAlphabet } from "nanoid";
+import { makePublicId } from "./ids";
 
-const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-";
-const nano = customAlphabet(ALPHABET, 12);
-
-export function makePublicId(prefix: string): () => string {
-  if (!/^[a-z]{3}$/.test(prefix)) {
-    throw new Error(`id prefix must be exactly 3 lowercase letters, got "${prefix}"`);
-  }
-  return () => `${prefix}_${nano()}`;
-}
+export { makePublicId };
 
 export function baseColumns(prefix: string) {
   return {
