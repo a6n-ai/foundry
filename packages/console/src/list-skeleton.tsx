@@ -6,8 +6,9 @@ const COLUMNS = 4
 
 export function ListSkeleton({ rows = 6 }: { rows?: number }) {
   return (
-    <div className="px-4 pb-4 in-data-[slot=card-content]:p-0">
-      <Table role="status" aria-label="Loading">
+    <div role="status" className="px-4 pb-4 in-data-[slot=card-content]:p-0">
+      <span className="sr-only">Loading…</span>
+      <Table aria-hidden="true">
         <TableHeader>
           <TableRow>
             <TableHead className="w-10">#</TableHead>

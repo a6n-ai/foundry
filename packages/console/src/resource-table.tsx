@@ -27,29 +27,23 @@ export function CellWhen({ when, text }: { when: string; text: string }) {
   )
 }
 
-export function ResourceTable<T>({
-  columns,
-  rows,
-  rowKey,
-  empty,
-  rowHref,
-  rowLabel,
-  menu,
-  offset = 0,
-}: {
+type ResourceTableProps<T> = {
   columns: Column<T>[]
   rows: T[]
   rowKey: (row: T) => string
   empty: ReactNode
-  rowHref?: (row: T) => ConsoleLinkProps
-  rowLabel?: (row: T) => string
-  menu?: (row: T) => RowAction[]
+  label?: string
   offset?: number
-}) {
+} & (
+  | { rowHref?: undefined; menu?: undefined; rowLabel?: (row: T) => string }
+  | { rowHref?: (row: T) => ConsoleLinkProps; menu?: (row: T) => RowAction[]; rowLabel: (row: T) => string }
+)
+
+export function ResourceTable<T>({ columns, rows, rowKey, empty, rowHref, rowLabel, menu, label, offset = 0 }: ResourceTableProps<T>) {
   if (rows.length === 0)
     return (
       <div className={inset}>
-        <Table>
+        <Table aria-label={label}>
           <TableBody>
             <TableRow data-table-empty>
               <TableCell colSpan={columns.length + 1 + (menu ? 1 : 0)}>
@@ -62,7 +56,7 @@ export function ResourceTable<T>({
     )
   return (
     <div className={inset}>
-      <Table>
+      <Table aria-label={label}>
         <TableHeader>
           <TableRow>
             <TableHead className="w-10">#</TableHead>
@@ -71,7 +65,11 @@ export function ResourceTable<T>({
                 {c.header}
               </TableHead>
             ))}
-            {menu ? <TableHead className="w-10" /> : null}
+            {menu ? (
+              <TableHead className="w-10">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            ) : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -87,7 +85,7 @@ export function ResourceTable<T>({
                       <ConsoleLink
                         {...href}
                         data-row-link
-                        aria-label={rowLabel?.(row) ?? "Open"}
+                        aria-label={`Open ${rowLabel?.(row)}`}
                         className="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                       />
                     ) : null}
@@ -95,7 +93,7 @@ export function ResourceTable<T>({
                 ))}
                 {menu ? (
                   <TableCell className="w-10 py-0 text-right">
-                    <RowMenu actions={menu(row)} label="Row actions" />
+                    <RowMenu actions={menu(row)} label={`${rowLabel?.(row)} actions`} />
                   </TableCell>
                 ) : null}
               </TableRow>

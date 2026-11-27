@@ -23,6 +23,21 @@ describe("runAction", () => {
     expect(toast.error).toHaveBeenCalledWith("mapped:boom")
     expect(invalidate).not.toHaveBeenCalled()
   })
+
+  it("treats { ok: false, code } as a refusal", async () => {
+    const invalidate = vi.fn(async () => {})
+    await runAction(async () => ({ ok: false, code: "nope" }), "Saved", invalidate, errorText)
+    expect(toast.error).toHaveBeenCalledWith("mapped:nope")
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(invalidate).not.toHaveBeenCalled()
+  })
+
+  it("treats { ok: true } as success", async () => {
+    const invalidate = vi.fn(async () => {})
+    await runAction(async () => ({ ok: true }), "Saved", invalidate, errorText)
+    expect(toast.success).toHaveBeenCalledWith("Saved")
+    expect(invalidate).toHaveBeenCalledOnce()
+  })
 })
 
 describe("confirmAction", () => {
@@ -38,5 +53,12 @@ describe("confirmAction", () => {
     await confirmAction(async () => {}, "Done", invalidate, errorText)
     expect(toast.success).toHaveBeenCalledWith("Done")
     expect(invalidate).toHaveBeenCalledOnce()
+  })
+
+  it("rejects with the mapped copy on { ok: false, code }", async () => {
+    const invalidate = vi.fn(async () => {})
+    await expect(confirmAction(async () => ({ ok: false, code: "nope" }), "Done", invalidate, errorText)).rejects.toThrow("mapped:nope")
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(invalidate).not.toHaveBeenCalled()
   })
 })

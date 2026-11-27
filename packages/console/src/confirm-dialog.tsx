@@ -11,7 +11,7 @@ import {
 import { Button } from "@foundry/ui/button"
 import { Input } from "@foundry/ui/input"
 import { Label } from "@foundry/ui/label"
-import { type ReactNode, useRef, useState } from "react"
+import { type ReactNode, useId, useRef, useState } from "react"
 import { FormError } from "./form-error"
 
 // Exact and case-sensitive: the name is the safeguard.
@@ -60,6 +60,7 @@ export function ConfirmDialog({
   const [error, setError] = useState<string | null>(null)
   const [text, setText] = useState("")
   const cancelRef = useRef<HTMLButtonElement>(null)
+  const typedId = useId()
   const isOpen = open ?? innerOpen
   const ready = confirmReady(typed, text, confirmDisabled)
   const hint = typed !== undefined ? typedHint(typed, text) : undefined
@@ -99,14 +100,14 @@ export function ConfirmDialog({
         {children}
         {typed !== undefined ? (
           <div className="grid gap-1.5">
-            <Label htmlFor="confirm-typed">
+            <Label htmlFor={typedId}>
               Type <code className="rounded-sm bg-muted px-1 font-mono text-xs text-foreground">{typed}</code> to confirm
             </Label>
             <Input
-              id="confirm-typed"
+              id={typedId}
               className="font-mono"
               value={text}
-              aria-describedby={hint ? "confirm-typed-hint" : undefined}
+              aria-describedby={hint ? `${typedId}-hint` : undefined}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -118,7 +119,7 @@ export function ConfirmDialog({
               spellCheck={false}
             />
             {hint ? (
-              <p id="confirm-typed-hint" className="text-xs text-muted-foreground">
+              <p id={`${typedId}-hint`} className="text-xs text-muted-foreground">
                 {hint}
               </p>
             ) : null}

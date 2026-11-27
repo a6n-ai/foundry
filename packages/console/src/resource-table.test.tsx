@@ -51,7 +51,7 @@ describe("ResourceTable", () => {
         rowKey={(r) => r.id}
         empty="None"
         rowHref={(r) => ({ to: "/inquiries/" + r.id, search: { from: "mine" } })}
-        rowLabel={(r) => "Open " + r.name}
+        rowLabel={(r) => r.name}
       />,
     )
     expect(screen.getByRole("link", { name: "Open Acme" })).toHaveAttribute("href", "/inquiries/inq_1?from=mine")
@@ -64,12 +64,35 @@ describe("ResourceTable", () => {
         rows={rows}
         rowKey={(r) => r.id}
         empty="None"
+        rowLabel={(r) => r.name}
         menu={() => [{ label: "Rename" }, { label: "Delete", destructive: true }]}
       />,
     )
-    fireEvent.click(screen.getByRole("button", { name: "Row actions" }))
+    fireEvent.click(screen.getByRole("button", { name: "Acme actions" }))
     await screen.findByRole("menu")
     expect(screen.getByRole("menuitem", { name: "Rename" })).toBeInTheDocument()
     expect(screen.getByRole("menuitem", { name: "Delete" })).toBeInTheDocument()
+  })
+
+  it("names the actions column, each row's link and menu, and the table", () => {
+    const two: Row[] = [{ id: "inq_1", name: "Acme" }, { id: "inq_2", name: "Globex" }]
+    show(
+      <ResourceTable
+        label="Inquiries"
+        columns={columns}
+        rows={two}
+        rowKey={(r) => r.id}
+        empty="None"
+        rowHref={(r) => ({ to: "/inquiries/" + r.id })}
+        rowLabel={(r) => r.name}
+        menu={() => [{ label: "Rename" }]}
+      />,
+    )
+    expect(screen.getByRole("table", { name: "Inquiries" })).toBeInTheDocument()
+    expect(screen.getByRole("columnheader", { name: "Actions" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Open Acme" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Open Globex" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Acme actions" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Globex actions" })).toBeInTheDocument()
   })
 })
