@@ -4,6 +4,7 @@ import { makePublicId } from "./ids";
 
 export { makePublicId };
 
+/** @deprecated moves to `@foundry/database/pg` in A-step 2; removal on the first foundry commit on or after Part B go-live + 14 days. */
 export function baseColumns(prefix: string) {
   return {
     id: bigint("id", { mode: "bigint" }).primaryKey().default(sql`next_id()`),
@@ -19,6 +20,7 @@ export function baseColumns(prefix: string) {
   };
 }
 
+/** @deprecated moves to `@foundry/database/pg` in A-step 2; removal on the first foundry commit on or after Part B go-live + 14 days. */
 export function updatableColumns(prefix: string) {
   return {
     ...baseColumns(prefix),

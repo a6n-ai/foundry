@@ -73,4 +73,5 @@ export const builtinArrayTypes = Object.fromEntries(
  * request (19% of TiffinGrab's DB time). The static `types` keep arrays parsed without it.
  * Arrays of custom types (an enum[]) are not covered and come back as text.
  */
+/** @deprecated moves to `@foundry/database/pg` in A-step 2; removal on the first foundry commit on or after Part B go-live + 14 days. */
 export const postgresOptions = { fetch_types: false, types: builtinArrayTypes } as const;

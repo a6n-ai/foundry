@@ -7,6 +7,7 @@ import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 // builder (select/insert/update/delete), never the relational query API, so the
 // concrete schema shape is irrelevant — and pinning it would reject every app
 // `db` typed with its own schema.
+/** @deprecated moves to `@foundry/database/pg` in A-step 2; removal on the first foundry commit on or after Part B go-live + 14 days. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Database = PostgresJsDatabase<any>;
 
