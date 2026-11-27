@@ -42,7 +42,7 @@ function Groups({ nav }: { nav: NavGroup[] }) {
   const pathname = useConsoleRouter().usePathname()
   const active = activeItem(nav, pathname)
   return (
-    <>
+    <nav aria-label="Primary">
       {nav.map((group, i) => (
         <Fragment key={group.label ?? i}>
           {i > 0 ? <SidebarSeparator /> : null}
@@ -71,7 +71,7 @@ function Groups({ nav }: { nav: NavGroup[] }) {
           </SidebarGroup>
         </Fragment>
       ))}
-    </>
+    </nav>
   )
 }
 
@@ -92,6 +92,12 @@ export function AppShell({
 }) {
   return (
     <ShellContext.Provider value={{ appName }}>
+      <a
+        href="#console-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:shadow-md"
+      >
+        Skip to content
+      </a>
       <SidebarProvider>
         <CloseOnNavigate />
         <Sidebar collapsible="icon" variant="inset">
@@ -108,7 +114,7 @@ export function AppShell({
           </SidebarFooter>
           <SidebarRail />
         </Sidebar>
-        <SidebarInset>
+        <SidebarInset id="console-main" tabIndex={-1} className="focus:outline-none">
           <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,72rem)_minmax(0,1fr)] [&>:not(header)]:col-start-2 [&>:not(header)]:min-w-0 [&>header]:col-span-full">
             {children}
           </div>

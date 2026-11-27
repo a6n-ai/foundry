@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest"
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, render, screen, within } from "@testing-library/react"
 import { afterEach, describe, expect, it } from "vitest"
 import { AppShell } from "./app-shell"
 import type { NavGroup } from "./nav"
@@ -35,5 +35,17 @@ describe("AppShell", () => {
     shell("/")
     expect(screen.getByText("7")).toBeInTheDocument()
     expect(screen.getByText("Admin")).toBeInTheDocument()
+  })
+  it("wraps the primary nav in a labelled landmark", () => {
+    shell("/team")
+    const nav = screen.getByRole("navigation", { name: "Primary" })
+    expect(within(nav).getByRole("link", { name: "Team" })).toHaveAttribute("aria-current", "page")
+  })
+  it("puts a skip link first that targets the main content", () => {
+    shell("/")
+    const [first] = screen.getAllByRole("link")
+    expect(first).toHaveAccessibleName("Skip to content")
+    expect(first).toHaveAttribute("href", "#console-main")
+    expect(document.getElementById("console-main")?.tagName).toBe("MAIN")
   })
 })

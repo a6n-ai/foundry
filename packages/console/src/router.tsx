@@ -1,4 +1,11 @@
-import { createContext, useContext, type AnchorHTMLAttributes, type ComponentType, type ReactNode } from "react"
+import {
+  createContext,
+  useContext,
+  type AnchorHTMLAttributes,
+  type ComponentType,
+  type ReactNode,
+  type Ref,
+} from "react"
 
 export type ConsoleSearch = Record<string, unknown>
 
@@ -6,6 +13,7 @@ export type ConsoleLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "hr
   to: string
   search?: ConsoleSearch
   replace?: boolean
+  ref?: Ref<HTMLAnchorElement>
 }
 
 export type ConsoleNavigate = (target: {
