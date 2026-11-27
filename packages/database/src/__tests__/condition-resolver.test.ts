@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { and, eq as cEq, inList, like, between, or as cOr } from "@foundry/commons/model/condition";
-import { pgTable, bigint, text } from "drizzle-orm/pg-core";
+import { PgDialect, pgTable, bigint, text } from "drizzle-orm/pg-core";
+import { SQLiteSyncDialect, sqliteTable, text as sqliteText } from "drizzle-orm/sqlite-core";
+import { MySqlDialect, mysqlTable, varchar } from "drizzle-orm/mysql-core";
 import { conditionToSql, columnResolver } from "../condition";
 
 const t = pgTable("t", {
@@ -35,5 +37,26 @@ describe("conditionToSql", () => {
   });
   it("unknown field throws via resolver", () => {
     expect(() => conditionToSql(cEq("nope", "x"), resolve)).toThrow();
+  });
+});
+
+describe("columnResolver dialects", () => {
+  it("default dialect is pg", () => {
+    const q = new PgDialect().sqlToQuery(conditionToSql(like("name", "%a%"), resolve)!);
+    expect(q.sql).toContain("ilike");
+  });
+  it("like compiles to like on sqlite", () => {
+    const st = sqliteTable("t", { name: sqliteText("name") });
+    const r = columnResolver({ name: st.name }, "sqlite");
+    const q = new SQLiteSyncDialect().sqlToQuery(conditionToSql(like("name", "%a%"), r)!);
+    expect(q.sql).toContain(" like ");
+    expect(q.sql).not.toContain("ilike");
+  });
+  it("like compiles to like on mysql", () => {
+    const mt = mysqlTable("t", { name: varchar("name", { length: 64 }) });
+    const r = columnResolver({ name: mt.name }, "mysql");
+    const q = new MySqlDialect().sqlToQuery(conditionToSql(like("name", "%a%"), r)!);
+    expect(q.sql).toContain(" like ");
+    expect(q.sql).not.toContain("ilike");
   });
 });

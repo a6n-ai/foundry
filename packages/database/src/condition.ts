@@ -7,15 +7,16 @@ import {
   gte,
   inArray,
   ilike,
+  like,
   lt,
   lte,
   or,
   type SQL,
 } from "drizzle-orm";
-import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
+import type { AnyColumn, AnyTable, Dialect } from "./types";
 
-export function resolveColumn(table: PgTable, field: string): PgColumn {
-  const col = (table as unknown as Record<string, PgColumn>)[field];
+export function resolveColumn(table: AnyTable, field: string): AnyColumn {
+  const col = (table as unknown as Record<string, AnyColumn>)[field];
   if (!col) throw new ValidationError(`Unknown field: ${field}`);
   return col;
 }
@@ -37,7 +38,11 @@ export function conditionToSql(
   return resolve(condition);
 }
 
-export function columnResolver(map: Record<string, PgColumn>): FilterResolver {
+export function columnResolver(
+  map: Record<string, AnyColumn>,
+  dialect: Dialect = "pg",
+): FilterResolver {
+  const matchLike = dialect === "pg" ? ilike : like;
   return (f) => {
     const col = map[f.field];
     if (!col) throw new ValidationError(`Unknown field: ${f.field}`);
@@ -49,7 +54,7 @@ export function columnResolver(map: Record<string, PgColumn>): FilterResolver {
         return vals.length ? inArray(col, vals) : undefined;
       }
       case "like":
-        return ilike(col, f.value as string);
+        return matchLike(col, f.value as string);
       case "gt":
         return gt(col, f.value);
       case "gte":
@@ -66,7 +71,11 @@ export function columnResolver(map: Record<string, PgColumn>): FilterResolver {
   };
 }
 
-export function toDrizzleWhere(table: PgTable, condition?: Condition): SQL | undefined {
-  const cols = table as unknown as Record<string, PgColumn>;
-  return conditionToSql(condition, columnResolver(cols));
+export function toDrizzleWhere(
+  table: AnyTable,
+  condition?: Condition,
+  dialect: Dialect = "pg",
+): SQL | undefined {
+  const cols = table as unknown as Record<string, AnyColumn>;
+  return conditionToSql(condition, columnResolver(cols, dialect));
 }
