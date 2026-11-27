@@ -5,7 +5,11 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./d1": "./src/drivers/d1.ts",
+    "./libsql": "./src/drivers/libsql.ts",
+    "./postgres": "./src/drivers/postgres.ts",
+    "./mysql": "./src/drivers/mysql.ts"
   },
   "types": "./src/index.ts",
   "scripts": {
@@ -17,7 +21,15 @@
     "nanoid": "^6.0.2"
   },
   "peerDependencies": {
-    "drizzle-orm": "^0.45.4"
+    "@libsql/client": "^0.15.0",
+    "drizzle-orm": "^0.45.4",
+    "mysql2": "^3.14.0",
+    "postgres": "^3.4.9"
+  },
+  "peerDependenciesMeta": {
+    "@libsql/client": { "optional": true },
+    "mysql2": { "optional": true },
+    "postgres": { "optional": true }
   },
   "devDependencies": {
     "@libsql/client": "^0.15.0",
