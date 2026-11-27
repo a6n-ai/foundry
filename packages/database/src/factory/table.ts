@@ -54,6 +54,9 @@ export function defineTable<const N extends string, C extends Record<string, Any
   extras?: (cols: C) => (IndexDef | CheckEntry)[],
 ): TableDef<N, C> {
   for (const [key, col] of Object.entries(columns)) {
+    if (col._table !== undefined && col._table !== name) {
+      throw new Error(`${name}.${key}: column "${col.spec.name}" already belongs to table "${col._table}"; create a new descriptor`);
+    }
     col._table = name;
     col._key = key;
   }
@@ -62,8 +65,8 @@ export function defineTable<const N extends string, C extends Record<string, Any
     if (e.type === "check") continue;
     const cols = [...e.cols, ...(e.predicate?.kind === "notNull" ? [e.predicate.col] : [])];
     for (const col of e.cols) {
-      if (col.spec.kind === "text") {
-        throw new Error(`${name}.${e.name}: c.text column "${col.spec.name}" cannot be indexed (MySQL); use c.string`);
+      if (col.spec.kind === "text" || col.spec.kind === "json") {
+        throw new Error(`${name}.${e.name}: c.${col.spec.kind} column "${col.spec.name}" cannot be indexed (MySQL); use c.string`);
       }
     }
     for (const col of cols) {

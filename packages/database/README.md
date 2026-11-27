@@ -53,6 +53,7 @@ The descriptors map to each dialect as follows:
 - A unit cannot read a row it wrote earlier in the same unit (no read-after-write).
 - A guarded item runs only when the previous item changed exactly one row. A guarded item must be a plain `INSERT ... SELECT`, placed directly after an `INSERT`, `UPDATE` or `DELETE`. It may not use `ON CONFLICT` or `RETURNING`.
 - D1 allows at most 100 bound parameters per statement. Keep units small, or split them.
+- Each result is the raw driver result, in item order, so its shape depends on the driver: pg (postgres-js) a row array with `.count`; mysql (mysql2) `[ResultSetHeader, fields]`; D1 `{ results, success, meta: { changes } }`; libsql `{ rows, rowsAffected }`. A skipped guarded item is a 0-row result on sqlite and `undefined` on pg/mysql. Use `readAffected(dialect, result)` for a portable affected-row count.
 
 ## `like` case folding
 

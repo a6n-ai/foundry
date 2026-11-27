@@ -1,6 +1,7 @@
 import { createClient } from "@libsql/client";
 import { entityKind, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
+import { drizzle as d1 } from "drizzle-orm/d1";
 import { beforeEach, describe, expect, it } from "vitest";
 import { atomic, readAffected, sqlNewId } from "../atomic";
 
@@ -122,7 +123,20 @@ describe("atomic (pg/mysql path, fake tx)", () => {
     expect(await atomic(skip.db, () => [upd, guarded])).toEqual([[{ affectedRows: 0 }], undefined]);
   });
 
-  it("unreadable driver result throws", async () => {
+  it.each([
+    ["PgDatabase", "insert into log select 1 on conflict do nothing"],
+    ["PgDatabase", "insert into log select 1 returning id"],
+    ["MySqlDatabase", "insert into log select 1 on duplicate key update id = id"],
+    ["PgDatabase", "insert into log values (1)"],
+  ])("%s rejects a guarded item that is not a plain INSERT … SELECT: %s", async (kind, text) => {
+    const { db, ran } = fakeDb(kind, [{ count: 1 }, [{ affectedRows: 1 }]]);
+    await expect(atomic(db, () => [upd, { query: sql.raw(text), onlyIfPreviousChanged: 1 }])).rejects.toThrow(
+      /INSERT \.\.\. SELECT/,
+    );
+    expect(ran).toHaveLength(1);
+  });
+
+    it("unreadable driver result throws", async () => {
     const { db } = fakeDb("PgDatabase", [{ rowCount: 1 }]);
     await expect(atomic(db, () => [upd, guarded])).rejects.toThrow(/cannot read affected row count/);
   });
@@ -131,5 +145,50 @@ describe("atomic (pg/mysql path, fake tx)", () => {
     expect(() => readAffected("mysql", undefined)).toThrow(/cannot read/);
     expect(() => readAffected("pg", {})).toThrow(/cannot read/);
     expect(readAffected("pg", { count: 2 })).toBe(2);
+  });
+});
+
+describe("atomic (D1 path, fake binding)", () => {
+  const fakeD1 = () => {
+    const calls = { prepare: [] as string[], bind: [] as unknown[][], batch: [] as unknown[][] };
+    const client = {
+      prepare(text: string) {
+        calls.prepare.push(text);
+        const stmt = { text, params: [] as unknown[], bind: (...p: unknown[]) => (calls.bind.push(p), { ...stmt, params: p }) };
+        return stmt;
+      },
+      batch: async (stmts: unknown[]) => (calls.batch.push(stmts), stmts.map(() => ({ success: true, meta: { changes: 1 } }))),
+      exec: async () => { throw new Error("exec must not be called"); },
+    };
+    return { db: d1(client as never), calls };
+  };
+
+  it("sends one batch of prepared statements in order with bound params and a changes() guard", async () => {
+    const { db: d, calls } = fakeD1();
+    const res = await atomic(d, () => [
+      sql`update t set v = ${9} where id = ${"a"}`,
+      { query: sql`insert into log (id, ref) select ${"l1"}, id from t where id = ${"a"}`, onlyIfPreviousChanged: 1 },
+      sql`insert into t (id, v) values (${"b"}, ${2})`,
+    ]);
+    expect(calls.batch).toHaveLength(1);
+    expect(calls.batch[0]).toHaveLength(3);
+    expect((calls.batch[0] as { text: string }[]).map((s) => s.text.split(" ")[0])).toEqual(["update", "insert", "insert"]);
+    expect(calls.bind).toEqual([[9, "a"], ["l1", "a"], ["b", 2]]);
+    expect(calls.prepare[1]).toContain("changes() = 1");
+    expect(calls.prepare[0]).not.toContain("changes()");
+    expect(res.map((r) => readAffected("sqlite", r))).toEqual([1, 1, 1]);
+  });
+});
+
+describe("readAffected (sqlite)", () => {
+  it("reads D1 meta.changes and libsql rowsAffected", () => {
+    expect(readAffected("sqlite", { meta: { changes: 3 } })).toBe(3);
+    expect(readAffected("sqlite", { rowsAffected: 2 })).toBe(2);
+    expect(() => readAffected("sqlite", {})).toThrow(/cannot read/);
+  });
+
+  it("reads a real libsql write result", async () => {
+    const [res] = await atomic(db, () => [sql`update t set v = 5 where id = 'a'`]);
+    expect(readAffected("sqlite", res)).toBe(1);
   });
 });

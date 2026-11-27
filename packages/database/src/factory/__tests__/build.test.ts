@@ -58,7 +58,20 @@ describe("buildTables", () => {
   it("index on c.text throws", () => {
     expect(() => defineTable("x", { id: c.id("xxx"), b: c.text("b") }, (t) => [index("i").on(t.b)])).toThrow(/c\.text/);
   });
-  it("bad id prefix throws", () => {
+  it("index on c.json throws", () => {
+    expect(() => defineTable("x", { id: c.id("xxx"), j: c.json("j") }, (t) => [index("i").on(t.j)])).toThrow(/c\.json/);
+  });
+  it("reusing a column descriptor in another table throws", () => {
+    const shared = c.string("label");
+    defineTable("one", { id: c.id("one"), label: shared });
+    expect(() => defineTable("two", { id: c.id("two"), label: shared })).toThrow(/already belongs to table "one"/);
+  });
+  it("duplicate table names throw", () => {
+    const a = defineTable("dup", { id: c.id("dup") });
+    const b = defineTable("dup", { id: c.id("dup") });
+    expect(() => buildTables({ a, b }, "sqlite")).toThrow(/duplicate table name "dup"/);
+  });
+    it("bad id prefix throws", () => {
     expect(() => c.id("AB")).toThrow();
     expect(() => c.base("abcd")).toThrow();
   });

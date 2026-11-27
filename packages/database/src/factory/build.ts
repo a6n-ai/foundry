@@ -151,6 +151,11 @@ export function buildTables<D extends Dialect, T extends Record<string, TableDef
     }
   }
 
+  const names = new Set<string>();
+  for (const def of Object.values(defs)) {
+    if (names.has(def.name)) throw new Error(`buildTables: duplicate table name "${def.name}"`);
+    names.add(def.name);
+  }
   for (const def of Object.values(defs)) {
     const cols = Object.fromEntries(
       Object.entries(def.columns).map(([k, col]) => [k, buildColumn(dialect, col.spec, lookup)]),
