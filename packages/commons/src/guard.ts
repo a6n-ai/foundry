@@ -1,14 +1,13 @@
 import { AppError } from "./errors";
 
-export type Failure = { error: string; status: number } & Record<string, unknown>;
+/** `ok?: never` lets `if ("error" in r)` / `if (r.ok)` narrow a result union without casts. */
+export type Failure = { ok?: never; error: string; status: number } & Record<string, unknown>;
 export type Refusal = { ok: false; code: string; status: number };
 
-export type GuardOptions<Need, Actor> = {
-  /** Resolves the signed-in actor for one call and checks `need`; throws an AppError (401/403/...) to refuse. */
-  actor: (need: Need) => Promise<Actor>;
+export type BoundaryOptions = {
   /** Sets the response status, e.g. TanStack's setResponseStatus. Not called by `result`, whose caller owns the response. */
   setStatus?: (status: number) => void;
-  /** Sees every failure once: `sent` is the message the client gets, `cause` the original error. */
+  /** Sees every failure once: `sent` is the very error the client gets (thrown by run/read/refuse), `cause` the original. */
   onFailure?: (sent: Error, status: number, cause: unknown) => void;
   /** Errors the framework uses for control flow (e.g. Next's NEXT_REDIRECT) pass through untouched. */
   rethrow?: (err: unknown) => boolean;
@@ -18,9 +17,17 @@ export type GuardOptions<Need, Actor> = {
   internalMessage?: string;
 };
 
-// The client only ever sees an AppError's message; anything else gets `internalMessage` so internals never leak.
-export function createGuard<Need, Actor>(opts: GuardOptions<Need, Actor>) {
-  const { actor, setStatus, onFailure, rethrow, details, internalMessage = "internal error" } = opts;
+export type GuardOptions<Need, Actor> = BoundaryOptions & {
+  /** Resolves the signed-in actor for one call and checks `need`; throws an AppError (401/403/...) to refuse. */
+  actor: (need: Need) => Promise<Actor>;
+};
+
+/**
+ * Where a server entry point meets its client: an AppError keeps its status and message, anything else
+ * becomes `internalMessage` so internals never leak. Use it directly when the caller authorizes inside `fn`.
+ */
+export function createBoundary(opts: BoundaryOptions = {}) {
+  const { setStatus, onFailure, rethrow, details, internalMessage = "internal error" } = opts;
 
   function describe(err: unknown): Failure {
     if (rethrow?.(err)) throw err;
@@ -29,7 +36,6 @@ export function createGuard<Need, Actor>(opts: GuardOptions<Need, Actor>) {
       : { error: internalMessage, status: 500 };
   }
 
-  // onFailure gets the very object that is thrown, so an app can key side data (a log cause) on it.
   function fail(err: unknown): never {
     const { error, status } = describe(err);
     const sent = new Error(error);
@@ -38,41 +44,28 @@ export function createGuard<Need, Actor>(opts: GuardOptions<Need, Actor>) {
     throw sent;
   }
 
-  function failure(err: unknown): Failure {
-    const out = describe(err);
-    onFailure?.(new Error(out.error), out.status, err);
-    return out;
-  }
-
-  async function run<T>(need: Need, fn: (actor: Actor) => Promise<T>): Promise<T> {
+  async function run<T>(fn: () => Promise<T>): Promise<T> {
     try {
-      return await fn(await actor(need));
+      return await fn();
     } catch (err) {
       return fail(err);
     }
   }
 
-  /** A read the actor may not make is null, so a page can render its denied state instead of an error. */
-  async function read<T>(need: Need, fn: (actor: Actor) => Promise<T>): Promise<T | null> {
+  /** A read the caller may not make is null, so a page can render its denied state instead of an error. */
+  async function read<T>(fn: () => Promise<T>): Promise<T | null> {
     try {
-      return await fn(await actor(need));
+      return await fn();
     } catch (err) {
       if (err instanceof AppError && err.status === 403) return null;
       return fail(err);
     }
   }
 
-  /**
-   * Expected refusals come back as data the UI can show; anything else still fails.
-   * `expected` lists the statuses the caller's UI handles as a message (default 401/403).
-   */
-  async function refuse<T>(
-    need: Need,
-    fn: (actor: Actor) => Promise<T>,
-    expected: readonly number[] = [401, 403],
-  ): Promise<T | Refusal> {
+  /** Expected refusals (`expected` statuses, default 401/403) come back as data the UI can show; anything else fails. */
+  async function refuse<T>(fn: () => Promise<T>, expected: readonly number[] = [401, 403]): Promise<T | Refusal> {
     try {
-      return await fn(await actor(need));
+      return await fn();
     } catch (err) {
       if (err instanceof AppError && expected.includes(err.status)) return { ok: false, code: err.message, status: err.status };
       return fail(err);
@@ -80,13 +73,28 @@ export function createGuard<Need, Actor>(opts: GuardOptions<Need, Actor>) {
   }
 
   /** Never throws (except `rethrow`): for boundaries that redact thrown errors, like Next server actions. */
-  async function result<T>(need: Need, fn: (actor: Actor) => Promise<T>): Promise<{ ok: true; value: T } | Failure> {
+  async function result<T>(fn: () => Promise<T>): Promise<{ ok: true; value: T } | Failure> {
     try {
-      return { ok: true, value: await fn(await actor(need)) };
+      return { ok: true, value: await fn() };
     } catch (err) {
-      return failure(err);
+      const out = describe(err);
+      onFailure?.(new Error(out.error), out.status, err);
+      return out;
     }
   }
 
   return { run, read, refuse, result, fail };
+}
+
+/** A boundary that first resolves the actor for `need`; the actor's refusal is mapped like any other AppError. */
+export function createGuard<Need, Actor>({ actor, ...opts }: GuardOptions<Need, Actor>) {
+  const b = createBoundary(opts);
+  const bind = <T>(need: Need, fn: (actor: Actor) => Promise<T>) => async () => fn(await actor(need));
+  return {
+    run: <T>(need: Need, fn: (actor: Actor) => Promise<T>) => b.run(bind(need, fn)),
+    read: <T>(need: Need, fn: (actor: Actor) => Promise<T>) => b.read(bind(need, fn)),
+    refuse: <T>(need: Need, fn: (actor: Actor) => Promise<T>, expected?: readonly number[]) => b.refuse(bind(need, fn), expected),
+    result: <T>(need: Need, fn: (actor: Actor) => Promise<T>) => b.result(bind(need, fn)),
+    fail: b.fail,
+  };
 }

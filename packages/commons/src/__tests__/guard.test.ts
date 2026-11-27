@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AppError, ForbiddenError, NotFoundError } from "../errors";
-import { createGuard } from "../guard";
+import { createBoundary, createGuard } from "../guard";
 
 type Need = { role?: string };
 
@@ -93,5 +93,27 @@ describe("createGuard", () => {
     const taken = () => guard.refuse({}, async () => { throw new AppError("taken", 409); }, [400, 404, 409]);
     await expect(taken()).resolves.toEqual({ ok: false, code: "taken", status: 409 });
     expect(statuses).toEqual([]);
+  });
+});
+
+describe("createBoundary", () => {
+  it("maps errors without an actor, for callers that authorize inside fn", async () => {
+    const statuses: number[] = [];
+    const b = createBoundary({ setStatus: (s) => statuses.push(s) });
+    await expect(b.run(async () => 1)).resolves.toBe(1);
+    await expect(b.run(async () => { throw new NotFoundError("not found"); })).rejects.toThrow("not found");
+    await expect(b.read(async () => { throw new ForbiddenError("forbidden"); })).resolves.toBeNull();
+    await expect(b.refuse(async () => { throw new AppError("taken", 409); }, [409])).resolves.toEqual({ ok: false, code: "taken", status: 409 });
+    expect(statuses).toEqual([404]);
+  });
+
+  it("result narrows without casts", async () => {
+    const b = createBoundary();
+    const r = await b.result(async () => ({ id: "x" }));
+    if (r.ok) expect(r.value.id).toBe("x");
+    else expect.unreachable(r.error);
+    const f = await b.result(async (): Promise<number> => { throw new AppError("nope", 400); });
+    if (f.ok) expect.unreachable();
+    else expect(f).toEqual({ error: "nope", status: 400 });
   });
 });
