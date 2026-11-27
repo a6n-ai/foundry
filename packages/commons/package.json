@@ -12,6 +12,7 @@
     "./runtime/*": "./src/runtime/*.ts",
     "./cache": "./src/cache/index.ts",
     "./errors": "./src/errors.ts",
+    "./guard": "./src/guard.ts",
     "./enums": "./src/enums.ts",
     "./plugin": "./src/plugin.ts",
     "./secret-box": "./src/secret-box.ts",
