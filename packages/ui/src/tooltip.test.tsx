@@ -84,9 +84,13 @@ describe("Tooltip", () => {
   })
 
   it("opens on hover after 150 ms", () => {
+    // The 400 ms "warm" window, in which a tooltip opens at once, is shared and timed by performance.now.
+    // The fake clock starts over, so move it past every real reading: on a slow runner an earlier test's
+    // tooltip otherwise still counts as just closed.
+    const elapsed = performance.now()
     vi.useFakeTimers()
     try {
-      vi.advanceTimersByTime(10_000)
+      vi.advanceTimersByTime(elapsed + 10_000)
       render(
         <Tooltip>
           <TooltipTrigger aria-label="Save">S</TooltipTrigger>
