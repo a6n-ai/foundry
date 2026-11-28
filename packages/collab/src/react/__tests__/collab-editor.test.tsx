@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { act, cleanup, render, waitFor } from "@testing-library/react"
 import { afterEach, beforeAll, beforeEach, expect, test, vi } from "vitest"
+import { applyAwarenessUpdate, Awareness, encodeAwarenessUpdate } from "y-protocols/awareness"
+import * as Y from "yjs"
 import { CollabEditor, type CollabEditorProps } from "../collab-editor"
 import { meetingTemplate } from "../template"
 import { stubLayout } from "./stub-layout"
@@ -98,4 +100,29 @@ test("null token calls onDenied and stops reconnecting", async () => {
   mount({ getToken: async () => null, onDenied })
   await waitFor(() => expect(onDenied).toHaveBeenCalledTimes(1))
   await waitFor(() => expect(providers[0].shouldConnect).toBe(false))
+})
+
+test("re-announces own presence when the room asks", async () => {
+  mount()
+  await waitFor(() => expect(providers[0]).toBeDefined())
+  const { awareness } = providers[0]
+  awareness.setLocalState({ user: { name: "A" } })
+  const changed = vi.fn()
+  awareness.on("change", changed)
+  act(() => providers[0].emit("custom-message", ['{"type":"who"}']))
+  expect(changed.mock.calls[0]![0].updated).toEqual([awareness.clientID])
+})
+
+test("drops the presence of people the room reports as gone", async () => {
+  mount()
+  await waitFor(() => expect(providers[0]).toBeDefined())
+  const { awareness } = providers[0]
+  const other = new Awareness(new Y.Doc())
+  other.setLocalState({ user: { name: "Ana" } })
+  applyAwarenessUpdate(awareness, encodeAwarenessUpdate(other, [other.clientID]), "test")
+  expect(awareness.getStates().has(other.clientID)).toBe(true)
+  act(() => providers[0].emit("custom-message", [JSON.stringify({ type: "left", clients: [other.clientID] })]))
+  expect(awareness.getStates().has(other.clientID)).toBe(false)
+  act(() => providers[0].emit("custom-message", ["not json"]))
+  other.destroy()
 })

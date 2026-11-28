@@ -5,7 +5,7 @@ import { BlockNoteView } from "@blocknote/shadcn"
 import "@blocknote/shadcn/style.css"
 import { useEffect, useRef, useState } from "react"
 import YProvider from "y-partyserver/provider"
-import type { Awareness } from "y-protocols/awareness"
+import { removeAwarenessStates, type Awareness } from "y-protocols/awareness"
 import * as Y from "yjs"
 import { FRAGMENT } from "../limits"
 
@@ -28,6 +28,14 @@ export type CollabEditorProps = {
 }
 
 type Session = { doc: Y.Doc; provider: YProvider }
+
+function roomMessage(raw: string): { type?: string; clients?: number[] } | null {
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
 
 export function CollabEditor(props: CollabEditorProps) {
   const latest = useRef(props)
@@ -61,10 +69,15 @@ export function CollabEditor(props: CollabEditorProps) {
       },
     })
     provider.on("status", ({ status }: { status: CollabStatus }) => latest.current.onStatus?.(status))
-    provider.on("custom-message", (message: string) => {
-      if (message !== '{"type":"full"}') return
-      setFull(true)
-      latest.current.onStatus?.("full")
+    provider.on("custom-message", (raw: string) => {
+      const message = roomMessage(raw)
+      if (message?.type === "full") {
+        setFull(true)
+        latest.current.onStatus?.("full")
+      }
+      // the room forgets presence when it sleeps and the provider sends no heartbeat: a change makes it send ours again
+      if (message?.type === "who") provider.awareness.setLocalStateField("seen", Date.now())
+      if (message?.type === "left") removeAwarenessStates(provider.awareness, message.clients ?? [], "room")
     })
     setSession({ doc, provider })
     latest.current.onProvider?.(provider)

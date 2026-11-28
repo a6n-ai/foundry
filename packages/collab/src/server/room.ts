@@ -10,6 +10,10 @@ export type CollabEvent = { type: "joined" | "edited"; sub: string; name: string
 
 const FULL_MESSAGE = '{"type":"full"}'
 
+// y-partyserver 2.2.0 keeps the awareness client ids of a connection in its (hibernation-safe) state
+const presenceIds = (conn: Connection): number[] =>
+  (conn.state as { __ypsAwarenessIds?: number[] } | null)?.__ypsAwarenessIds ?? []
+
 const claimsOf = (conn: Connection): RoomClaims | null => {
   const state = conn.state as RoomClaims | null
   return state?.sub ? state : null
@@ -71,8 +75,11 @@ export abstract class CollabRoom<E extends Cloudflare.Env = Cloudflare.Env> exte
     if (claims.share !== null && !(await this.isShareActive(this.name, claims.share, claims.until))) {
       return conn.close(4403, "revoked")
     }
+    if (claims.until !== null) await this.wakeBy(claims.until)
     if (this.joins.allow(claims.sub, Date.now())) this.emitEvent("joined", claims)
     super.onConnect(conn, ctx)
+    // presence lives only in memory, lost on hibernation, and peers send no heartbeat: ask them again
+    this.broadcastCustomMessage('{"type":"who"}', conn)
     if (this.full) this.sendCustomMessage(conn, FULL_MESSAGE)
   }
 
@@ -93,9 +100,14 @@ export abstract class CollabRoom<E extends Cloudflare.Env = Cloudflare.Env> exte
   }
 
   async onClose(conn: Connection, code: number, reason: string, wasClean: boolean): Promise<void> {
+    // a room that slept cannot emit the removal itself, so peers are told which presence to drop
+    const gone = new Set(presenceIds(conn))
     super.onClose(conn, code, reason, wasClean)
-    for (const other of this.getConnections()) if (other.id !== conn.id) return
-    await this.onSave()
+    const others = [...this.getConnections()].filter((other) => other.id !== conn.id)
+    // a tab that already reconnected keeps its client id and is still here
+    for (const other of others) for (const id of presenceIds(other)) gone.delete(id)
+    if (!others.length) return this.onSave()
+    if (gone.size) this.broadcastCustomMessage(JSON.stringify({ type: "left", clients: [...gone] }), conn)
   }
 
   /** RPC: drop every open connection that joined through this share link. */
@@ -107,6 +119,20 @@ export abstract class CollabRoom<E extends Cloudflare.Env = Cloudflare.Env> exte
       closed++
     }
     return closed
+  }
+
+  // an idle doc sends no messages, so expiry also needs a timer that outlives hibernation
+  async onAlarm(): Promise<void> {
+    const now = Date.now()
+    this.dropExpired(now)
+    const later = [...this.getConnections()].map((c) => claimsOf(c)?.until).filter((u): u is number => u != null && u > now)
+    if (later.length) await this.wakeBy(Math.min(...later))
+  }
+
+  private async wakeBy(until: number): Promise<void> {
+    const at = until + 1
+    const set = await this.ctx.storage.getAlarm()
+    if (set === null || at < set) await this.ctx.storage.setAlarm(at)
   }
 
   private dropExpired(now: number): void {
