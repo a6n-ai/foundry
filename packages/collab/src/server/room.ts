@@ -1,14 +1,18 @@
+import * as decoding from "lib0/decoding"
 import type { Connection, ConnectionContext, WSMessage } from "partyserver"
 import { YServer } from "y-partyserver"
 import * as Y from "yjs"
-import { LIMITS } from "../limits"
+import { FULL_CODE, LIMITS } from "../limits"
 import { verifyRoomToken, type RoomClaims } from "../token"
 import { RateWindow, Throttle } from "./policy"
 import { yDocText } from "./text"
 
 export type CollabEvent = { type: "joined" | "edited"; sub: string; name: string; guest: boolean }
 
-const FULL_MESSAGE = '{"type":"full"}'
+// y-protocols wire format: message type, then for sync a step
+const SYNC = 0
+const AWARENESS = 1
+const SYNC_REQUEST = 0
 
 // y-partyserver 2.2.0 keeps the awareness client ids of a connection in its (hibernation-safe) state
 const presenceIds = (conn: Connection): number[] =>
@@ -24,8 +28,11 @@ export abstract class CollabRoom<E extends Cloudflare.Env = Cloudflare.Env> exte
   static options = { hibernate: true }
   static callbackOptions = { debounceWait: 2000, debounceMaxWait: 10_000 }
 
-  private full = false
+  /** Never below the doc's encoded size; unknown (so measured on first use) after a start or a wake. */
+  private sizeBound = Number.POSITIVE_INFINITY
   private readonly rate = new RateWindow(LIMITS.messagesPerWindow, LIMITS.windowMs)
+  private readonly volume = new RateWindow(LIMITS.bytesPerWindow, LIMITS.windowMs)
+  private readonly requests = new RateWindow(LIMITS.syncRequestsPerWindow, LIMITS.windowMs)
   private readonly joins = new Throttle(3_600_000)
   private readonly edits = new Throttle(600_000)
 
@@ -59,17 +66,15 @@ export abstract class CollabRoom<E extends Cloudflare.Env = Cloudflare.Env> exte
 
   async onSave(): Promise<void> {
     const update = Y.encodeStateAsUpdate(this.document)
-    if (update.byteLength > LIMITS.snapshotBytes) {
-      this.full = true
-      this.broadcastCustomMessage(FULL_MESSAGE)
-      return
-    }
+    // changes are refused before they get this far; never write a doc that could not be stored
+    if (update.byteLength > LIMITS.snapshotBytes) return console.error(`collab doc ${this.name} is over the size cap`)
     await this.saveSnapshot(this.name, update, yDocText(this.document))
   }
 
   async onConnect(conn: Connection, ctx: ConnectionContext): Promise<void> {
     const claims = await this.authorize(new URL(ctx.request.url).searchParams.get("token"))
     if (!claims) return conn.close(4401, "unauthorized")
+    if (this.crowded(conn, claims)) return conn.close(4429, "too many connections")
     // state first, so a revoke() that lands during the check below still finds this connection
     conn.setState(claims)
     if (claims.share !== null && !(await this.isShareActive(this.name, claims.share, claims.until))) {
@@ -80,7 +85,6 @@ export abstract class CollabRoom<E extends Cloudflare.Env = Cloudflare.Env> exte
     super.onConnect(conn, ctx)
     // presence lives only in memory, lost on hibernation, and peers send no heartbeat: ask them again
     this.broadcastCustomMessage('{"type":"who"}', conn)
-    if (this.full) this.sendCustomMessage(conn, FULL_MESSAGE)
   }
 
   handleMessage(conn: Connection, message: WSMessage): void {
@@ -91,12 +95,32 @@ export abstract class CollabRoom<E extends Cloudflare.Env = Cloudflare.Env> exte
     if (!claims || (claims.until !== null && now > claims.until)) return
     const size = typeof message === "string" ? message.length : message.byteLength
     if (size > LIMITS.messageBytes) return conn.close(1009, "message too big")
-    if (!this.rate.hit(conn.id, now)) return conn.close(4429, "too many messages")
+    if (!this.rate.hit(conn.id, now) || !this.volume.hit(conn.id, now, size)) return conn.close(4429, "too many messages")
+    // clients have no text messages to send, and the default handler logs them whole
+    if (typeof message === "string") return
+    const decoder = decoding.createDecoder(
+      message instanceof ArrayBuffer ? new Uint8Array(message) : new Uint8Array(message.buffer, message.byteOffset, message.byteLength),
+    )
+    try {
+      const type = decoding.readVarUint(decoder)
+      if (type === AWARENESS && size > LIMITS.awarenessBytes) return
+      if (type === SYNC) {
+        if (decoding.readVarUint(decoder) === SYNC_REQUEST) {
+          if (!this.requests.hit(conn.id, now)) return conn.close(4429, "too many sync requests")
+        } else if (!this.isReadOnly(conn) && !this.fits(decoding.readVarUint8Array(decoder))) {
+          // dropping it silently would leave the sender ahead of the room, so say why and end the session
+          return conn.close(FULL_CODE, "doc full")
+        }
+      }
+    } catch (err) {
+      console.error("collab message refused", err)
+      return conn.close(1003, "bad message")
+    }
     super.handleMessage(conn, message)
   }
 
   isReadOnly(conn: Connection): boolean {
-    return this.full || !claimsOf(conn)?.edit
+    return !claimsOf(conn)?.edit
   }
 
   async onClose(conn: Connection, code: number, reason: string, wasClean: boolean): Promise<void> {
@@ -106,7 +130,7 @@ export abstract class CollabRoom<E extends Cloudflare.Env = Cloudflare.Env> exte
     const others = [...this.getConnections()].filter((other) => other.id !== conn.id)
     // a tab that already reconnected keeps its client id and is still here
     for (const other of others) for (const id of presenceIds(other)) gone.delete(id)
-    if (!others.length) return this.onSave()
+    if (!others.length) return this.saveLast()
     if (gone.size) this.broadcastCustomMessage(JSON.stringify({ type: "left", clients: [...gone] }), conn)
   }
 
@@ -133,6 +157,49 @@ export abstract class CollabRoom<E extends Cloudflare.Env = Cloudflare.Env> exte
     const at = until + 1
     const set = await this.ctx.storage.getAlarm()
     if (set === null || at < set) await this.ctx.storage.setAlarm(at)
+  }
+
+  // nobody is left to send these edits again, so a briefly failing save is retried while the room is awake
+  private async saveLast(attempts = 3): Promise<void> {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await this.onSave()
+      } catch (err) {
+        if (attempt === attempts) throw err
+        await new Promise((resolve) => setTimeout(resolve, attempt * 500))
+      }
+    }
+  }
+
+  private crowded(conn: Connection, claims: RoomClaims): boolean {
+    const others = [...this.getConnections()].filter((c) => c !== conn).map(claimsOf).filter((c) => c !== null)
+    if (others.filter((c) => c.sub === claims.sub).length >= LIMITS.socketsPerPerson) return true
+    // staff are never turned away because guests filled the room
+    if (claims.share === null) return false
+    return others.length >= LIMITS.socketsPerRoom || others.filter((c) => c.share === claims.share).length >= LIMITS.socketsPerShare
+  }
+
+  // whether applying this update keeps the doc storable; a shrinking change is always allowed
+  private fits(update: Uint8Array): boolean {
+    if (this.sizeBound + update.byteLength <= LIMITS.snapshotBytes) {
+      this.sizeBound += update.byteLength
+      return true
+    }
+    const current = Y.encodeStateAsUpdate(this.document)
+    let next = current.byteLength + update.byteLength
+    if (next > LIMITS.snapshotBytes) {
+      const trial = new Y.Doc()
+      Y.applyUpdate(trial, current)
+      Y.applyUpdate(trial, update)
+      next = Y.encodeStateAsUpdate(trial).byteLength
+      trial.destroy()
+      if (next > LIMITS.snapshotBytes && next > current.byteLength) {
+        this.sizeBound = current.byteLength
+        return false
+      }
+    }
+    this.sizeBound = next
+    return true
   }
 
   private dropExpired(now: number): void {

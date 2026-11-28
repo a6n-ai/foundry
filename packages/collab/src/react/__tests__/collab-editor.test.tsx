@@ -126,3 +126,20 @@ test("drops the presence of people the room reports as gone", async () => {
   act(() => providers[0].emit("custom-message", ["not json"]))
   other.destroy()
 })
+
+test.each([1009, 4413])("a change the room refuses (%i) stops retrying and locks the editor", async (code) => {
+  const onStatus = vi.fn()
+  const { container } = mount({ onStatus })
+  await waitFor(() => expect(providers[0].shouldConnect).toBe(true))
+  act(() => providers[0].emit("connection-close", [{ code }]))
+  expect(providers[0].shouldConnect).toBe(false)
+  expect(onStatus).toHaveBeenLastCalledWith("full")
+  await waitFor(() => expect(container.querySelector('[contenteditable="false"].bn-editor')).not.toBeNull())
+})
+
+test("an ordinary disconnect keeps retrying", async () => {
+  mount()
+  await waitFor(() => expect(providers[0].shouldConnect).toBe(true))
+  act(() => providers[0].emit("connection-close", [{ code: 1006 }]))
+  expect(providers[0].shouldConnect).toBe(true)
+})

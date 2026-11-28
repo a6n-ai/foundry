@@ -6,13 +6,14 @@ export class RateWindow {
     private readonly windowMs: number,
   ) {}
 
-  hit(key: string, now: number): boolean {
+  hit(key: string, now: number, cost = 1): boolean {
     let w = this.windows.get(key)
     if (!w || now - w.start > this.windowMs) {
       w = { start: now, count: 0 }
       this.windows.set(key, w)
     }
-    return ++w.count <= this.max
+    w.count += cost
+    return w.count <= this.max
   }
 }
 

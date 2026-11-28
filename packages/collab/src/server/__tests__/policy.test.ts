@@ -26,3 +26,10 @@ describe("Throttle", () => {
     expect(t.allow("a", now + 600_001)).toBe(true)
   })
 })
+
+describe("RateWindow cost", () => {
+  it("counts a weighted hit against the max", () => {
+    const w = new RateWindow(100, 1000)
+    expect([w.hit("a", now, 60), w.hit("a", now, 40), w.hit("a", now, 1)]).toEqual([true, true, false])
+  })
+})

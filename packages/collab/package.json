@@ -25,6 +25,7 @@
     "@foundry/commons": "workspace:*",
     "@foundry/database": "workspace:*",
     "@foundry/ui": "workspace:*",
+    "lib0": "0.2.120",
     "partyserver": "0.5.10",
     "y-partyserver": "2.2.0",
     "y-prosemirror": "1.3.7",

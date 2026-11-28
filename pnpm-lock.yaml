@@ -238,6 +238,9 @@ importers:
       '@foundry/ui':
         specifier: workspace:*
         version: link:../ui
+      lib0:
+        specifier: 0.2.120
+        version: 0.2.120
       partyserver:
         specifier: 0.5.10
         version: 0.5.10(@cloudflare/workers-types@5.20261022.1)

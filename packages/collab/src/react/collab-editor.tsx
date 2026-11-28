@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react"
 import YProvider from "y-partyserver/provider"
 import { removeAwarenessStates, type Awareness } from "y-protocols/awareness"
 import * as Y from "yjs"
-import { FRAGMENT } from "../limits"
+import { FRAGMENT, FULL_CODE } from "../limits"
 
 export type CollabStatus = "connecting" | "connected" | "disconnected" | "full"
 
@@ -69,12 +69,15 @@ export function CollabEditor(props: CollabEditorProps) {
       },
     })
     provider.on("status", ({ status }: { status: CollabStatus }) => latest.current.onStatus?.(status))
+    // the room refused a change as too large: reconnecting would only send it again
+    provider.on("connection-close", (event: { code?: number } | null) => {
+      if (event?.code !== 1009 && event?.code !== FULL_CODE) return
+      provider.shouldConnect = false
+      setFull(true)
+      latest.current.onStatus?.("full")
+    })
     provider.on("custom-message", (raw: string) => {
       const message = roomMessage(raw)
-      if (message?.type === "full") {
-        setFull(true)
-        latest.current.onStatus?.("full")
-      }
       // the room forgets presence when it sleeps and the provider sends no heartbeat: a change makes it send ours again
       if (message?.type === "who") provider.awareness.setLocalStateField("seen", Date.now())
       if (message?.type === "left") removeAwarenessStates(provider.awareness, message.clients ?? [], "room")

@@ -1,4 +1,4 @@
-export { FRAGMENT, LIMITS } from "../limits"
+export { FRAGMENT, FULL_CODE, LIMITS } from "../limits"
 export { RateWindow, Throttle } from "./policy"
 export { CollabRoom, type CollabEvent } from "./room"
 export { roomControl, routeCollabRequest, type RoomControl, type RouteCollabOptions } from "./route"
