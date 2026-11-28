@@ -6,24 +6,9 @@ import { cleanup, render } from "@testing-library/react"
 import { version } from "react"
 import { afterEach, beforeAll, expect, test } from "vitest"
 import * as Y from "yjs"
+import { stubLayout } from "./stub-layout"
 
-// jsdom has no layout engine; ProseMirror asks for these.
-beforeAll(() => {
-  Range.prototype.getBoundingClientRect = () => new DOMRect()
-  Range.prototype.getClientRects = () => [] as unknown as DOMRectList
-  document.elementFromPoint = () => null
-  window.matchMedia ??= ((query: string) => ({
-    matches: false,
-    media: query,
-    addEventListener() {},
-    removeEventListener() {},
-  })) as unknown as typeof window.matchMedia
-  globalThis.ResizeObserver ??= class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  }
-})
+beforeAll(stubLayout)
 
 afterEach(cleanup)
 

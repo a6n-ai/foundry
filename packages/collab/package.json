@@ -6,6 +6,10 @@
   "sideEffects": ["**/*.css"],
   "exports": {
     "./react": "./src/react/index.ts",
+    "./colors": "./src/react/colors.ts",
+    "./presence": "./src/react/presence.tsx",
+    "./template": "./src/react/template.ts",
+    "./limits": "./src/limits.ts",
     "./server": "./src/server/index.ts",
     "./token": "./src/token.ts",
     "./schema": "./src/schema.ts"
