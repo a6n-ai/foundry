@@ -11,6 +11,7 @@
     "./initials": "./src/initials.ts",
     "./use-debounced-async": "./src/use-debounced-async.ts",
     "./stale-deploy": "./src/stale-deploy.ts",
+    "./api-fetch": "./src/api-fetch.ts",
     "./*": "./src/*.tsx"
   },
   "scripts": {
