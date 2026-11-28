@@ -3,7 +3,8 @@ export const LIMITS = {
   snapshotBytes: 1_000_000,
   textChars: 200_000,
   messageBytes: 262_144,
-  messagesPerWindow: 120,
+  // one keystroke is a doc update plus awareness messages, so a fast typist sends 20+ a second
+  messagesPerWindow: 600,
   windowMs: 10_000,
 } as const
 
