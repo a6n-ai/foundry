@@ -68,10 +68,19 @@ export function CollabEditor(props: CollabEditorProps) {
         return { token: token ?? "" }
       },
     })
-    provider.on("status", ({ status }: { status: CollabStatus }) => latest.current.onStatus?.(status))
-    // the room refused a change as too large: reconnecting would only send it again
+    // the provider says "disconnected" only after a socket that opened, and "connecting" again on every retry
+    let dropped = false
+    provider.on("status", ({ status }: { status: CollabStatus }) => {
+      if (status === "connected") dropped = false
+      if (status === "connecting" && dropped) return
+      latest.current.onStatus?.(status)
+    })
     provider.on("connection-close", (event: { code?: number } | null) => {
-      if (event?.code !== 1009 && event?.code !== FULL_CODE) return
+      // a refused token or an unmount closes the socket on purpose
+      if (!alive || denied) return
+      dropped = true
+      if (event?.code !== 1009 && event?.code !== FULL_CODE) return latest.current.onStatus?.("disconnected")
+      // the room refused a change as too large: reconnecting would only send it again
       provider.shouldConnect = false
       setFull(true)
       latest.current.onStatus?.("full")

@@ -143,3 +143,28 @@ test("an ordinary disconnect keeps retrying", async () => {
   act(() => providers[0].emit("connection-close", [{ code: 1006 }]))
   expect(providers[0].shouldConnect).toBe(true)
 })
+
+const status = (value: string) => act(() => providers[0].emit("status", [{ status: value }]))
+
+test("a socket that never opens is reported as disconnected until one opens", async () => {
+  const onStatus = vi.fn()
+  mount({ onStatus })
+  await waitFor(() => expect(providers[0].shouldConnect).toBe(true))
+  status("connecting")
+  expect(onStatus).toHaveBeenLastCalledWith("connecting")
+  act(() => providers[0].emit("connection-close", [{ code: 1006 }]))
+  expect(onStatus).toHaveBeenLastCalledWith("disconnected")
+  status("connecting")
+  expect(onStatus).toHaveBeenLastCalledWith("disconnected")
+  status("connected")
+  expect(onStatus).toHaveBeenLastCalledWith("connected")
+})
+
+test("a refused token is not reported as a connection failure", async () => {
+  const onStatus = vi.fn()
+  const onDenied = vi.fn()
+  mount({ getToken: async () => null, onDenied, onStatus })
+  await waitFor(() => expect(onDenied).toHaveBeenCalled())
+  act(() => providers[0].emit("connection-close", [{ code: 1006 }]))
+  expect(onStatus).not.toHaveBeenCalled()
+})
